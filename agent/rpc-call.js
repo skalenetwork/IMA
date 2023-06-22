@@ -29,9 +29,17 @@ const net = require( "net" );
 
 const g_nConnectionTimeoutSeconds = 60;
 
+function rpc_call_init() {
+    owaspUtils.owaspAddUsageRef();
+}
+
+function validateURL( x ) {
+    return owaspUtils.validateURL( x );
+}
+
 function is_http_url( strURL ) {
     try {
-        if( !owaspUtils.validateURL( strURL ) )
+        if( !validateURL( strURL ) )
             return false;
         const u = new URL( strURL );
         if( u.protocol == "http:" || u.protocol == "https:" )
@@ -43,7 +51,7 @@ function is_http_url( strURL ) {
 
 function is_ws_url( strURL ) {
     try {
-        if( !owaspUtils.validateURL( strURL ) )
+        if( !validateURL( strURL ) )
             return false;
         const u = new URL( strURL );
         if( u.protocol == "ws:" || u.protocol == "wss:" )
@@ -53,16 +61,17 @@ function is_ws_url( strURL ) {
     return false;
 }
 
-function rpc_call_init() {
-    owaspUtils.owaspAddUsageRef();
-}
-
 async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     fnDone = fnDone || async function( nStep ) {};
     fnDone = fnStep || async function( nStep ) { return true; };
-    const nStep = 0;
+    let nStep = 0;
     const promiseComplete = new Promise( function( resolve, reject ) {
-        const iv = setInterval( async function() {
+        let isInsideAsyncHandler = false;
+        const fn_async_handler = async function() {
+            if( isInsideAsyncHandler )
+                return;
+            isInsideAsyncHandler = true;
+            ++ nStep;
             if( socket.readyState === 1 ) {
                 // console.log( "Connection is made" )
                 clearInterval( iv );
@@ -74,6 +83,15 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
                     reject( new Error( "web socket wait timout by callback on step " + nStep ) );
                 }
             }
+            isInsideAsyncHandler = false;
+        };
+        const iv = setInterval( function() {
+            if( isInsideAsyncHandler )
+                return;
+            fn_async_handler()
+                .then( () => {
+                } ).catch( () => {
+                } );
         }, 1000 ); // 1 second
     } );
     await Promise.all( [ promiseComplete ] );
@@ -82,7 +100,7 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
 async function do_connect( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
-        if( !owaspUtils.validateURL( joCall.url ) )
+        if( !validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) ) {
             let strWsError = null;
@@ -92,15 +110,23 @@ async function do_connect( joCall, opts, fn ) {
             } );
             joCall.wsConn.on( "close", async function() {
                 strWsError = "web socket was closed, please check provided URL is valid and accessible";
-                joCall.wsConn = 0;
+                joCall.wsConn = null;
             } );
             joCall.wsConn.on( "error", async function( err ) {
                 strWsError = err.toString() || "internal web socket error";
                 log.write( cc.u( joCall.url ) + cc.error( " web socket error: " ) + cc.warning( err.toString() ) + "\n" );
+                const wsConn = joCall.wsConn;
+                joCall.wsConn = null;
+                wsConn.close();
+                do_reconnect_ws_step( joCall, opts );
             } );
             joCall.wsConn.on( "fail", async function( err ) {
                 strWsError = err.toString() || "internal web socket failure";
                 log.write( cc.u( joCall.url ) + cc.error( " web socket fail: " ) + cc.warning( err.toString() ) + "\n" );
+                const wsConn = joCall.wsConn;
+                joCall.wsConn = null;
+                wsConn.close();
+                do_reconnect_ws_step( joCall, opts );
             } );
             joCall.wsConn.on( "message", async function incoming( data ) {
                 // log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
@@ -108,6 +134,10 @@ async function do_connect( joCall, opts, fn ) {
                 if( joOut.id in joCall.mapPendingByCallID ) {
                     const entry = joCall.mapPendingByCallID[joOut.id];
                     delete joCall.mapPendingByCallID[joOut.id];
+                    if( entry.iv ) {
+                        clearTimeout( entry.iv );
+                        entry.iv = null;
+                    }
                     clearTimeout( entry.out );
                     await entry.fn( entry.joIn, joOut, null );
                 }
@@ -123,6 +153,10 @@ async function do_connect( joCall, opts, fn ) {
                     if( nStep >= g_nConnectionTimeoutSeconds ) {
                         strWsError = "wait timeout, web socket is connecting too long";
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait timeout detected" ) + "\n" );
+                        const wsConn = joCall.wsConn;
+                        joCall.wsConn = null;
+                        wsConn.close();
+                        do_reconnect_ws_step( joCall, opts );
                         return false; // stop waiting
                     }
                     return true; // continue waiting
@@ -138,12 +172,13 @@ async function do_connect( joCall, opts, fn ) {
         joCall.wsConn = null;
         await fn( joCall, err );
     }
+    return joCall;
 }
 
 async function do_connect_if_needed( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
-        if( !owaspUtils.validateURL( joCall.url ) )
+        if( !validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
             await joCall.reconnect( fn );
@@ -153,9 +188,43 @@ async function do_connect_if_needed( joCall, opts, fn ) {
     } catch ( err ) {
         await fn( joCall, err );
     }
+    return joCall;
 }
 
-const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+async function do_reconnect_ws_step( joCall, opts, fn ) {
+    if( ! joCall.isAutoReconnect )
+        return;
+    if( joCall.isDisconnectMode )
+        return;
+    fn = fn || async function() {};
+    do_connect( joCall, opts, async function( joCall, err ) {
+        if( err ) {
+            do_reconnect_ws_step( joCall, opts );
+            return;
+        }
+        await fn( joCall, null );
+    } );
+}
+
+async function do_disconnect( joCall, fn ) {
+    fn = fn || async function() {};
+    try {
+        joCall.isDisconnectMode = true;
+        const wsConn = joCall.wsConn ? joCall.wsConn : null;
+        joCall.wsConn = null;
+        if( wsConn )
+            wsConn.close();
+        joCall.isDisconnectMode = false;
+        try {
+            await fn( joCall, null );
+        } catch ( err ) {
+        }
+    } catch ( err ) {
+        await await fn( joCall, err );
+    }
+}
+
+const do_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
 async function do_call( joCall, joIn, fn ) {
     // console.log( "--- --- --- initial joIn is", joIn );
@@ -169,13 +238,15 @@ async function do_call( joCall, joIn, fn ) {
             out: null
         };
         joCall.mapPendingByCallID[joIn.id] = entry;
-        entry.out = setTimeout( function() {
+        entry.iv = setTimeout( function() {
+            clearTimeout( entry.iv );
+            entry.iv = null;
             delete joCall.mapPendingByCallID[joIn.id];
-        }, 20 * 1000 );
+        }, 200 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
         // console.log( "--- --- --- call URL is", joCall.url );
-        if( !owaspUtils.validateURL( joCall.url ) ) {
+        if( !validateURL( joCall.url ) ) {
             // throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
             await fn( joIn, null, "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
             return;
@@ -216,24 +287,24 @@ async function do_call( joCall, joIn, fn ) {
             } catch ( err ) {
                 bCompleteFlag = true;
                 joOut = null;
-                errCall = "Responce body parse error: " + err.toString();
+                errCall = "Response body parse error: " + err.toString();
                 return;
             }
             bCompleteFlag = true;
         } );
         for( let idxWait = 0; ! bCompleteFlag; ++ idxWait ) {
             if( idxWait < 50 )
-                await impl_sleep( 5 );
+                await do_sleep( 5 );
             else if( idxWait < 100 )
-                await impl_sleep( 10 );
+                await do_sleep( 10 );
             else if( idxWait < 1000 )
-                await impl_sleep( 100 );
+                await do_sleep( 100 );
             else {
                 const nLastWaitPeriod = 200;
                 if( ( idxWait - 1000 ) * nLastWaitPeriod > g_nConnectionTimeoutSeconds )
                     bCompleteFlag = true;
                 else
-                    await impl_sleep( nLastWaitPeriod );
+                    await do_sleep( nLastWaitPeriod );
             }
         } // for( let idxWait = 0; ! bCompleteFlag; ++ idxWait )
         try {
@@ -244,7 +315,7 @@ async function do_call( joCall, joIn, fn ) {
 }
 
 async function rpc_call_create( strURL, opts, fn ) {
-    if( !owaspUtils.validateURL( strURL ) )
+    if( !validateURL( strURL ) )
         throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || async function() {};
     if( !( strURL && typeof strURL == "string" && strURL.length > 0 ) )
@@ -254,6 +325,8 @@ async function rpc_call_create( strURL, opts, fn ) {
         "joRpcOptions": opts ? opts : null,
         "mapPendingByCallID": { },
         "wsConn": null,
+        "isAutoReconnect": ( opts && "isAutoReconnect" in opts && opts.isAutoReconnect ) ? true : false,
+        "isDisconnectMode": false,
         "reconnect": async function( fnAfter ) {
             await do_connect( joCall, fnAfter );
         },
@@ -269,9 +342,13 @@ async function rpc_call_create( strURL, opts, fn ) {
                 }
                 await do_call( joCall, joIn, fnAfter );
             } );
+        },
+        "disconnect": async function( fnAfter ) {
+            await do_disconnect( joCall, fnAfter );
         }
     };
     await do_connect( joCall, opts, fn );
+    return joCall;
 }
 
 function generate_random_integer_in_range( min, max ) {
@@ -426,5 +503,6 @@ module.exports = {
     get_valid_host_and_port: get_valid_host_and_port,
     check_tcp_promise: check_tcp_promise,
     check_tcp: check_tcp,
-    check_url: check_url
+    check_url: check_url,
+    sleep: do_sleep
 }; // module.exports

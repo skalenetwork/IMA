@@ -84,6 +84,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     // schainHash   => Pause structure
     mapping(bytes32 => Pause) public pauseInfo;
 
+    //   schainHash => Set of addresses of reimbursed contracts
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _reimbursedContracts;
+
     /**
      * @dev Emitted when gas cost for message header was changed.
      */
@@ -114,6 +117,22 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         bytes32 indexed schainHash
     );
 
+   /**
+     * @dev Emitted when reimbursed contract was added
+     */
+    event ReimbursedContractAdded(
+        bytes32 indexed schainHash,
+        address contractAddress
+    );
+
+   /**
+     * @dev Emitted when reimbursed contract was removed
+     */
+    event ReimbursedContractRemoved(
+        bytes32 indexed schainHash,
+        address contractAddress
+    );
+
     /**
      * @dev Reentrancy guard for postIncomingMessages.
      */
@@ -124,6 +143,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         messageInProgress = false;
     }
 
+    /**
+     * @dev Modifier to make a function callable only when IMA is active.
+     */
     modifier whenNotPaused(bytes32 schainHash) {
         require(!isPaused(schainHash), "IMA is paused");
         _;
@@ -152,8 +174,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - `msg.sender` must be granted as DEFAULT_ADMIN_ROLE.
      * - Address of CommunityPool contract must not be null.
      */
-    function setCommunityPool(ICommunityPool newCommunityPoolAddress) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+    function setCommunityPool(ICommunityPool newCommunityPoolAddress) external override onlyOwner {
         require(address(newCommunityPoolAddress) != address(0), "CommunityPool address has to be set");
         communityPool = newCommunityPoolAddress;
     }
@@ -195,6 +216,56 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         );
         require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         _removeExtraContract(schainHash, extraContract);
+        if (_reimbursedContracts[schainHash].contains(extraContract)) {
+            _removeReimbursedContract(schainHash, extraContract);
+        }
+    }
+
+    /**
+     * @dev Allows `msg.sender` to add reimbursed contract for being able to reimburse gas amount from CommunityPool
+     * during message transfers from custom contracts.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
+     * - Schain name must not be `Mainnet`.
+     * - `reimbursedContract` should be registered as extra contract
+     */
+    function addReimbursedContract(string memory schainName, address reimbursedContract) external override {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");        
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to add reimbursed contract"
+        );
+        require(reimbursedContract.isContract(), "Given address is not a contract");
+        require(isContractRegistered(schainHash, reimbursedContract), "Contract is not registered");
+        require(!_reimbursedContracts[schainHash].contains(reimbursedContract), "Reimbursed contract is already added");
+        _reimbursedContracts[schainHash].add(reimbursedContract);
+        emit ReimbursedContractAdded(schainHash, reimbursedContract);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to remove reimbursed contract,
+     * thus `reimbursedContract` will no longer be available to reimburse gas amount from CommunityPool during
+     * message transfers from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
+     * - Schain name must not be `Mainnet`.
+     */
+    function removeReimbursedContract(string memory schainName, address reimbursedContract) external override {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to remove reimbursed contract"
+        );
+        require(_reimbursedContracts[schainHash].contains(reimbursedContract), "Reimbursed contract is not added");
+        _removeReimbursedContract(schainHash, reimbursedContract);
     }
 
     /**
@@ -238,7 +309,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (isContractRegistered(bytes32(0), messages[i].destinationContract)) {
+            if (isReimbursedContract(fromSchainHash, messages[i].destinationContract)) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(
@@ -286,21 +357,18 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      *
      * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
      */
-    function setVersion(string calldata newVersion) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+    function setVersion(string calldata newVersion) external override onlyOwner {
         emit VersionUpdated(version, newVersion);
         version = newVersion;
     }
 
     /**
      * @dev Allows PAUSABLE_ROLE to pause IMA bridge unlimited
-     * or DEFAULT_ADMIN_ROLE to pause for 4 hours
-     * or schain owner to pause unlimited after DEFAULT_ADMIN_ROLE pause it
      *
      * Requirements:
      *
      * - IMA bridge to current schain was not paused
-     * - Sender should be PAUSABLE_ROLE, DEFAULT_ADMIN_ROLE or schain owner
+     * - Sender should be PAUSABLE_ROLE
      */
     function pause(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -324,6 +392,39 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         require(pauseInfo[schainHash].paused, "Already unpaused");
         pauseInfo[schainHash].paused = false;
         emit SchainResumed(schainHash);
+    }
+
+    /**
+     * @dev Should return length of reimbursed contracts by schainHash.
+     */
+    function getReimbursedContractsLength(bytes32 schainHash) external view override returns (uint256) {
+        return _reimbursedContracts[schainHash].length();
+    }
+
+    /**
+     * @dev Should return a range of reimbursed contracts by schainHash.
+     * 
+     * Requirements:
+     * range should be less or equal 10 contracts
+     */
+    function getReimbursedContractsRange(
+        bytes32 schainHash,
+        uint256 from,
+        uint256 to
+    )
+        external
+        view
+        override
+        returns (address[] memory contractsInRange)
+    {
+        require(
+            from < to && to - from <= 10 && to <= _reimbursedContracts[schainHash].length(),
+            "Range is incorrect"
+        );
+        contractsInRange = new address[](to - from);
+        for (uint256 i = from; i < to; i++) {
+            contractsInRange[i - from] = _reimbursedContracts[schainHash].at(i);
+        }
     }
 
     /**
@@ -378,6 +479,15 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function isPaused(bytes32 schainHash) public view override returns (bool) {
         return pauseInfo[schainHash].paused;
+    }
+
+    /**
+     * @dev Returns true if message to the contract should be reimbursed from CommunityPool.
+     */
+    function isReimbursedContract(bytes32 schainHash, address contractAddress) public view override returns (bool) {
+        return
+            isContractRegistered(bytes32(0), contractAddress) ||
+            _reimbursedContracts[schainHash].contains(contractAddress);
     }
 
     // private
@@ -437,5 +547,11 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
     {
         return _registryContracts;
+    }
+
+
+    function _removeReimbursedContract(bytes32 schainHash, address reimbursedContract) private {
+        _reimbursedContracts[schainHash].remove(reimbursedContract);
+        emit ReimbursedContractRemoved(schainHash, reimbursedContract);
     }
 }

@@ -31,10 +31,10 @@ import {
     TokenManagerERC20,
     TokenManagerLinker,
     MessageProxyForSchainTester,
-    CommunityLocker
+    CommunityLocker,
+    EtherbaseMock
 } from "../typechain";
 
-import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -46,12 +46,13 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
+import { skipTime } from "./utils/time";
 
 describe("TokenManagerERC20", () => {
     let deployer: SignerWithAddress;
@@ -60,8 +61,8 @@ describe("TokenManagerERC20", () => {
 
     const mainnetName = "Mainnet";
     const schainName = "D2-chain";
-    const schainId = stringValue(web3.utils.soliditySha3(schainName));
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const schainId = ethers.utils.solidityKeccak256(["string"], [schainName]);
+    const mainnetId = ethers.utils.solidityKeccak256(["string"], ["Mainnet"]);
     let fakeDepositBox: string;
     let fakeCommunityPool: any;
     let erc20OnChain: ERC20OnChain;
@@ -133,6 +134,8 @@ describe("TokenManagerERC20", () => {
         const data2 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, { name, symbol, decimals: 18 });
 
         await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
+        await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+
         // execution
         const res = await (await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetId, fakeDepositBox, data)).wait();
 
@@ -142,7 +145,7 @@ describe("TokenManagerERC20", () => {
             assert("No events were emitted");
         } else {
             newAddress = "0x" + res.events[res.events.length - 1].topics[3].slice(-40);
-            const newERC20Contract = await (await ethers.getContractFactory("ERC20OnChain")).attach(newAddress) as ERC20OnChain;
+            const newERC20Contract = (await ethers.getContractFactory("ERC20OnChain")).attach(newAddress) as ERC20OnChain;
             let balance = await newERC20Contract.functions.balanceOf(to);
             parseInt(balance.toString(), 10).should.be.equal(amount);
             // expectation
@@ -255,7 +258,7 @@ describe("TokenManagerERC20", () => {
         let tokenManagerErc202: TokenManagerERC20;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = ethers.utils.solidityKeccak256(["string"], [newSchainName]);
 
         beforeEach(async () => {
             erc20OnOriginChain = await deployERC20OnChain("NewToken", "NTN");
@@ -302,6 +305,107 @@ describe("TokenManagerERC20", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should reject `transferToSchainERC20` when executing earlier than allowed", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(90);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(20);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await skipTime(110);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC20` and receive tokens without mistakes", async () => {
@@ -358,18 +462,20 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
 
             await tokenManagerErc202.enableAutomaticDeploy();
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
 
             const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
 
         });
 
-        it("should invoke `transferToSchainERC20` and receive tokens without mistakes double", async () => {
+        it("should invoke `transferToSchainERC20` and receive tokens without mistakes back and forward twice", async () => {
             const amount = "20000000000000000";
             await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -425,7 +531,7 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
 
             const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
 
             const amount2 = "50000000000000000";
@@ -455,6 +561,7 @@ describe("TokenManagerERC20", () => {
         it("should invoke `transferToSchainERC20` and receive tokens without mistakes double with attached token", async () => {
             const amount = "20000000000000000";
             await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -538,7 +645,8 @@ describe("TokenManagerERC20", () => {
 
         it("should invoke `transferToSchainERC20` and transfer back without mistakes", async () => {
             const amount = "20000000000000000";
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -594,7 +702,7 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
 
             const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
 
             await tokenManagerErc202
@@ -616,13 +724,6 @@ describe("TokenManagerERC20", () => {
 
             await tokenManagerErc202
                 .connect(user)
-                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
-
-            await tokenManagerErc202
-                .connect(user)
                 .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
 
             data = await messages.encodeTransferErc20Message(
@@ -638,7 +739,8 @@ describe("TokenManagerERC20", () => {
 
         it("should invoke `transferToSchainERC20` and transfer back without mistakes with attached tokens", async () => {
             const amount = "20000000000000000";
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -711,13 +813,6 @@ describe("TokenManagerERC20", () => {
 
             await tokenManagerErc202
                 .connect(user)
-                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
-
-            await tokenManagerErc202
-                .connect(user)
                 .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
 
             data = await messages.encodeTransferErc20Message(
@@ -734,7 +829,8 @@ describe("TokenManagerERC20", () => {
 
         it("should invoke `transferToSchainERC20` and transfer back without mistakes double", async () => {
             const amount = "20000000000000000";
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -790,7 +886,7 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
 
             const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
 
             await tokenManagerErc202
@@ -809,13 +905,6 @@ describe("TokenManagerERC20", () => {
                 .should.be.eventually.rejectedWith("Transfer is not approved by token holder");
 
             await targetErc20OnChain.connect(user).approve(tokenManagerErc202.address, amount);
-
-            await tokenManagerErc202
-                .connect(user)
-                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
 
             await tokenManagerErc202
                 .connect(user)
@@ -904,7 +993,8 @@ describe("TokenManagerERC20", () => {
 
         it("should invoke `transferToSchainERC20` and transfer back without mistakes double with attached tokens", async () => {
             const amount = "20000000000000000";
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -974,13 +1064,6 @@ describe("TokenManagerERC20", () => {
                 .should.be.eventually.rejectedWith("Transfer is not approved by token holder");
 
             await erc20OnTargetChain.connect(user).approve(tokenManagerErc202.address, amount);
-
-            await tokenManagerErc202
-                .connect(user)
-                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
 
             await tokenManagerErc202
                 .connect(user)
@@ -1109,6 +1192,7 @@ describe("TokenManagerERC20", () => {
 
             await tokenManagerErc202.connect(deployer).grantRole(await tokenManagerErc202.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
             await tokenManagerErc202.connect(schainOwner).addERC20TokenByOwner(schainName,  erc20OnOriginChain.address, erc20OnTargetChain.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
 
@@ -1134,7 +1218,6 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
 
-            await messageProxyForSchain2.registerExtraContract(newSchainNameZ, tokenManagerErc202.address);
             await tokenManagerErc202.addTokenManager(newSchainNameZ, tokenManagerErc20Z.address);
 
             await erc20OnTargetChain.connect(user).approve(tokenManagerErc202.address, amount);
@@ -1152,7 +1235,8 @@ describe("TokenManagerERC20", () => {
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
             const amount = "20000000000000000";
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerErc202.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -1213,7 +1297,6 @@ describe("TokenManagerERC20", () => {
                 .exitToMainERC20(erc20OnTargetChain.address, amount)
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
 
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
 
             await tokenManagerErc202
                 .connect(user)
@@ -1230,8 +1313,6 @@ describe("TokenManagerERC20", () => {
 
             await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
 
-            await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerErc20.address);
-
             await tokenManagerErc20
                 .connect(user)
                 .exitToMainERC20(erc20OnOriginChain.address, amount)
@@ -1247,13 +1328,17 @@ describe("TokenManagerERC20", () => {
     });
 
     describe("tests for `postMessage` function", async () => {
+        beforeEach(async () => {
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerErc20.address);
+        });
+
         it("should transfer ERC20 token with token info", async () => {
             //  preparation
             const amount = 10;
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainName = "fromSchainName";
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             // await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
 
@@ -1275,7 +1360,7 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
             // expectation
             const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(fromSchainHash, erc20OnMainnet.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
         });
@@ -1283,8 +1368,8 @@ describe("TokenManagerERC20", () => {
         it("should transfer ERC20 token to schain when token add by schain owner", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainName = "fromSchainName";
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await messageProxyForSchain.connect(deployer).addConnectedChain(fromSchainName);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(fromSchainName,  erc20OnMainnet.address, erc20OnChain.address);
@@ -1304,16 +1389,16 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
             // expectation
             const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(fromSchainHash, erc20OnMainnet.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
         });
 
-        it("should should transfer token to schain and automaticaly deploy", async () => {
+        it("should should transfer token to schain and automatically deploy", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainName = "fromSchainName";
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
 
             const amount = 10;
@@ -1341,7 +1426,7 @@ describe("TokenManagerERC20", () => {
 
             // expectation
             const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(fromSchainHash, erc20OnMainnet.address);
-            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            const targetErc20OnChain = (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
         });
@@ -1361,8 +1446,8 @@ describe("TokenManagerERC20", () => {
             const amount = 10;
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainName = "fromSchainName";
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
 
@@ -1393,5 +1478,53 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetId, fakeDepositBox, data)
                 .should.be.eventually.rejectedWith("Total supply exceeded");
         });
+
+        it("should top up a receiver", async () => {
+            const amount = 10;
+            const receiver = ethers.Wallet.createRandom().connect(ethers.provider);
+            const remoteTokenManager = ethers.Wallet.createRandom();
+            const sourceSchainName = "sourceSchain";
+            const sourceSchainHash = ethers.utils.solidityKeccak256(["string"], [sourceSchainName])
+            await tokenManagerErc20.addTokenManager(sourceSchainName, remoteTokenManager.address);
+            const etherbase = await (await ethers.getContractFactory("EtherbaseMock")).deploy() as EtherbaseMock;
+            await etherbase.initialize(deployer.address);
+            await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), messageProxyForSchain.address);
+            await messageProxyForSchain.setEtherbase(etherbase.address);
+            await deployer.sendTransaction({to: etherbase.address, value: ethers.utils.parseEther("3")});
+
+            (await receiver.getBalance()).should.be.equal(0);
+
+            const data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnMainnet.address,
+                receiver.address,
+                amount,
+                2 * amount,
+                {
+                    name: await erc20OnMainnet.name(),
+                    symbol: await erc20OnMainnet.symbol(),
+                    decimals: await erc20OnMainnet.decimals()
+                }
+            );
+            await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
+            await messageProxyForSchain.postMessage(
+                tokenManagerErc20.address,
+                sourceSchainHash,
+                remoteTokenManager.address,
+                data);
+
+            (await receiver.getBalance()).should.be.equal(0);
+
+            await expect(messageProxyForSchain.setMinimumReceiverBalance(ethers.utils.parseEther("2")))
+                .to.emit(messageProxyForSchain, 'MinimumReceiverBalanceChanged')
+                .withArgs(0, ethers.utils.parseEther("2"));
+
+            await messageProxyForSchain.postMessage(
+                tokenManagerErc20.address,
+                sourceSchainHash,
+                remoteTokenManager.address,
+                data);
+
+            (await receiver.getBalance()).should.be.equal(await messageProxyForSchain.minimumReceiverBalance());
+        })
     });
 });

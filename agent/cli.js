@@ -110,22 +110,32 @@ function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitI
         if( isExitIfEmpty )
             process.exit( 126 );
     }
-    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 )
+    let cntAccountVariantsSpecified = 0;
+    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/TM/URL", joAccount.strTransactionManagerURL, isExitIfEmpty, isPrintValue );
-    else if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
-        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
-    ) {
+    }
+    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/SGX/URL", joAccount.strSgxURL, isExitIfEmpty, isPrintValue );
-        ensure_have_value( "" + strFriendlyChainName + "/SGX/keyName", joAccount.strSgxKeyName, isExitIfEmpty, isPrintValue );
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 )
             ensure_have_value( "" + strFriendlyChainName + "/SGX/SSL/keyPath", joAccount.strPathSslKey, isExitIfEmpty, isPrintValue );
         if( "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0 )
             ensure_have_value( "" + strFriendlyChainName + "/SGX/SSL/certPath", joAccount.strPathSslCert, isExitIfEmpty, isPrintValue );
-    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 )
+    }
+    if( "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
+        ensure_have_value( "" + strFriendlyChainName + "/SGX/keyName", joAccount.strSgxKeyName, isExitIfEmpty, isPrintValue );
+    }
+    if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/privateKey", joAccount.privateKey, isExitIfEmpty, isPrintValue );
-    else if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 )
+    }
+    if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/walletAddress", joAccount.address_, isExitIfEmpty, isPrintValue );
-    else {
+    }
+    if( cntAccountVariantsSpecified == 0 ) {
         log.write( cc.error( "ARGUMENTS VALIDATION WARNING:" ) +
             cc.warning( " bad credentials information specified for " ) + cc.info( strFriendlyChainName ) +
             cc.warning( " chain, no explicit SGX, no explicit private key, no wallet address found" ) + "\n"
@@ -196,7 +206,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..............." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " URL. Value is automatically loaded from the " ) + cc.warning( "URL_W3_S_CHAIN_TARGET" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_ETHEREUM" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"id-S-chain\"" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN_TARET" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"id-T-chain\"" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN_TARGET" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"id-T-chain\"" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_ETHEREUM" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_SCHAIN" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_SCHAIN_TARGET" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
@@ -390,7 +400,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.debug( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.debug( " application." ) );
             //
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) + cc.debug( "......" ) + cc.notice( "Specifies chain name." ) );
@@ -411,7 +421,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-skale-network" ) + cc.debug( ".........." ) + cc.notice( "Download entire " ) + cc.note( "SKALE network" ) + cc.notice( " description." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "browse-connected-schains" ) + cc.debug( "......" ) + cc.notice( "Download " ) + cc.note( "S-Chains" ) + cc.notice( " conected to " ) + cc.note( "S-Chain" ) + cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) + cc.notice( " command line parameter." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "browse-connected-schains" ) + cc.debug( "......" ) + cc.notice( "Download " ) + cc.note( "S-Chains" ) + cc.notice( " connected to " ) + cc.note( "S-Chain" ) + cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) + cc.notice( " command line parameter." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "discover-cid" ) + cc.debug( ".................." ) + cc.notice( "Discover " ) + cc.attention( "chains ID(s)" ) + cc.notice( " from provided " ) + cc.note( "URL(s)" ) + cc.notice( "." ) + cc.debug( " This command is not executed automatically at startup" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
@@ -480,6 +490,11 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "id-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainName_s_chain = joArg.value;
+            continue;
+        }
+        if( joArg.name == "id-origin-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.strChainName_origin_chain = joArg.value;
             continue;
         }
         if( joArg.name == "id-t-chain" ) {
@@ -1130,7 +1145,7 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "monitoring-port" ) {
-            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
             imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
             continue;
         }
@@ -1230,8 +1245,9 @@ function parse( joExternalHandlers, argv ) {
     return 0;
 }
 
-function getWeb3FromURL( strURL ) {
+function getWeb3FromURL( strURL, log ) {
     let w3 = null;
+    log = log || { write: console.log };
     try {
         const u = cc.safeURL( strURL );
         const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
@@ -1261,7 +1277,7 @@ function getWeb3FromURL( strURL ) {
     } catch ( err ) {
         log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
             cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( err.toString() ) + "\n" );
+            cc.error( ": " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
         w3 = null;
     }
     return w3;
@@ -1282,7 +1298,7 @@ async function async_check_url_at_startup( u, name ) {
     } catch ( err ) {
         details.write(
             cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
-            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( err.toString() ) +
+            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );
@@ -1474,7 +1490,7 @@ function ima_common_init() {
     // token_manager_erc20_address                --> token_manager_erc20_abi
     // token_manager_erc721_address               --> token_manager_erc721_abi
     // token_manager_erc1155_address              --> token_manager_erc1155_abi
-    // token_manager_erc721_with_metadata_address --> token_manager_erc721_with_metdata_abi
+    // token_manager_erc721_with_metadata_address --> token_manager_erc721_with_metadata_abi
     // token_manager_linker_address               --> token_manager_linker_abi
     // message_proxy_mainnet_address              --> message_proxy_mainnet_abi
     // message_proxy_chain_address                --> message_proxy_chain_abi
@@ -1483,7 +1499,7 @@ function ima_common_init() {
     if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
         const u = imaState.strURL_main_net;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.w3_main_net = getWeb3FromURL( u );
+        imaState.w3_main_net = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -1495,7 +1511,7 @@ function ima_common_init() {
     if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
         const u = imaState.strURL_s_chain;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.w3_s_chain = getWeb3FromURL( u );
+        imaState.w3_s_chain = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
@@ -1507,7 +1523,7 @@ function ima_common_init() {
     if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
         const u = imaState.strURL_t_chain;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.w3_t_chain = getWeb3FromURL( u );
+        imaState.w3_t_chain = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +

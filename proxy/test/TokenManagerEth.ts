@@ -34,7 +34,7 @@ import {
     TokenManagerLinker,
 } from "../typechain";
 import { gasMultiplier } from "./utils/command_line";
-import { randomString, stringValue } from "./utils/helper";
+import { stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -66,8 +66,8 @@ describe("TokenManagerEth", () => {
     let messages: MessagesTester;
     let ethERC20: EthErc20;
     let communityLocker: CommunityLocker;
-    let fakeDepositBox: any;
-    let fakeCommunityPool: any;
+    let fakeDepositBox: string;
+    let fakeCommunityPool: string;
     const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
 
     before(async () => {
@@ -217,7 +217,7 @@ describe("TokenManagerEth", () => {
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
 
         await tokenManagerEth.connect(user).exitToMain(amountTo)
-            .should.be.eventually.rejectedWith("Trying to send messages too often");
+            .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
     });
 
@@ -277,16 +277,15 @@ describe("TokenManagerEth", () => {
 
         it("should transfer eth", async () => {
             //  preparation
-            const fromSchainName = randomString(10);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth.address);
+            const fromSchainName = "fromSchainName";
             const fromSchainId = stringValue(web3.utils.soliditySha3(fromSchainName));
             const amount = "10";
             const sender = deployer.address;
             const to = user.address;
             // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
             const bytesData = await messages.encodeTransferEthMessage(to, amount);
-            // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
-            // to avoid `Not a sender` error
-            tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
+
             // add schain to avoid the `Receiver chain is incorrect` error
             await tokenManagerEth
                 .connect(deployer)
@@ -294,19 +293,26 @@ describe("TokenManagerEth", () => {
             await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), tokenManagerEth.address);
             await ethERC20.connect(deployer).grantRole(await ethERC20.BURNER_ROLE(), tokenManagerEth.address);
             // execution
-            await tokenManagerEth
-                .connect(deployer)
-                .postMessage(fromSchainId, sender, bytesData)
-                .should.be.eventually.rejectedWith("Receiver chain is incorrect");
+            await messageProxyForSchain.postMessage(
+                tokenManagerEth.address,
+                fromSchainId,
+                sender,
+                bytesData
+            ).should.be.eventually.rejectedWith("Receiver chain is incorrect");
 
-            await tokenManagerEth
-                .connect(deployer)
-                .postMessage(mainnetHash, sender, bytesData)
-                .should.be.eventually.rejectedWith("Receiver chain is incorrect");
+            await messageProxyForSchain.postMessage(
+                tokenManagerEth.address,
+                mainnetHash,
+                sender,
+                bytesData
+            ).should.be.eventually.rejectedWith("Receiver chain is incorrect");
 
-            await tokenManagerEth
-                .connect(deployer)
-                .postMessage(mainnetHash, fakeDepositBox, bytesData);
+            await messageProxyForSchain.postMessage(
+                tokenManagerEth.address,
+                mainnetHash,
+                fakeDepositBox,
+                bytesData
+            );
             // expectation
             expect(parseInt((BigNumber.from(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(parseInt(amount, 10));

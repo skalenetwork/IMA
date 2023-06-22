@@ -2,7 +2,7 @@
 
 ## General Description
 
-**SKALE Network Browser** (**SNB**) or **SKALE Observer** is part of IMA resposible for providing description of all SKALE chains. This is done via set of calls to **SKALE Mananger**.
+**SKALE Network Browser** (**SNB**) or **SKALE Observer** is part of IMA responsible for providing description of all SKALE chains. This is done via set of calls to **SKALE Manager**.
 
 **SNB** maintains cache of S-Chain descriptions and refreshes all descriptions periodically. These descriptions and needed for S-Chain to S-Chain IMA message transfers when IMA needs to know how to connect to other S-Chain.
 
@@ -12,7 +12,7 @@ First SKALE network scan is performed by **SNB** on IMA startup. Next network de
 
 ## Implementation details
 
-The `SchainsInternal.numberOfSchains` contract call returns number of created S-Chains to load from **SKALE Mananger**. For each of S-Chains we need to get its hash by index what is done `SchainsInternal.schainsAtSystem` contract call. Then contract call to `SchainsInternal.schains` returns basic S-Chain description by hash. Obtained basic S-Chain description does not describe nodes and they must be loaded via set of contract calls. The `SchainsInternal.getNodesInGroup` contract call returns array of node identifiers for all S-Chain nodes. The `Nodes.nodes` contract call returns node description by node id. Returned node description includes IP adderess, domain name and, base port of a node, maintanance state flag. Then call to `SchainsInternal.getSchainIdsForNode` contract call allows to find effective node base port and compute per-protocol ports (`http`, `https`, `ws`, `wss`).
+The `SchainsInternal.numberOfSchains` contract call returns number of created S-Chains to load from **SKALE Manager**. For each of S-Chains we need to get its hash by index what is done `SchainsInternal.schainsAtSystem` contract call. Then contract call to `SchainsInternal.schains` returns basic S-Chain description by hash. Obtained basic S-Chain description does not describe nodes and they must be loaded via set of contract calls. The `SchainsInternal.getNodesInGroup` contract call returns array of node identifiers for all S-Chain nodes. The `Nodes.nodes` contract call returns node description by node id. Returned node description includes IP address, domain name and, base port of a node, maintenance state flag. Then call to `SchainsInternal.getSchainHashesForNode` contract call allows to find effective node base port and compute per-protocol ports (`http`, `https`, `ws`, `wss`).
 
 Cache of S-Chain descriptions is result of download process described above. When new S-Chain descriptions are downloaded, they replace old ones. By default this is performed once in an hour.
 
@@ -20,7 +20,7 @@ S-Chain descriptions directly affect on S-Chain to S-Chain transfers because the
 
 **SNB** can be invoked from command line of IMA agent in one of the following ways
    - The`--browse-skale-network` command line options invokes download entire SKALE network description, all S-Chains, all `skaled` nodes.
-   - The `--browse-connected-schains` command line options invokes download of which are S-Chains conected to S-Chain with name specified in `--id-s-chain` command line parameter.
+   - The `--browse-connected-schains` command line options invokes download of which are S-Chains connected to S-Chain with name specified in `--id-s-chain` command line parameter.
 
 Example of **SNB** invocation:
 
@@ -39,7 +39,7 @@ node agent/main.js --colors --browse-skale-network \
     --key-s-chain=...
 ```
 
-Example of downloaded S-Chains description containg 2 S-Chains named `Bob1000` and `Bob1001`, 2 `skaled` nodes each:
+Example of downloaded S-Chains description containing 2 S-Chains named `Bob1000` and `Bob1001`, 2 `skaled` nodes each:
 
 ```json
 [

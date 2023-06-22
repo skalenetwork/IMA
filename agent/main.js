@@ -280,7 +280,7 @@ global.imaState = {
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
+        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconds to re-discover SKALE network, 0 to disable
     },
 
     "arrActions": [] // array of actions to run
@@ -314,27 +314,31 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             }
             log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
             const opts = {
-                imaState: imaState,
+                "imaState": imaState,
                 "details": log,
                 "bStopNeeded": false,
-                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
+                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
+                "bParallelMode": true
             };
             const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-            const strError = await skale_observer.cache_schains(
-                imaState.strChainName_s_chain, // strChainNameConnectedTo
-                imaState.w3_main_net,
-                addressFrom,
-                opts
-            );
-            if( strError ) {
-                log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
-                return true;
-            }
-            const arr_schains = skale_observer.get_last_cached_schains();
-            log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            // const strError = await skale_observer.cache_schains(
+            //     imaState.strChainName_s_chain, // strChainNameConnectedTo
+            //     imaState.w3_main_net,
+            //     imaState.w3_s_chain,
+            //     addressFrom,
+            //     opts
+            // );
+            // if( strError ) {
+            //     log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
+            //     return true;
+            // }
+            // const arr_schains = skale_observer.get_last_cached_schains();
+            // log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.strChainName_s_chain, // strChainNameConnectedTo
                 imaState.w3_main_net,
+                imaState.w3_s_chain,
                 addressFrom,
                 opts
             );
@@ -1385,6 +1389,8 @@ imaCLI.parse( {
                 await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        if( joCall )
+                            await joCall.disconnect();
                         process.exit( 156 );
                     }
                     await joCall.call( {
@@ -1395,6 +1401,7 @@ imaCLI.parse( {
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            await joCall.disconnect();
                             process.exit( 157 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
@@ -1413,6 +1420,7 @@ imaCLI.parse( {
                             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    await joCall.disconnect();
                                     process.exit( 158 );
                                 }
                                 await joCall.call( {
@@ -1428,6 +1436,7 @@ imaCLI.parse( {
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
+                                    await joCall.disconnect();
                                 } );
                             } );
                         }
@@ -1438,6 +1447,7 @@ imaCLI.parse( {
                                 process.exit( 0 );
                             }
                         }, 100 );
+                        await joCall.disconnect();
                     } );
                 } );
                 return true;
@@ -1462,7 +1472,8 @@ imaCLI.parse( {
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
                 const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+                const cnt = arr_schains.length;
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
                 return true;
             }
         } );
@@ -1485,18 +1496,17 @@ imaCLI.parse( {
                     "bStopNeeded": false
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-                const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                await skale_observer.check_connected_schains(
+
+                const arr_schains_cached = await skale_observer.load_schains_connected_only(
+                    imaState.w3_main_net,
+                    imaState.w3_s_chain,
                     imaState.strChainName_s_chain, // strChainNameConnectedTo
-                    arr_schains,
                     addressFrom,
                     opts
                 );
-                const arr_schains_cached = await skale_observer.filter_schains_marked_as_connected(
-                    arr_schains,
-                    opts
-                );
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "connected S-Chains" ) + cc.normal( " information: " ) + cc.j( arr_schains_cached ) + "\n" );
+
+                const cnt = arr_schains_cached.length;
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " connected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;
             }
         } );
@@ -1531,7 +1541,7 @@ imaCLI.parse( {
                 }
                 if( arr_urls_to_discover.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " no URLs privided to discover chain IDs, please specify " ) +
+                        cc.error( " no URLs provided to discover chain IDs, please specify " ) +
                         cc.warning( "--url-main-net" ) + cc.error( " and/or " ) +
                         cc.warning( "--url-s-chain" ) + cc.error( " and/or " ) +
                         cc.warning( "--url-t-chain" ) + cc.error( "." ) +
@@ -1751,8 +1761,11 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
         return;
     if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
         return; // no S-Chain re-discovery (for debugging only)
-    g_timer_s_chain_discovery = setInterval( async function() {
+    const fn_async_handler = async function() {
+        if( g_b_in_s_chain_discovery )
+            return;
         if( g_b_in_s_chain_discovery ) {
+            isInsideAsyncHandler = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
@@ -1819,6 +1832,11 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             } );
         } catch ( err ) { }
         g_b_in_s_chain_discovery = false;
+    };
+    g_timer_s_chain_discovery = setInterval( function() {
+        if( g_b_in_s_chain_discovery )
+            return;
+        fn_async_handler();
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
@@ -1842,6 +1860,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     );
                 }
                 fnAfter( err, null );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             await joCall.call( {
@@ -1859,6 +1879,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err, null );
+                    await joCall.disconnect();
                     return;
                 }
                 if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
@@ -1877,6 +1898,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err2, null );
+                    await joCall.disconnect();
                     return;
                 }
                 const jarrNodes = joSChainNetworkInfo.network;
@@ -1932,6 +1954,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 }
                                 // fnAfter( err, null );
                                 ++ cntFailed;
+                                if( joCall )
+                                    await joCall.disconnect();
                                 return;
                             }
                             joCall.call( {
@@ -2062,6 +2086,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                 }, nWaitStepMilliseconds );
+                await joCall.disconnect();
             } );
         } );
     } catch ( err ) {
@@ -2084,7 +2109,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
 let g_ws_server_monitoring = null;
 
 if( imaState.nMonitoringPort > 0 ) {
-    const strLogPrefix = cc.attention( "Monitoring" ) + " " + cc.sunny( ">>" ) + " ";
+    const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
     g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
@@ -2101,7 +2126,7 @@ if( imaState.nMonitoringPort > 0 ) {
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2175,8 +2200,8 @@ if( imaState.nMonitoringPort > 0 ) {
                     } break;
                 case "get_last_transfer_errors":
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
-                    // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
-                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
+                    // answer: { "id": 1, "method": "get_last_transfer_errors", "isIncludeTextLog": true, "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
+                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors( ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog ) ? true : false );
                     joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
                 default:
@@ -2192,7 +2217,7 @@ if( imaState.nMonitoringPort > 0 ) {
             }
             try {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
@@ -2428,7 +2453,7 @@ async function single_transfer_loop() {
     try {
         if( g_is_single_transfer_loop ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
+                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress right now" ) + "\n" );
             return true;
         }
         g_is_single_transfer_loop = true;
