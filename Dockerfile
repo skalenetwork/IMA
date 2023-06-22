@@ -28,7 +28,7 @@ WORKDIR /ima
 COPY proxy proxy
 COPY agent agent
 COPY npms npms
-COPY postinstall.sh postinstall.sh
+COPY postinstall-in-container.sh postinstall.sh
 COPY package.json package.json
 COPY VERSION VERSION
 
