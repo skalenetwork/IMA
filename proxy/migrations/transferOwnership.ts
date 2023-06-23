@@ -1,8 +1,7 @@
-import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deployMainnet";
-import { ethers, network, upgrades, artifacts } from "hardhat";
+import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
+import { ethers } from "hardhat";
 import hre from "hardhat";
 import { promises as fs } from "fs";
-import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import chalk from "chalk";
 import { SafeMock } from "../typechain";

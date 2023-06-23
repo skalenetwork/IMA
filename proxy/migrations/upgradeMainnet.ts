@@ -52,7 +52,7 @@ async function main() {
     await manifestSetup(pathToManifest);
     const upgrader = new ImaMainnetUpgrader(
         "proxyMainnet",
-        "1.3.4",
+        "1.4.0",
         await getImaMainnetAbiAndAddress(),
         contracts
     );

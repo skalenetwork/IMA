@@ -61,18 +61,8 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         external
         payable
         override
-        rightTransaction(schainName, msg.sender)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        address contractReceiver = schainLinks[schainHash];
-        require(contractReceiver != address(0), "Unconnected chain");
-        _saveTransferredAmount(schainHash, msg.value);
-        messageProxy.postOutgoingMessage(
-            schainHash,
-            contractReceiver,
-            Messages.encodeTransferEthMessage(msg.sender, msg.value)
-        );
+        depositDirect(schainName, msg.sender);
     }
 
     /**
@@ -221,6 +211,33 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ETH from mainnet to schain to specified receiver.
+     * 
+     * Requirements:
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver contract should be added as twin contract on schain.
+     * - Schain that receives tokens should not be killed.
+     */
+    function depositDirect(string memory schainName, address receiver)
+        public
+        payable
+        override
+        rightTransaction(schainName, receiver)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
+        _saveTransferredAmount(schainHash, msg.value);
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            contractReceiver,
+            Messages.encodeTransferEthMessage(receiver, msg.value)
+        );
     }
 
     /**
