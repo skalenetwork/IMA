@@ -27,15 +27,17 @@ import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
+import "./DefaultAddresses.sol";
+import "./TokenManagerLinker.sol";
 
 
 /**
  * @title MessageProxyForSchain
  * @dev Entry point for messages that come from mainnet or other SKALE chains
  * and contract that emits messages for mainnet or other SKALE chains.
- * 
+ *
  * Messages are submitted by IMA-agent and secured with threshold signature.
- * 
+ *
  * IMA-agent monitors events of {MessageProxyForSchain} and sends messages to other chains.
 
  * NOTE: 16 Agents
@@ -55,7 +57,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     IEtherbaseUpgradeable public constant ETHERBASE = IEtherbaseUpgradeable(
-        payable(0xd2bA3e0000000000000000000000000000000000)
+        payable(DefaultAddresses.ETHERBASE)
     );
     uint public constant MINIMUM_BALANCE = 1 ether;
 
@@ -100,6 +102,20 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     bool public override messageInProgress;
 
     /**
+     * @dev if receiver has no sFuil it's balance is topupped from etherbase for the value
+     * if the value is 0 MINIMUM_BALANCE is used
+     */
+    uint256 public minimumReceiverBalance;
+
+    /**
+     * @dev the event is emitted when value of receiver's minimum balance is changed
+     */
+    event MinimumReceiverBalanceChanged (
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
      * @dev Reentrancy guard for postIncomingMessages.
      */
     modifier messageInProgressLocker() {
@@ -111,9 +127,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
 
     /**
      * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
      * - Destination chain hash cannot be equal to itself
      */
@@ -133,9 +149,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     /**
      * @dev Allows MessageProxy to remove extra contract,
      * thus `extraContract` will no longer be available to transfer messages from chain to chain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
      * - Destination chain hash cannot be equal to itself
      */
@@ -156,9 +172,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * @dev Link external chain.
      *
      * NOTE: Mainnet is linked automatically.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
      * - Target chain must be different from the current.
      */
@@ -166,14 +182,14 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != schainHash, "Schain cannot connect itself");
         _addConnectedChain(chainHash);
-    }    
+    }
 
     /**
      * @dev Entry point for incoming messages.
      * This function is called by IMA-agent to deliver incoming messages from external chains.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Origin chain has to be registered.
      * - Amount of messages must be no more than {MESSAGES_LENGTH}.
      * - Messages batch has to be signed with threshold signature.
@@ -184,7 +200,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         string calldata fromChainName,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata signature 
+        Signature calldata signature
     )
         external
         override(IMessageProxy, MessageProxy)
@@ -203,20 +219,40 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        _topUpBalance();
+        _topUpSenderBalance();
     }
 
     /**
      * @dev Sets new version of contracts on schain
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
      */
-    function setVersion(string calldata newVersion) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+    function setVersion(string calldata newVersion) external override onlyOwner {
         emit VersionUpdated(version, newVersion);
         version = newVersion;
+    }
+
+    /**
+     * @dev Sets a minimum balance of a receiver.
+     * If the balance is lower IMA tries to send sFuel to top up it.
+     */
+    function setMinimumReceiverBalance(uint256 balance) external override onlyConstantSetter {
+        emit MinimumReceiverBalanceChanged(minimumReceiverBalance, balance);
+        minimumReceiverBalance = balance;
+    }
+
+    /**
+     * @dev Sends sFuel to the `receiver` address to satisfy a minimum balance
+     */
+    function topUpReceiverBalance(address payable receiver) external override {
+        require(isContractRegistered(bytes32(0), msg.sender), "Sender is not registered");
+        uint256 balance = receiver.balance;
+        uint256 threshold = minimumReceiverBalance;
+        if (balance < threshold) {
+            _transferFromEtherbase(receiver, threshold - balance);
+        }
     }
 
     /**
@@ -274,9 +310,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
 
     /**
      * @dev Unlink external SKALE chain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
      * - Target chain must be different from Mainnet.
      */
@@ -295,9 +331,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     /**
      * @dev This function is called by a smart contract
      * that wants to make a cross-chain call.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Destination chain has to be registered.
      * - Sender contract has to be registered.
      */
@@ -373,20 +409,27 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     /**
-     * @dev Move skETH from Etherbase if the balance is too low
+     * @dev Move SFuel from Etherbase if the sender balance is too low
      */
-    function _topUpBalance() private {
+    function _topUpSenderBalance() private {
         uint balance = msg.sender.balance + gasleft() * tx.gasprice;
+        if (balance < MINIMUM_BALANCE) {
+            _transferFromEtherbase(payable(msg.sender), MINIMUM_BALANCE - balance);
+        }
+    }
+
+    /**
+     * @dev Move SFuel from Etherbase to `target` address
+     */
+    function _transferFromEtherbase(address payable target, uint256 value) private {
         IEtherbaseUpgradeable etherbase = _getEtherbase();
         if (address(etherbase).isContract()
-            && etherbase.hasRole(etherbase.ETHER_MANAGER_ROLE(), address(this)) 
-            && balance < MINIMUM_BALANCE
+            && etherbase.hasRole(etherbase.ETHER_MANAGER_ROLE(), address(this))
         ) {
-            uint missingAmount = MINIMUM_BALANCE - balance;
-            if (missingAmount < address(etherbase).balance) {
-                etherbase.partiallyRetrieve(payable(msg.sender), missingAmount);
+            if (value < address(etherbase).balance) {
+                etherbase.partiallyRetrieve(target, value);
             } else {
-                etherbase.retrieve(payable(msg.sender));
+                etherbase.retrieve(target);
             }
         }
     }
@@ -403,5 +446,5 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             message.data
         );
         return keccak256(data);
-    }    
+    }
 }
