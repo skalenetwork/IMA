@@ -120,6 +120,7 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
             contractOnSchain.setTokenURI(tokenId, tokenURI);
         }
         emit ERC721TokenReceived(fromChainHash, token, address(contractOnSchain), tokenId);
+        messageProxy.topUpReceiverBalance(payable(receiver));
         return receiver;
     }
 

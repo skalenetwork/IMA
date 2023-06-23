@@ -174,8 +174,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - `msg.sender` must be granted as DEFAULT_ADMIN_ROLE.
      * - Address of CommunityPool contract must not be null.
      */
-    function setCommunityPool(ICommunityPool newCommunityPoolAddress) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+    function setCommunityPool(ICommunityPool newCommunityPoolAddress) external override onlyOwner {
         require(address(newCommunityPoolAddress) != address(0), "CommunityPool address has to be set");
         communityPool = newCommunityPoolAddress;
     }
@@ -358,8 +357,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      *
      * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
      */
-    function setVersion(string calldata newVersion) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+    function setVersion(string calldata newVersion) external override onlyOwner {
         emit VersionUpdated(version, newVersion);
         version = newVersion;
     }
