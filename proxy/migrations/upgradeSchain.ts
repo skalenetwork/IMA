@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
-import { Upgrader } from "@skalenetwork/upgrade-tools";
+import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
@@ -9,6 +9,19 @@ import { CommunityLocker } from "../typechain/CommunityLocker";
 import { MessageProxyForSchain } from "../typechain";
 
 class ImaSchainUpgrader extends Upgrader {
+
+    constructor(
+        targetVersion: string,
+        abi: SkaleABIFile,
+        contractNamesToUpgrade: string[],
+        submitter = new AutoSubmitter()) {
+            super(
+                "proxySchain",
+                targetVersion,
+                abi,
+                contractNamesToUpgrade,
+                submitter);
+        }
 
     async getMessageProxyForSchain() {
         return await ethers.getContractAt("MessageProxyForSchain", this.abi.message_proxy_chain_address as string) as MessageProxyForSchain;
@@ -30,6 +43,8 @@ class ImaSchainUpgrader extends Upgrader {
             data: messageProxyForSchain.interface.encodeFunctionData("setVersion", [newVersion])
         });
     }
+
+    // deployNewContracts = () => { };
 
     initialize = async () => {
         const communityLockerName = "CommunityLocker";
@@ -71,8 +86,7 @@ async function main() {
     const pathToManifest: string = process.env.MANIFEST || "";
     await manifestSetup(pathToManifest);
     const upgrader = new ImaSchainUpgrader(
-        "proxySchain",
-        "1.4.0",
+        "1.5.0",
         await getImaSchainAbiAndAddress(),
         contracts
     );
