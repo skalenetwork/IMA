@@ -2,14 +2,14 @@
 
 name: Build and test
 
-on: 
+on:
   push:
     branches-ignore:
       - 'docs-v*'
   pull_request:
     branches-ignore:
       - 'docs-v*'
-  
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
@@ -79,7 +79,7 @@ jobs:
     - name: Gas calculation test
       working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
-    
+
     - name: Test upgrade
       run: bash ./proxy/scripts/test_upgrade.sh
 
@@ -92,8 +92,9 @@ jobs:
   test-predeployed:
     runs-on: ubuntu-latest
 
-    env:
-      working-directory: ./proxy
+    defaults:
+      run:
+        working-directory: proxy
 
     steps:
     - uses: actions/checkout@v2
@@ -128,14 +129,12 @@ jobs:
         node-version: 16
 
     - name: Install project
-      working-directory: ${{env.working-directory}}
       run: |
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
         npm run compile
 
     - name: Install python testing staff
-      working-directory: ${{env.working-directory}}
       run: pip3 install -r predeployed/test/requirements.txt
 
     - name: Install geth
@@ -144,7 +143,6 @@ jobs:
         sudo apt install ethereum
 
     - name: Build predeployed pip package
-      working-directory: ${{env.working-directory}}
       env:
         VERSION: "0.0.0"
       run: |
@@ -152,7 +150,6 @@ jobs:
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
-      working-directory: ${{env.working-directory}}
       env:
         PYTHONPATH: src
       run: |
@@ -163,6 +160,15 @@ jobs:
         echo "-------------- running tests"
         ./predeployed/test/prepare_environment.sh
         ./predeployed/test/test.sh
+
+    - name: Test ABIs generation
+      env:
+        VERSION: "0.0.0"
+      run: |
+        python3 -m venv predeployed/scripts/venv
+        source predeployed/scripts/venv/bin/activate
+        pip install dist/ima_predeployed-*.whl
+        python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
   test-agent:
     # The type of runner that the job will run on
@@ -257,7 +263,7 @@ jobs:
         python --version
         echo ------------ python3 version check
         which python3 || echo "----> Looks like python3 was not installed, next command will fail"
-        python3 --version    
+        python3 --version
 
     - name: INSTALL PREREQUISITES - PY
       run: |
@@ -280,7 +286,7 @@ jobs:
 
     - name: INSTALL PREREQUISITES - AGENT - PACKAGES
       run: |
-        cd agent 
+        cd agent
         yarn install
         cd ..
 
@@ -294,7 +300,7 @@ jobs:
       run: |
         cd npms/skale-owasp
         yarn install
-        cd ../..    
+        cd ../..
 
   test-integration:
     runs-on: ubuntu-latest
@@ -340,9 +346,9 @@ jobs:
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
-    - name: Install agent      
+    - name: Install agent
       run: |
-        cd agent 
+        cd agent
         yarn install
         cd ../npms/skale-ima
         yarn install
