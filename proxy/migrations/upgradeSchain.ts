@@ -46,24 +46,7 @@ class ImaSchainUpgrader extends Upgrader {
 
     // deployNewContracts = () => { };
 
-    initialize = async () => {
-        const communityLockerName = "CommunityLocker";
-        const communityLockerFactory = await ethers.getContractFactory(communityLockerName);
-        const communityLockerAddress = this.abi[getContractKeyInAbiFile(communityLockerName) + "_address"] as string;
-        let communityLocker;
-        if (communityLockerAddress) {
-            communityLocker = communityLockerFactory.attach(communityLockerAddress) as CommunityLocker;
-            console.log(chalk.yellow("Prepare transaction to initialize timestamp"));
-            this.transactions.push({
-                to: communityLockerAddress,
-                data: communityLocker.interface.encodeFunctionData("initializeTimestamp")
-            });
-        } else {
-            console.log(chalk.red("CommunityLocker was not found!"));
-            console.log(chalk.red("Check your abi!!!"));
-            process.exit(1);
-        }
-    }
+    // initialize = async () => { };
 
     _getContractKeyInAbiFile(contract: string) {
         if (contract === "MessageProxyForSchain") {
