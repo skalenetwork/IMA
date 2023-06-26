@@ -117,7 +117,7 @@ export function createStandardOutputStream() {
             "write": function( s ) {
                 const x =
                     this.strOwnIndent +
-                    + ( this.haveOwnTimestamps ? generateTimestampPrefix( null, true ) : "" ) +
+                    ( this.haveOwnTimestamps ? generateTimestampPrefix( null, true ) : "" ) +
                     s;
                 try {
                     if( this.objStream )

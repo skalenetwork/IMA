@@ -28,6 +28,8 @@ WORKDIR /ima
 COPY proxy proxy
 COPY agent agent
 COPY npms npms
+COPY postinstall.sh postinstall.sh
+COPY package.json package.json
 COPY VERSION VERSION
 
 RUN mkdir /ima/bls_binaries
