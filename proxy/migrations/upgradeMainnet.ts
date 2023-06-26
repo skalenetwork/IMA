@@ -1,13 +1,26 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
-import { Upgrader } from "@skalenetwork/upgrade-tools";
+import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
 import { contracts } from "./deployMainnet";
 import { manifestSetup } from "./generateManifest";
 import { MessageProxyForMainnet } from "../typechain";
 
 class ImaMainnetUpgrader extends Upgrader {
+
+    constructor(
+        targetVersion: string,
+        abi: SkaleABIFile,
+        contractNamesToUpgrade: string[],
+        submitter = new AutoSubmitter()) {
+            super(
+                "proxyMainnet",
+                targetVersion,
+                abi,
+                contractNamesToUpgrade,
+                submitter);
+        }
 
     async getMessageProxyForMainnet() {
         return await ethers.getContractAt("MessageProxyForMainnet", this.abi.message_proxy_mainnet_address as string) as MessageProxyForMainnet;
@@ -30,6 +43,10 @@ class ImaMainnetUpgrader extends Upgrader {
         });
     }
 
+    // deployNewContracts = () => { };
+
+    // initialize = async () => { };
+
     _getContractKeyInAbiFile(contract: string) {
         if (contract === "MessageProxyForMainnet") {
             return "message_proxy_mainnet";
@@ -51,8 +68,7 @@ async function main() {
     const pathToManifest: string = process.env.MANIFEST || "";
     await manifestSetup(pathToManifest);
     const upgrader = new ImaMainnetUpgrader(
-        "proxyMainnet",
-        "1.4.0",
+        "1.5.0",
         await getImaMainnetAbiAndAddress(),
         contracts
     );
