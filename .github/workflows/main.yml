@@ -167,7 +167,7 @@ jobs:
       run: |
         python3 -m venv predeployed/scripts/venv
         source predeployed/scripts/venv/bin/activate
-        pip install dist/ima_predeployed-*.whl
+        pip install predeployed/dist/ima_predeployed-*.whl
         python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
   test-agent:
