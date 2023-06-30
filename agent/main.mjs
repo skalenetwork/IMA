@@ -54,10 +54,6 @@ function parseCommandLine() {
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "=", cc.sunny( "=" ) );
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "/", cc.info( "/" ) );
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, ":", cc.info( ":" ) );
-    if( log.verboseGet() >= log.verboseReversed().information ) {
-        log.write( cc.debug( "Agent was started with " ) + cc.info( process.argv.length ) +
-            cc.debug( " command line argument(s) as: " ) + strPrintedArguments + "\n" );
-    }
     imaCLI.parse( {
         "register": clpTools.commandLineTaskRegister,
         "register1": clpTools.commandLineTaskRegister1,
@@ -140,6 +136,10 @@ function parseCommandLine() {
         log.add(
             imaState.strLogFilePath, imaState.nLogMaxSizeBeforeRotation,
             imaState.nLogMaxFilesCount );
+    }
+    if( imaState.isPrintSecurityValues && log.verboseGet() >= log.verboseReversed().information ) {
+        log.write( cc.debug( "Agent was started with " ) + cc.info( process.argv.length ) +
+            cc.debug( " command line argument(s) as: " ) + strPrintedArguments + "\n" );
     }
     if( imaState.bIsNeededCommonInit ) {
         imaCLI.commonInit();
