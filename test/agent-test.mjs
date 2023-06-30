@@ -70,7 +70,7 @@ const imaState = {
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
-    "isPrintSecurityValues": true,
+    "isPrintSecurityValues": false,
     "isPrintPWA": false,
     "isDynamicLogInDoTransfer": true,
     "isDynamicLogInBlsSigner": false,
