@@ -256,6 +256,7 @@ export function get() {
         "nTimeoutSecondsPWA": 60,
 
         "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
+        "bLogMonitoringServer": false,
 
         "strReimbursementChain": "",
         "isShowReimbursementBalance": false,
