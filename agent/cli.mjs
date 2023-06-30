@@ -1182,6 +1182,12 @@ function printHelpMonitoring( soi ) {
         cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) +
         cc.notice( "." ) + cc.debug( " By default monitoring server is " ) +
         cc.error( "disabled" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "monitoring-log" ) +
+        cc.debug( "........................" ) + cc.notice( "Enable logging on " ) +
+        cc.note( "monitoring web socket RPC server" ) +
+        cc.notice( ". " ) + cc.debug( " By default these log messages are " ) +
+        cc.error( "disabled" ) + cc.notice( "." ) );
 }
 
 function printHelpGasReimbursement( soi ) {
@@ -2233,6 +2239,11 @@ function parseMonitoringArgs( imaState, joArg ) {
     if( joArg.name == "monitoring-port" ) {
         owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
         imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "monitoring-log" ) {
+        owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
+        imaState.bLogMonitoringServer = true;
         return true;
     }
     return false;
