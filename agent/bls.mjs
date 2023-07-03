@@ -2800,7 +2800,7 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
         if( ! joAccount.strURL ) {
             joAccount = optsHandleVerifyAndSign.imaState.chainProperties.mn.joAccount;
             if( ! joAccount.strSgxURL )
-                throw new Error( "SGX URL is unknown, cannot sign IMA message(s)" );
+                throw new Error( "SGX URL is unknown, cannot sign(handle) IMA message(s)" );
             if( ! joAccount.strBlsKeyName )
                 throw new Error( "BLS keys name is unknown, cannot sign IMA message(s)" );
         }
