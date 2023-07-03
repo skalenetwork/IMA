@@ -207,7 +207,8 @@ let gFlagIsInSChainDiscovery = false;
 
 export async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
     const imaState = state.get();
-    const cntNodes = getSChainNodesCount( imaState.joSChainNetworkInfo );
+    const cntNodesOnChain = getSChainNodesCount( imaState.joSChainNetworkInfo );
+    const cntNodes = Math.min( Math.ceil( cntNodesOnChain * 2 / 3 + 1 ), cntNodesOnChain );
     const cntDiscovered = getSChainDiscoveredNodesCount( imaState.joSChainNetworkInfo );
     if( cntDiscovered >= cntNodes ) {
         if( gTimerSChainDiscovery != null ) {
