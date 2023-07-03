@@ -205,7 +205,7 @@ export function get() {
         "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
         "nNextFrameGap": 10,
 
-        "nAutoExitAfterSeconds": 3600, // 0-disable
+        "nAutoExitAfterSeconds": 0, // 0-disable
 
         "joCommunityPool": null, // only main net
         "joDepositBoxETH": null, // only main net
@@ -256,6 +256,7 @@ export function get() {
         "nTimeoutSecondsPWA": 60,
 
         "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
+        "bLogMonitoringServer": false,
 
         "strReimbursementChain": "",
         "isShowReimbursementBalance": false,

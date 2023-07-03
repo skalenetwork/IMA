@@ -475,10 +475,11 @@ function printHelpUserAccount1( soi ) {
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "sgx-url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
         cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
-        cc.notice( " URL for " ) + cc.note( "S<->S Target S-chain" ) +
-        cc.notice( ". Value is automatically loaded from the " ) +
-        cc.warning( "SGX_URL_S_CHAIN_TARGET" ) +
-        cc.notice( " environment variable if not specified." ) );
+        cc.notice( " URL for " ) + cc.note( "S<->S Target S-chain." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-url" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
+        cc.notice( " URL for all chains." ) );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) +
         cc.debug( "..........." ) + cc.attention( "SGX/ECDSA key name" ) +
@@ -501,6 +502,10 @@ function printHelpUserAccount1( soi ) {
         cc.warning( "SGX_KEY_S_CHAIN_TARGET" ) +
         cc.notice( " environment variable if not specified." ) );
     console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ecdsa-key" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( "............" ) + cc.attention( "SGX/ECDSA key name" ) +
+        cc.notice( " for all chains." ) );
+    console.log( soi + cc.debug( "--" ) +
         cc.bright( "sgx-bls-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) +
         cc.debug( "............." ) + cc.attention( "SGX/BLS key name" ) +
         cc.notice( " for " ) + cc.note( "Main-net" ) +
@@ -521,6 +526,10 @@ function printHelpUserAccount1( soi ) {
         cc.notice( ". Value is automatically loaded from the " ) +
         cc.warning( "BLS_KEY_S_CHAIN_TARGET" ) +
         cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-bls-key" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( ".............." ) + cc.attention( "SGX/BLS key name" ) +
+        cc.notice( " for all chains." ) );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
         cc.debug( "............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
@@ -544,6 +553,10 @@ function printHelpUserAccount1( soi ) {
         cc.notice( ". Value is automatically loaded from the " ) +
         cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN_TARGET" ) +
         cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-key" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( ".............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
+        cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of all chains." ) );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "sgx-ssl-cert-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
         cc.debug( "............" ) + cc.notice( "Path to " ) +
@@ -569,6 +582,10 @@ function printHelpUserAccount1( soi ) {
         cc.notice( ". Value is automatically loaded from the " ) +
         cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN_TARGET" ) +
         cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-cert" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "............." ) + cc.notice( "Path to " ) +
+        cc.note( "SSL certificate file" ) + cc.notice( " for all chains." ) );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
         cc.debug( "................" ) + cc.note( "Main-net" ) + " " +
@@ -1182,6 +1199,12 @@ function printHelpMonitoring( soi ) {
         cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) +
         cc.notice( "." ) + cc.debug( " By default monitoring server is " ) +
         cc.error( "disabled" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "monitoring-log" ) +
+        cc.debug( "........................" ) + cc.notice( "Enable logging on " ) +
+        cc.note( "monitoring web socket RPC server" ) +
+        cc.notice( ". " ) + cc.debug( " By default these log messages are " ) +
+        cc.error( "disabled" ) + cc.notice( "." ) );
 }
 
 function printHelpGasReimbursement( soi ) {
@@ -1564,6 +1587,14 @@ function parseSgxArgs( imaState, joArg ) {
         imaState.chainProperties.tc.joAccount.strSgxURL = joArg.value;
         return true;
     }
+    if( joArg.name == "sgx-url" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.mn.joAccount.strSgxURL =
+            imaState.chainProperties.sc.joAccount.strSgxURL =
+            imaState.chainProperties.tc.joAccount.strSgxURL =
+            joArg.value;
+        return true;
+    }
     if( joArg.name == "sgx-ecdsa-key-main-net" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
         imaState.chainProperties.mn.joAccount.strSgxKeyName = joArg.value;
@@ -1579,6 +1610,14 @@ function parseSgxArgs( imaState, joArg ) {
         imaState.chainProperties.tc.joAccount.strSgxKeyName = joArg.value;
         return true;
     }
+    if( joArg.name == "sgx-ecdsa-key" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.joAccount.strSgxKeyName =
+            imaState.chainProperties.sc.joAccount.strSgxKeyName =
+            imaState.chainProperties.tc.joAccount.strSgxKeyName =
+            joArg.value;
+        return true;
+    }
     if( joArg.name == "sgx-bls-key-main-net" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
         imaState.chainProperties.mn.joAccount.strBlsKeyName = joArg.value;
@@ -1592,6 +1631,14 @@ function parseSgxArgs( imaState, joArg ) {
     if( joArg.name == "sgx-bls-key-t-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
         imaState.chainProperties.tc.joAccount.strBlsKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-bls-key" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.joAccount.strBlsKeyName =
+            imaState.chainProperties.sc.joAccount.strBlsKeyName =
+            imaState.chainProperties.tc.joAccount.strBlsKeyName =
+            joArg.value;
         return true;
     }
     if( joArg.name == "sgx-ssl-key-main-net" ) {
@@ -1612,6 +1659,14 @@ function parseSgxArgs( imaState, joArg ) {
             imaUtils.normalizePath( joArg.value );
         return true;
     }
+    if( joArg.name == "sgx-ssl-key" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.joAccount.strPathSslKey =
+            imaState.chainProperties.sc.joAccount.strPathSslKey =
+            imaState.chainProperties.tc.joAccount.strPathSslKey =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
     if( joArg.name == "sgx-ssl-cert-main-net" ) {
         owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
         imaState.chainProperties.mn.joAccount.strPathSslCert =
@@ -1627,6 +1682,14 @@ function parseSgxArgs( imaState, joArg ) {
     if( joArg.name == "sgx-ssl-cert-t-chain" ) {
         owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
         imaState.chainProperties.tc.joAccount.strPathSslCert =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-cert" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.joAccount.strPathSslCert =
+            imaState.chainProperties.sc.joAccount.strPathSslCert =
+            imaState.chainProperties.tc.joAccount.strPathSslCert =
             imaUtils.normalizePath( joArg.value );
         return true;
     }
@@ -2233,6 +2296,11 @@ function parseMonitoringArgs( imaState, joArg ) {
     if( joArg.name == "monitoring-port" ) {
         owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
         imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "monitoring-log" ) {
+        owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
+        imaState.bLogMonitoringServer = true;
         return true;
     }
     return false;

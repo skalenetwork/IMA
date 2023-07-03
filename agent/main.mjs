@@ -54,10 +54,6 @@ function parseCommandLine() {
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "=", cc.sunny( "=" ) );
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "/", cc.info( "/" ) );
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, ":", cc.info( ":" ) );
-    if( log.verboseGet() >= log.verboseReversed().information ) {
-        log.write( cc.debug( "Agent was started with " ) + cc.info( process.argv.length ) +
-            cc.debug( " command line argument(s) as: " ) + strPrintedArguments + "\n" );
-    }
     imaCLI.parse( {
         "register": clpTools.commandLineTaskRegister,
         "register1": clpTools.commandLineTaskRegister1,
@@ -141,6 +137,10 @@ function parseCommandLine() {
             imaState.strLogFilePath, imaState.nLogMaxSizeBeforeRotation,
             imaState.nLogMaxFilesCount );
     }
+    if( imaState.isPrintSecurityValues && log.verboseGet() >= log.verboseReversed().information ) {
+        log.write( cc.debug( "Agent was started with " ) + cc.info( process.argv.length ) +
+            cc.debug( " command line argument(s) as: " ) + strPrintedArguments + "\n" );
+    }
     if( imaState.bIsNeededCommonInit ) {
         imaCLI.commonInit();
         imaCLI.initContracts();
@@ -158,14 +158,21 @@ function initMonitoringServer() {
     if( imaState.nMonitoringPort <= 0 )
         return;
     const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
-    if( log.verboseGet() >= log.verboseReversed().trace ) {
+    if( imaState.bLogMonitoringServer && log.verboseGet() >= log.verboseReversed().trace ) {
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) +
             cc.info( imaState.nMonitoringPort ) + "\n" );
     }
     gServerMonitoringWS = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
     gServerMonitoringWS.on( "connection", function( wsPeer, req ) {
-        const ip = req.socket.remoteAddress;
-        if( log.verboseGet() >= log.verboseReversed().debug )
+        let ip = req.socket.remoteAddress;
+        if( "headers" in req && req.headers && typeof req.headers == "object" &&
+            "x-forwarded-for" in req.headers && req.headers["x-forwarded-for"] )
+            ip = req.headers["x-forwarded-for"]; // better under NGINX
+        if( ( !ip ) && "_socket" in req && req._socket && "remoteAddress" in req._socket )
+            ip = req._socket.remoteAddress;
+        if( !ip )
+            ip = "N/A";
+        if( imaState.bLogMonitoringServer && log.verboseGet() >= log.verboseReversed().debug )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
         wsPeer.on( "message", function( message ) {
             const joAnswer = {
@@ -175,7 +182,9 @@ function initMonitoringServer() {
             };
             try {
                 const joMessage = JSON.parse( message );
-                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                if( imaState.bLogMonitoringServer &&
+                    log.verboseGet() >= log.verboseReversed().trace
+                ) {
                     log.write( strLogPrefix + cc.sunny( "<<<" ) + " " +
                         cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) +
                         cc.j( joMessage ) + "\n" );
@@ -255,7 +264,9 @@ function initMonitoringServer() {
                 }
             }
             try {
-                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                if( imaState.bLogMonitoringServer &&
+                    log.verboseGet() >= log.verboseReversed().trace
+                ) {
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) +
                         cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 }
