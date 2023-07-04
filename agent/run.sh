@@ -28,6 +28,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 : "${SGX_URL?Need to set SGX_URL}"
 : "${ECDSA_KEY_NAME?Need to set ECDSA_KEY_NAME}"
+: "${BLS_KEY_NAME?Need to set BLS_KEY_NAME}"
 : "${SGX_SSL_KEY_PATH?Need to set SGX_SSL_KEY_PATH}"
 : "${SGX_SSL_CERT_PATH?Need to set SGX_SSL_CERT_PATH}"
 : "${NODE_ADDRESS?Need to set NODE_ADDRESS}"
@@ -83,6 +84,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --abi-main-net=$MAINNET_PROXY_PATH \
 --abi-s-chain=$SCHAIN_PROXY_PATH \
 --sgx-url=$SGX_URL \
+--sgx-bls-key=$BLS_KEY_NAME \
 --sgx-ecdsa-key=$ECDSA_KEY_NAME \
 --sgx-ssl-key=$SGX_SSL_KEY_PATH \
 --sgx-ssl-cert=$SGX_SSL_CERT_PATH \
