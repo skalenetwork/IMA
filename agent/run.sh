@@ -72,6 +72,7 @@ echo "NODES_COUNT: $NODES_COUNT"
 BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --gas-multiplier=$GAS_MULTIPLIER \
 --verbose=$VERBOSE \
+--cross-ima \
 --json-rpc-port=$RPC_PORT \
 --s2s-enable \
 --abi-skale-manager=$MANAGER_ABI_PATH \
