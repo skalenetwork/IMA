@@ -23,7 +23,6 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as fs from "fs";
 import * as path from "path";
 import * as url from "url";
 import * as childProcessModule from "child_process";
@@ -35,7 +34,6 @@ import * as log from "../skale-log/log.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 
 import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
-import * as rpcCall from "../../agent/rpcCall.mjs";
 import * as imaUtils from "../../agent/utils.mjs";
 import * as imaHelperAPIs from "./imaHelperAPIs.mjs";
 import * as imaEventLogScan from "./imaEventLogScan.mjs";
@@ -143,7 +141,7 @@ async function payedCallPrepare( optsPayedCall ) {
     }
     if( optsPayedCall.weiHowMuch ) {
         optsPayedCall.callOpts.value =
-        owaspUtils.toBN( optsPayedCall.weiHowMuch ).toHexString();
+            owaspUtils.toBN( optsPayedCall.weiHowMuch ).toHexString();
     }
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsPayedCall.details.write( optsPayedCall.strLogPrefix +
@@ -151,21 +149,24 @@ async function payedCallPrepare( optsPayedCall ) {
             cc.debug( " will do payed-call " ) + optsPayedCall.strContractCallDescription +
             cc.debug( " with call options " ) + cc.j( optsPayedCall.callOpts ) +
             cc.debug( " via " ) + cc.attention( optsPayedCall.joACI.strType ) +
-            cc.debug( "-sign-and-send..." ) + "\n" );
+            cc.debug( "-sign-and-send using from address " ) +
+            cc.notice( optsPayedCall.joAccount.address() ) + cc.debug( "..." ) + "\n" );
     }
     optsPayedCall.unsignedTx =
         await optsPayedCall.joContract.populateTransaction[optsPayedCall.strMethodName](
             ...optsPayedCall.arrArguments, optsPayedCall.callOpts );
-    if( log.verboseGet() >= log.verboseReversed().trace ) {
-        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-            cc.debug( "populated transaction: " ) + cc.j( optsPayedCall.unsignedTx ) + "\n" );
-    }
     optsPayedCall.unsignedTx.nonce =
-        await optsPayedCall.ethersProvider.getTransactionCount( optsPayedCall.joAccount.address() );
+        owaspUtils.toBN( await optsPayedCall.ethersProvider.getTransactionCount(
+            optsPayedCall.joAccount.address() )
+        );
     if( optsPayedCall.opts && optsPayedCall.opts.isCheckTransactionToSchain ) {
         optsPayedCall.unsignedTx = await checkTransactionToSchain(
             optsPayedCall.unsignedTx, optsPayedCall.details,
             optsPayedCall.ethersProvider, optsPayedCall.joAccount );
+    }
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "populated transaction: " ) + cc.j( optsPayedCall.unsignedTx ) + "\n" );
     }
     optsPayedCall.rawTx =
         owaspUtils.ethersMod.ethers.utils.serializeTransaction( optsPayedCall.unsignedTx );
@@ -244,144 +245,57 @@ async function payedCallTM( optsPayedCall ) {
 }
 
 async function payedCallSGX( optsPayedCall ) {
-    let rpcCallOpts = null;
-    if( "strPathSslKey" in optsPayedCall.joAccount &&
-    typeof optsPayedCall.joAccount.strPathSslKey == "string" &&
-    optsPayedCall.joAccount.strPathSslKey.length > 0 &&
-    "strPathSslCert" in optsPayedCall.joAccount &&
-    typeof optsPayedCall.joAccount.strPathSslCert == "string" &&
-    optsPayedCall.joAccount.strPathSslCert.length > 0
-    ) {
-        rpcCallOpts = {
-            "cert": fs.readFileSync( optsPayedCall.joAccount.strPathSslCert, "utf8" ),
-            "key": fs.readFileSync( optsPayedCall.joAccount.strPathSslKey, "utf8" )
-        };
+    const tx = optsPayedCall.unsignedTx;
+    let { chainId } = await optsPayedCall.ethersProvider.getNetwork();
+    if( chainId == "string" )
+        chainId = owaspUtils.parseIntOrHex( chainId );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
     }
-    const promiseComplete = new Promise( function( resolve, reject ) {
-        rpcCall.create( optsPayedCall.joAccount.strSgxURL, rpcCallOpts,
-            async function( joCall, err ) {
-                if( err ) {
-                    const strError =
-                    cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-                    cc.error(
-                        " JSON RPC call creation to SGX wallet failed with error " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n";
-                    if( log.verboseGet() >= log.verboseReversed.error ) {
-                        if( log.id != optsPayedCall.details.id )
-                            log.write( optsPayedCall.strLogPrefix + strError );
-                    }
-                    optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError );
-                    reject(
-                        new Error(
-                            "CRITICAL TRANSACTION SIGNING ERROR: " +
-                        owaspUtils.extractErrorMessage( err ) ) );
-                }
-                const joIn = {
-                    "method": "ecdsaSignMessageHash",
-                    "params": {
-                        "keyName": "" + optsPayedCall.joAccount.strSgxKeyName,
-                        "messageHash": owaspUtils.ensureStartsWith0x( optsPayedCall.txHash ),
-                        "base": 16
-                    }
-                };
-                if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Calling SGX to sign using ECDSA key with " ) +
-                        cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
-                }
-                joCall.call( joIn, async function( joIn, joOut, err ) {
-                    if( err ) {
-                        const strError = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-                            cc.error( " JSON RPC call sending to SGX wallet " +
-                            "failed with error " ) +
-                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-                        if( log.verboseGet() >= log.verboseReversed.error ) {
-                            if( log.id != optsPayedCall.details.id )
-                                log.write( optsPayedCall.strLogPrefix + strError );
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError );
-                        }
-                        reject(
-                            new Error( "CRITICAL TRANSACTION SIGNING ERROR: " +
-                                owaspUtils.extractErrorMessage( err ) ) );
-                    }
-                    try {
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) +
-                                "\n" );
-                        }
-                        const v =
-                        owaspUtils.parseIntOrHex(
-                            owaspUtils.toBN( joOut.result.signature_v ).toString() );
-                        const joExpanded = {
-                            "v": v,
-                            "r": joOut.result.signature_r,
-                            "s": joOut.result.signature_s
-                        };
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "Preliminary expanded signature: " ) +
-                                cc.j( joExpanded ) + "\n" );
-                        }
-                        let { chainId } = await optsPayedCall.ethersProvider.getNetwork();
-                        if( chainId == "string" )
-                            chainId = owaspUtils.parseIntOrHex( chainId );
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
-                        }
-                        joExpanded.v += chainId * 2 + 8 + 27;
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) +
-                                "\n" );
-                        }
-                        const joSignature =
-                        owaspUtils.ethersMod.ethers.utils.joinSignature( joExpanded );
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "Final signature: " ) + cc.j( joSignature ) + "\n" );
-                        }
-                        optsPayedCall.rawTx =
-                        owaspUtils.ethersMod.ethers.utils.serializeTransaction(
-                            optsPayedCall.unsignedTx, joSignature );
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "Raw transaction with signature: " ) +
-                                cc.j( optsPayedCall.rawTx ) + "\n" );
-                        }
-                        const { hash } = await optsPayedCall.ethersProvider.sendTransaction(
-                            owaspUtils.ensureStartsWith0x( optsPayedCall.rawTx )
-                        );
-                        if( log.verboseGet() >= log.verboseReversed().trace ) {
-                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                                cc.debug( "Raw-sent transaction hash: " ) + cc.j( hash ) + "\n" );
-                        }
-                        optsPayedCall.joReceipt =
-                        await optsPayedCall.ethersProvider.waitForTransaction( hash );
-                        resolve( optsPayedCall.joReceipt );
-                    } catch ( err ) {
-                        const strErrorPrefix =
-                            "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
-                        if( log.verboseGet() >= log.verboseReversed().critical ) {
-                            const s = optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) +
-                                " " + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-                            optsPayedCall.details.write( s );
-                            if( log.id != optsPayedCall.details.id )
-                                log.write( s );
-                        }
-                        reject( new Error( strErrorPrefix +
-                            " Invoking the " + optsPayedCall.strContractCallDescription +
-                            ", error is: " + owaspUtils.extractErrorMessage( err ) ) );
-                    }
-                } );
-            } );
-    } );
-    await Promise.all( [ promiseComplete ] );
+    const strCmd = "" + process.argv[0] + " --no-warnings ./imaSgxExternalSigner.mjs " +
+        ( cc.isEnabled() ? "true" : "false" ) + " " +
+        "\"" + optsPayedCall.joAccount.strSgxURL + "\" " +
+        "\"" + optsPayedCall.joAccount.strSgxKeyName + "\" " +
+        "\"" + owaspUtils.ethersProviderToUrl( optsPayedCall.ethersProvider ) + "\" " +
+        "\"" + chainId + "\" " +
+        "\"" + ( tx.data ? tx.data : "" ) + "\" " +
+        "\"" + tx.to + "\" " +
+        "\"" + ( tx.value ? tx.value.toHexString() : "0" ) + "\" " +
+        "\"" + tx.gasPrice.toHexString() + "\" " +
+        "\"" + tx.gasLimit.toHexString() + "\" " +
+        "\"" + tx.nonce.toHexString() + "\" " +
+        "\"" + ( optsPayedCall.joAccount.strPathSslCert
+        ? optsPayedCall.joAccount.strPathSslCert : "" ) + "\" " +
+        "\"" + ( optsPayedCall.joAccount.strPathSslKey
+        ? optsPayedCall.joAccount.strPathSslKey : "" ) + "\" " +
+        "";
+    const joSpawnOptions = {
+        shell: true,
+        cwd: __dirname,
+        env: {},
+        encoding: "utf-8"
+    };
+    const rv = childProcessModule.spawnSync( strCmd, joSpawnOptions );
+    optsPayedCall.joReceipt = JSON.parse( rv.stdout.toString( "utf8" ) );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Result from external SGX signer is: " ) +
+                cc.j( optsPayedCall.joReceipt ) + "\n" );
+    }
+    postConvertBN( optsPayedCall.joReceipt, "gasUsed" );
+    postConvertBN( optsPayedCall.joReceipt, "cumulativeGasUsed" );
+    postConvertBN( optsPayedCall.joReceipt, "effectiveGasPrice" );
+}
+
+function postConvertBN( jo, name ) {
+    if( ! jo )
+        return;
+    if( ! ( name in jo ) )
+        return;
+    if( typeof jo[name] == "object" )
+        return;
+    jo[name] = owaspUtils.toBN( jo[name] );
 }
 
 async function payedCallDirect( optsPayedCall ) {
@@ -390,12 +304,38 @@ async function payedCallDirect( optsPayedCall ) {
             owaspUtils.ensureStartsWith0x(
                 optsPayedCall.joAccount.privateKey ),
             optsPayedCall.ethersProvider );
-    const joSent = await ethersWallet.sendTransaction( optsPayedCall.unsignedTx );
+
+    let { chainId } = await optsPayedCall.ethersProvider.getNetwork();
+    if( chainId == "string" )
+        chainId = owaspUtils.parseIntOrHex( chainId );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-            cc.debug( "Sent transaction: " ) + cc.j( joSent ) + "\n" );
+            cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
     }
-    optsPayedCall.joReceipt = await joSent.wait();
+    if( ( !( chainId in optsPayedCall.unsignedTx ) ) ||
+        ( !optsPayedCall.unsignedTx.chainId )
+    ) {
+        optsPayedCall.unsignedTx.chainId = chainId;
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                cc.debug( "TX with chainId: " ) +
+                cc.j( optsPayedCall.unsignedTx ) + "\n" );
+        }
+    }
+    const joSignedTX = await ethersWallet.signTransaction( optsPayedCall.unsignedTx );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Signed transaction: " ) + cc.j( joSignedTX ) + "\n" );
+    }
+    const sr = await optsPayedCall.ethersProvider.sendTransaction(
+        owaspUtils.ensureStartsWith0x( joSignedTX ) );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Raw-sent transaction result: " ) +
+            cc.j( sr ) + "\n" );
+    }
+    optsPayedCall.joReceipt =
+        await optsPayedCall.ethersProvider.waitForTransaction( sr.hash );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsPayedCall.details.write( optsPayedCall.strLogPrefix +
             cc.debug( "Transaction receipt:" ) + cc.j( optsPayedCall.joReceipt ) + "\n" );
@@ -430,7 +370,8 @@ export async function payedCall(
         rawTx: null,
         txHash: null,
         joReceipt: null,
-        callOpts: { }
+        callOpts: {
+        }
     };
     const strContractMethodDescription = cc.notice( optsPayedCall.strContractName ) +
         cc.debug( "(" ) + cc.info( optsPayedCall.joContract.address ) +
@@ -586,7 +527,7 @@ export async function checkTransactionToSchain(
                 throw new Error(
                     "Failed to compute gas price with PoW-mining (2), got zero value" );
             }
-            unsignedTx.gasPrice = powNumber;
+            unsignedTx.gasPrice = powNumber.toHexString();
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.success( "Success, finally (after PoW-mining) " +
                     "modified unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
