@@ -5,6 +5,12 @@ RUN apt-get install --no-install-recommends -yq software-properties-common
 RUN apt-get update
 RUN apt-get install --no-install-recommends -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
 
+# NOTICE: we need to install SSL 1.1 manually here in order to make BLS command line tools working
+RUN echo "deb http://security.ubuntu.com/ubuntu focal-security main" | tee /etc/apt/sources.list.d/focal-security.list
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y libssl1.1
+# NOTICE: to remove extra dep above: sudo rm /etc/apt/sources.list.d/focal-security.list
+
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 RUN apt-get install --no-install-recommends -y nodejs
 RUN npm install npm --global
