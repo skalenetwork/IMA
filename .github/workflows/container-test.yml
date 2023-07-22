@@ -411,6 +411,8 @@ jobs:
         LIB_BLS_RELEASE_TAG="0.2.0-develop.3" bash ./scripts/download_binaries.sh
         echo ------------ get scrypt
         ./npms/scrypt/get_scrypt_npm.sh
+        echo ------------ change owner in directory tree
+        sudo chown -R $USER $(pwd)
         echo ------------ docker image
         export RELEASE=false
         export VERSION=13.13.13-test.13
