@@ -412,7 +412,7 @@ jobs:
         echo ------------ get scrypt
         ./npms/scrypt/get_scrypt_npm.sh
         echo ------------ change owner in directory tree
-        sudo chown -R $USER $(pwd)
+        sudo chown -R $USER $(pwd) || true
         echo ------------ docker image
         export RELEASE=false
         export VERSION=13.13.13-test.13
