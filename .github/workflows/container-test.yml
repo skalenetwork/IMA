@@ -408,7 +408,6 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         echo ------------ download binaries
-        cd comprehensive-test/IMA
         LIB_BLS_RELEASE_TAG="0.2.0-develop.3" bash ./scripts/download_binaries.sh
         echo ------------ get scrypt
         ./npms/scrypt/get_scrypt_npm.sh
@@ -420,8 +419,8 @@ jobs:
         export REPO_NAME=skalenetwork/$NAME
         export IMAGE_NAME=$REPO_NAME:$VERSION
         export LATEST_IMAGE_NAME=$REPO_NAME:latest
+        echo Docker image name for IMA Agent is $IMAGE_NAME
         bash ./scripts/build_image.sh "" ""
-        cd ../..
 
     - name: RUN - create certificates
       working-directory: ${{env.working-directory}}
