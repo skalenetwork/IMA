@@ -58,6 +58,8 @@ export function initialSkaleNetworkScanForS2S() {
                 "bStopNeeded": false,
                 "secondsToReDiscoverSkaleNetwork":
                     imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
+                "secondsToWaitForSkaleNetworkDiscovered":
+                    imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
                 "chain": imaState.chainProperties.sc,
                 "bParallelMode": true
             };

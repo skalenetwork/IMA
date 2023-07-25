@@ -275,7 +275,8 @@ export function get() {
             // is S-Chain to S-Chain transfers enabled
             "isEnabled": true,
             // seconds to re-discover SKALE network, 0 to disable
-            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60
+            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60,
+            "secondsToWaitForSkaleNetworkDiscovered": 2 * 60
         },
 
         "nJsonRpcPort": 0, // 0 to disable
