@@ -259,7 +259,6 @@ async function main() {
     await communityLocker.grantRole(constantSetterRole, owner.address);
     console.log("Grant CONSTANT_SETTER_ROLE to owner of schain");
 
-    let extraContract: Contract;
     const extraContracts = [
         tokenManagerEth,
         tokenManagerERC20,
@@ -270,7 +269,7 @@ async function main() {
     ];
     const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
     await messageProxy.grantRole(extraContractRegistrarRole, owner.address);
-    for (extraContract of extraContracts) {
+    for (const extraContract of extraContracts) {
         await messageProxy.registerExtraContractForAll(extraContract.address)
         console.log("Contract with address ", extraContract.address, "registered as extra contract");
     }
