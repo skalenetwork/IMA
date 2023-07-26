@@ -36,6 +36,7 @@ import { UniversalDispatcherEvent, EventDispatcher }
     from "../skale-cool-socket/eventDispatcher.mjs";
 
 import * as EMC from "ethereum-multicall";
+import { clearTimeout } from "timers";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
@@ -1127,8 +1128,14 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
 async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     gFlagHaveParallelResult = false;
     try {
-        const nSecondsToWaitParallel = 60;
-        setTimeout( function() {
+        const nSecondsToWaitParallel = ( opts.secondsToWaitForSkaleNetworkDiscovered > 0 )
+            ? opts.secondsToWaitForSkaleNetworkDiscovered : ( 2 * 60 );
+        let iv = null;
+        iv = setTimeout( function() {
+            if( iv ) {
+                clearTimeout( iv );
+                iv = null;
+            }
             if( gFlagHaveParallelResult )
                 return;
             if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -1147,6 +1154,8 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
             "message": {
                 "secondsToReDiscoverSkaleNetwork":
                     parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+                "secondsToWaitForSkaleNetworkDiscovered":
+                    parseInt( opts.secondsToWaitForSkaleNetworkDiscovered ),
                 "strChainNameConnectedTo": strChainNameConnectedTo,
                 "addressFrom": addressFrom
             }
@@ -1172,12 +1181,12 @@ export async function periodicCachingStart( strChainNameConnectedTo, addressFrom
             ? true : false;
     let wasStarted = false;
     if( bParallelMode ) {
-        wasStarted =
-            parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+        wasStarted = await
+        parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
     }
     if( wasStarted )
         return;
-    inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+    await inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
 }
 
 export async function periodicCachingStop() {
@@ -1187,7 +1196,14 @@ export async function periodicCachingStop() {
                 "method": "periodicCachingStop",
                 "message": { }
             };
-            gClient.send( jo );
+            const refClient = gClient;
+            const refWorker = gWorker;
+            gClient = null;
+            gWorker = null;
+            refClient.send( jo );
+            await sleepImpl( 100 );
+            refClient.dispose();
+            await refWorker.terminate();
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 log.write( cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +

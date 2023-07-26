@@ -748,6 +748,13 @@ function printHelpTransfers( soi ) {
         cc.debug( " seconds or " ) + cc.sunny( "1" ) + cc.debug( " hour, specify " ) +
         cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + " " +
         cc.note( "SKALE NETWORK" ) + cc.debug( " re-discovery" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "net-wait-discovery" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "............." ) + cc.note( "SKALE NETWORK" ) +
+        cc.notice( " wait time" ) + cc.debug( "(in seconds)" ) +
+        cc.debug( " for " ) + cc.note( "SKALE NETWORK" ) +
+        cc.debug( " discovery result to arrive. " ) + cc.debug( "Default is " ) +
+        cc.sunny( "120" ) + cc.notice( "." ) );
 }
 
 function printHelpPaymentTransaction( soi ) {
@@ -2356,6 +2363,12 @@ function parseNetworkDiscoveryArgs( imaState, joArg ) {
     if( joArg.name == "net-rediscover" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
         imaState.optsS2S.secondsToReDiscoverSkaleNetwork =
+            owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "net-wait-discovery" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered =
             owaspUtils.toInteger( joArg.value );
         return true;
     }
@@ -4007,6 +4020,13 @@ function commonInitGasMultipliersAndTransactionArgs() {
             cc.debug( "..............." ) +
             ( imaState.optsS2S.secondsToReDiscoverSkaleNetwork
                 ? cc.info( imaState.optsS2S.secondsToReDiscoverSkaleNetwork.toString() )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "SKALE network max discovery wait time is" ) +
+            cc.debug( "..............." ) +
+            ( imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered
+                ? cc.info( imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered.toString() )
                 : cc.error( "disabled" ) ) +
             "\n" );
         log.write(

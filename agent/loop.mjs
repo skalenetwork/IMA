@@ -720,7 +720,10 @@ export async function ensureHaveWorkers( opts ) {
 
                         "optsS2S": { // S-Chain to S-Chain transfer options
                             "isEnabled": true,
-                            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60
+                            "secondsToReDiscoverSkaleNetwork":
+                                opts.imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
+                            "secondsToWaitForSkaleNetworkDiscovered":
+                                opts.imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered
                         },
 
                         "nJsonRpcPort": opts.imaState.nJsonRpcPort,

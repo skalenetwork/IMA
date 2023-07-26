@@ -265,7 +265,8 @@ const imaState = {
 
     "optsS2S": {
         "isEnabled": false,
-        "secondsToReDiscoverSkaleNetwork": 10 * 60
+        "secondsToReDiscoverSkaleNetwork": 10 * 60,
+        "secondsToWaitForSkaleNetworkDiscovered": 2 * 60
     },
 
     "nJsonRpcPort": 14999, // 0 to disable
