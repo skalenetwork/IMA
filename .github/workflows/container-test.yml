@@ -311,7 +311,7 @@ jobs:
         export REPO_NAME=skalenetwork/$NAME
         export IMAGE_NAME=$REPO_NAME:$VERSION
         export LATEST_IMAGE_NAME=$REPO_NAME:latest
-        echo Docker image name for IMA Agent is $IMAGE_NAME
+        echo "Docker image(will build) name for IMA Agent is:" $IMAGE_NAME
         bash ./scripts/build_image.sh "" ""
 
     - name: INIT - download SGX Wallet
@@ -438,6 +438,15 @@ jobs:
         echo IMA_ROOT_DIR = $IMA_ROOT_DIR
         cd comprehensive-test/engine
         export ALL_SKALE_TEST_CLOUD_RUN=1
+        #
+        export VERSION=13.13.13-test.13
+        export NAME=ima
+        export BRANCH=$GIT_CURRENT_BRANCH
+        export REPO_NAME=skalenetwork/$NAME
+        export IMAGE_NAME=$REPO_NAME:$VERSION
+        export LATEST_IMAGE_NAME=$REPO_NAME:latest
+        echo "Docker image(will run) name for IMA Agent is:" $IMAGE_NAME
+        #
         node ./index.js
         cd ../..
 
