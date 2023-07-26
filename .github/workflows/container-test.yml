@@ -306,6 +306,7 @@ jobs:
         echo ------------ docker image
         export RELEASE=false
         export VERSION=13.13.13-test.13
+        echo "Docker image(will build) version is:" $VERSION
         export NAME=ima
         export BRANCH=$GIT_CURRENT_BRANCH
         export REPO_NAME=skalenetwork/$NAME
@@ -440,6 +441,7 @@ jobs:
         export ALL_SKALE_TEST_CLOUD_RUN=1
         #
         export VERSION=13.13.13-test.13
+        echo "Docker image(will run) version is:" $VERSION
         export NAME=ima
         export BRANCH=$GIT_CURRENT_BRANCH
         export REPO_NAME=skalenetwork/$NAME
