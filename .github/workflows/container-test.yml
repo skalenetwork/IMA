@@ -343,6 +343,7 @@ jobs:
         echo 'services:'                                   >> docker-compose.yml
         echo '  sgxwallet:'                                >> docker-compose.yml
         echo '    image: skalenetwork/sgxwallet_sim:1.83.0-develop.19'                          >> docker-compose.yml
+        echo '    network_mode: "host"'                    >> docker-compose.yml
         echo '    restart: unless-stopped'                 >> docker-compose.yml
         echo '    ports:'                                  >> docker-compose.yml
         echo '      - "1026:1026"'                         >> docker-compose.yml
