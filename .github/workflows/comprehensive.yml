@@ -185,7 +185,6 @@ jobs:
     - name: INIT - Install everything in IMA
       working-directory: ${{env.working-directory}}
       run: |
-        ./npms/scrypt/get_scrypt_npm.sh
         yarn install
 
     - name: INIT - initialize comprehensive test tokens

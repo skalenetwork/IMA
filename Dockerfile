@@ -48,8 +48,6 @@ RUN chmod +x /ima/bls_binaries/verify_bls
 RUN npm install -g node-gyp
 RUN which node-gyp
 RUN node-gyp --version
-WORKDIR /ima/npms/scrypt
-RUN ./get_scrypt_npm.sh
 
 WORKDIR /ima
 RUN yarn install

@@ -6,7 +6,6 @@
     "scripts": {
         "lint-check": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js ./agent/test/*.*js",
         "lint-fix": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js ./agent/test/*.*js --fix",
-        "preinstall": "./npms/scrypt/get_scrypt_npm.sh",
         "postinstall": "./postinstall.sh",
         "check-outdated": "yarn outdated",
         "upgrade-to-latest": "yarn upgrade --latest"
