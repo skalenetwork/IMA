@@ -398,7 +398,8 @@ jobs:
         cd transaction-manager
         export SGX_SERVER_URL=http://127.0.0.1:1027
         export ENDPOINT=http://127.0.0.1:8545
-        export ETH_PRIVATE_KEY=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC
+        #export ETH_PRIVATE_KEY=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC
+        export ETH_PRIVATE_KEY=fd6d151c4afe5c1c856e5a234950252be7a90210f3aa2bad4e0db037355c1dd6
         ./scripts/run-test-containers.sh
         cd ..
         echo "------------------------------------------------------------------------------------"
