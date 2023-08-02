@@ -29,7 +29,6 @@ import hre from "hardhat";
 import { getAbi, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
-import { Contract } from '@ethersproject/contracts';
 import {
     CommunityLocker,
     EthErc20,
@@ -42,7 +41,7 @@ import {
     TokenManagerERC721WithMetadata,
     MessageProxyForSchainWithoutSignature
 } from '../typechain';
-import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
+import { TokenManagerERC1155 } from '../typechain';
 
 export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {

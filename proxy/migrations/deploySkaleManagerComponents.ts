@@ -26,7 +26,7 @@ import { promises as fs } from 'fs';
 import { ethers, web3 } from "hardhat";
 import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
-import { KeyStorageMock } from '../typechain/KeyStorageMock';
+import { KeyStorageMock } from '../typechain';
 import { Wallet } from 'ethers';
 import { getPublicKey } from '../test/utils/helper';
 

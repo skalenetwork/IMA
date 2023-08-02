@@ -55,7 +55,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
 import { expect } from "chai";
-import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
+import { MessageProxyForSchainTester } from "../typechain";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { createNode } from "./utils/skale-manager-utils/nodes";

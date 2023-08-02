@@ -3,9 +3,8 @@ import { ethers } from "hardhat";
 import { promises as fs } from "fs";
 import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
-import { contracts, getContractKeyInAbiFile } from "./deploySchain";
+import { contracts } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
-import { CommunityLocker } from "../typechain/CommunityLocker";
 import { MessageProxyForSchain } from "../typechain";
 
 class ImaSchainUpgrader extends Upgrader {
