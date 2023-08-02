@@ -697,7 +697,7 @@ async function tmWait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
         await imaHelperAPIs.sleep( 500 );
     const r = await tmGetRecord( txId );
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        strMsg = cc.debug( "TM - TX " ) + cc.info( txId ) + cc.debug( " record is " ) +
+        const strMsg = cc.debug( "TM - TX " ) + cc.info( txId ) + cc.debug( " record is " ) +
             cc.info( JSON.stringify( r ) );
         details.write( strPrefixDetails + strMsg + "\n" );
         if( log.id != details.id )
@@ -705,7 +705,7 @@ async function tmWait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
     }
     if( ( !r ) ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " status is " ) +
+            const strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " status is " ) +
                 cc.warning( "NULL RECORD" );
             details.write( strPrefixDetails + strMsg + "\n" );
             if( log.id != details.id )
@@ -713,14 +713,14 @@ async function tmWait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
         }
     } else if( r.status == "SUCCESS" ) {
         if( log.verboseGet() >= log.verboseReversed().information ) {
-            strMsg = cc.success( "TM - TX " ) + cc.info( txId ) + cc.success( " success" );
+            const strMsg = cc.success( "TM - TX " ) + cc.info( txId ) + cc.success( " success" );
             details.write( strPrefixDetails + strMsg + "\n" );
             if( log.id != details.id )
                 log.write( strPrefixLog + strMsg + "\n" );
         }
     } else {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " status is " ) +
+            const strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " status is " ) +
                 cc.warning( r.status );
             details.write( strPrefixDetails + strMsg + "\n" );
             if( log.id != details.id )
@@ -729,11 +729,11 @@ async function tmWait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
     }
     if( ( !tmIsFinished( r ) ) || r.status == "DROPPED" ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            const s = cc.error( "TM - TX " ) + cc.info( txId ) +
+            const strMsg = cc.error( "TM - TX " ) + cc.info( txId ) +
                 cc.error( " was unsuccessful, wait failed" ) + "\n";
-            details.write( s );
+            details.write( strMsg );
             if( log.id != details.id )
-                log.write( s );
+                log.write( strMsg );
         }
         return null;
     }
@@ -741,7 +741,7 @@ async function tmWait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
         details, 10, ethersProvider, r.tx_hash );
     if( !joReceipt ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            strMsg = cc.error( "TM - TX " ) + cc.info( txId ) +
+            const strMsg = cc.error( "TM - TX " ) + cc.info( txId ) +
                 cc.error( " was unsuccessful, failed to fetch transaction receipt" );
             details.write( strPrefixDetails + strMsg + "\n" );
             if( log.id != details.id )
@@ -762,11 +762,10 @@ async function tmEnsureTransaction(
     let idxAttempt = 0;
     const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
-    let strMsg;
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
         txId = await tmSend( details, txAdjusted, priority );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            strMsg = cc.debug( "TM - next TX " ) + cc.info( txId );
+            const strMsg = cc.debug( "TM - next TX " ) + cc.info( txId );
             details.write( strPrefixDetails + strMsg + "\n" );
             if( log.id != details.id )
                 log.write( strPrefixLog + strMsg + "\n" );
@@ -775,7 +774,7 @@ async function tmEnsureTransaction(
         if( joReceipt )
             break;
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            strMsg =
+            const strMsg =
                 cc.warning( "TM - unsuccessful TX " ) + cc.info( txId ) +
                 cc.warning( " sending attempt " ) + cc.info( idxAttempt ) +
                 cc.warning( " of " ) + cc.info( cntAttempts ) +
@@ -788,7 +787,7 @@ async function tmEnsureTransaction(
     }
     if( !joReceipt ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            strMsg =
+            const strMsg =
                 cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM TX " ) + cc.info( txId ) +
                 cc.error( " transaction has been dropped" );
             details.write( strPrefixDetails + strMsg + "\n" );
@@ -798,7 +797,7 @@ async function tmEnsureTransaction(
         throw new Error( "TM unsuccessful transaction " + txId );
     }
     if( log.verboseGet() >= log.verboseReversed().information ) {
-        strMsg =
+        const strMsg =
             cc.success( "TM - successful TX " ) + cc.info( txId ) +
             cc.success( ", sending attempt " ) + cc.info( idxAttempt ) +
             cc.success( " of " ) + cc.info( cntAttempts );
