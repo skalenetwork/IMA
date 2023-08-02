@@ -72,7 +72,10 @@ const config: HardhatUserConfig = {
   },
   typechain: {
     outDir: "typechain/",
-    externalArtifacts: ['node_modules/@openzeppelin/upgrades-core/artifacts/*.json']
+    externalArtifacts: [
+      'node_modules/@openzeppelin/upgrades-core/artifacts/AdminUpgradeabilityProxy.json',
+      'node_modules/@openzeppelin/upgrades-core/artifacts/ProxyAdmin.json'
+    ]
   }
 };
 
