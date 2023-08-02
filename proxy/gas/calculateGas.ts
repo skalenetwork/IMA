@@ -86,9 +86,9 @@ import { deployTokenManagerERC1155 } from "../test/utils/deploy/schain/tokenMana
 import { deployMessageProxyForSchain } from "../test/utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "../test/utils/deploy/messages";
 
-import { stringValue, getPublicKey } from "../test/utils/helper";
+import { stringKeccak256, getPublicKey } from "../test/utils/helper";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, BytesLike, Wallet } from "ethers";
 
@@ -138,7 +138,7 @@ describe("Gas calculation", () => {
     let ERC1155TokenOnSchain: ERC1155OnChain;
 
     const schainName = "GasCalculation";
-    const schainNameHash = web3.utils.soliditySha3("GasCalculation");
+    const schainNameHash = stringKeccak256("GasCalculation");
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const mainnetName = "Mainnet";
 
@@ -204,8 +204,8 @@ describe("Gas calculation", () => {
 
         // initialize schain and data
         await schainsInternal.connect(deployer).initializeSchain(schainName, schainOwner.address, 12345678, 12345678);
-        await schainsInternal.connect(deployer).addNodesToSchainsGroups(stringValue(schainNameHash), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
-        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+        await schainsInternal.connect(deployer).addNodesToSchainsGroups(schainNameHash, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        await wallets.connect(deployer).rechargeSchainWallet(schainNameHash, {value: "1000000000000000000"});
 
         // set BLS Public Key to schain
         // P.s. this is test public key from test of SkaleManager.SkaleVerifier - please do not use it!!!
@@ -219,7 +219,7 @@ describe("Gas calculation", () => {
                 b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
             }
         }
-        await keyStorage.connect(deployer).setBlsCommonPublicKeyForSchain(stringValue(schainNameHash), BLSPublicKey);
+        await keyStorage.connect(deployer).setBlsCommonPublicKeyForSchain(schainNameHash, BLSPublicKey);
         // await wallets.rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         // IMA mainnet part deployment

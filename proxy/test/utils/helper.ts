@@ -1,4 +1,5 @@
-import { Wallet, BytesLike, ethers } from "ethers";
+import { Wallet, BytesLike } from "ethers";
+import { ethers } from "hardhat";
 
 import { ec } from "elliptic";
 
@@ -58,15 +59,15 @@ export function stringFromHex(value: string) {
     return str;
 }
 
-export function stringValue(value: string | null | undefined) {
-    if (value) {
-        return value;
-    } else {
-        return "";
-    }
+export function stringKeccak256(value: string) {
+    return ethers.utils.solidityKeccak256(["string"], [value]);
 }
 
 export function getPublicKey(wallet: Wallet): [BytesLike, BytesLike] {
     const publicKey = secp256k1EC.keyFromPrivate(wallet.privateKey.slice(2)).getPublic();
     return [ethers.utils.hexlify(publicKey.getX().toBuffer()), ethers.utils.hexlify(publicKey.getY().toBuffer())]
+}
+
+export async function getBalance(address: string) {
+    return parseFloat(ethers.utils.formatEther(await ethers.provider.getBalance(address)));
 }

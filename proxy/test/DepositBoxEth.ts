@@ -28,16 +28,13 @@ import chaiAsPromised from "chai-as-promised";
 import {
     ContractManager,
     DepositBoxEth,
-    DepositBoxERC20,
-    DepositBoxERC721,
-    DepositBoxERC1155,
     Linker,
     MessageProxyForMainnet,
     MessagesTester,
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringKeccak256, getBalance, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -47,9 +44,6 @@ chai.use((chaiAsPromised as any));
 chai.use(chaiAlmost(0.002));
 
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
-import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
-import { deployDepositBoxERC721 } from "./utils/deploy/mainnet/depositBoxERC721";
-import { deployDepositBoxERC1155 } from "./utils/deploy/mainnet/depositBoxERC1155";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
@@ -61,7 +55,7 @@ import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, ContractTransaction, Wallet } from "ethers";
 
@@ -75,10 +69,6 @@ const BlsSignature: [BigNumber, BigNumber] = [
 const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
 const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
 const Counter = 0;
-
-async function getBalance(address: string) {
-    return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
-}
 
 const weiTolerance = ethers.utils.parseEther("0.002").toNumber();
 
@@ -117,7 +107,7 @@ describe("DepositBoxEth", () => {
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+    const schainHash = stringKeccak256(schainName);
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();
@@ -196,7 +186,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            const lockAndDataBalance = await web3.eth.getBalance(depositBoxEth.address);
+            const lockAndDataBalance = await ethers.provider.getBalance(depositBoxEth.address);
             // expectation
             expect(lockAndDataBalance).to.equal(wei);
         });
@@ -220,7 +210,7 @@ describe("DepositBoxEth", () => {
                 .should.emit(messageProxy, "OutgoingMessage")
                 .withArgs(schainHash, 0, depositBoxEth.address, deployer.address, data);
 
-            const lockAndDataBalance = await web3.eth.getBalance(depositBoxEth.address);
+            const lockAndDataBalance = await ethers.provider.getBalance(depositBoxEth.address);
             // expectation
             expect(lockAndDataBalance).to.equal(wei);
         });
@@ -229,7 +219,7 @@ describe("DepositBoxEth", () => {
             // preparation
             const error = "Use deposit function";
             // execution/expectation
-            await web3.eth.sendTransaction({ from: deployer.address, to: depositBoxEth.address, value: "1000000000000000000" })
+            await deployer.connect(ethers.provider).sendTransaction({to: depositBoxEth.address, value: "1000000000000000000" })
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -248,9 +238,9 @@ describe("DepositBoxEth", () => {
             await linker.connect(user2).kill(schainName);
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei2).should.be.eventually.rejectedWith("Incorrect amount");
             await depositBoxEth.connect(user).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Sender is not an Schain owner");
-            const userBalanceBefore = await web3.eth.getBalance(user.address);
+            const userBalanceBefore = await ethers.provider.getBalance(user.address);
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei);
-            expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
+            expect(BigNumber.from(await ethers.provider.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
         });
     });
 
@@ -272,7 +262,7 @@ describe("DepositBoxEth", () => {
             // execution/expectation
             await depositBoxEth
                 .connect(user)
-                .postMessage(stringValue(web3.utils.soliditySha3(schainName)), sender, bytesData)
+                .postMessage(stringKeccak256(schainName), sender, bytesData)
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -568,10 +558,10 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
-            const userBalanceBefore = await web3.eth.getBalance(user.address);
+            const userBalanceBefore = await ethers.provider.getBalance(user.address);
 
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 1, [message], sign);
-            expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
+            expect(BigNumber.from(await ethers.provider.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
 
             expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
             await depositBoxEth.connect(user).getMyEth();
@@ -640,7 +630,7 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
-            const userBalanceBefore = await web3.eth.getBalance(fallbackEthTester.address);
+            const userBalanceBefore = await ethers.provider.getBalance(fallbackEthTester.address);
 
             const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 1, [message], sign)).wait();
 

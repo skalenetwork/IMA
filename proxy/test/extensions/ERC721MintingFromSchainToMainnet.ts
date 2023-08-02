@@ -30,25 +30,16 @@ import {
     CommunityLocker,
     CommunityPool,
     ContractManager,
-    DepositBoxEth,
-    DepositBoxERC20,
-    DepositBoxERC721,
-    ERC20OnChain,
     ERC721OnChain,
     ERC721ReferenceMintAndMetadataMainnet,
     ERC721ReferenceMintAndMetadataSchain,
-    EthErc20,
     KeyStorageMock,
     MessageProxyForMainnet,
     MessageProxyForSchain,
-    MessagesTester,
     Nodes,
     Schains,
     SchainsInternal,
     SkaleVerifierMock,
-    TokenManagerEth,
-    TokenManagerERC20,
-    TokenManagerERC721,
     TokenManagerLinker,
     Wallets,
     Linker,
@@ -59,13 +50,8 @@ chai.use((chaiAsPromised as any));
 chai.use(solidity);
 
 import { deployLinker } from "../utils/deploy/mainnet/linker";
-import { deployDepositBoxEth } from "../utils/deploy/mainnet/depositBoxEth";
-import { deployDepositBoxERC20 } from "../utils/deploy/mainnet/depositBoxERC20";
-import { deployDepositBoxERC721 } from "../utils/deploy/mainnet/depositBoxERC721";
 import { deployMessageProxyForMainnet } from "../utils/deploy/mainnet/messageProxyForMainnet";
 
-import { deployEthErc20 } from "../utils/deploy/schain/ethErc20";
-import { deployERC20OnChain } from "../utils/deploy/erc20OnChain";
 import { deployERC721OnChain } from "../utils/deploy/erc721OnChain";
 
 import { deployContractManager } from "../utils/skale-manager-utils/contractManager";
@@ -78,19 +64,15 @@ import { deployContractManager } from "../utils/skale-manager-utils/contractMana
 // const Wallets: WalletsContract = artifacts.require("./Wallets");
 
 import { deployTokenManagerLinker } from "../utils/deploy/schain/tokenManagerLinker";
-import { deployTokenManagerEth } from "../utils/deploy/schain/tokenManagerEth";
-import { deployTokenManagerERC20 } from "../utils/deploy/schain/tokenManagerERC20";
-import { deployTokenManagerERC721 } from "../utils/deploy/schain/tokenManagerERC721";
 import { deployMessageProxyForSchain } from "../utils/deploy/schain/messageProxyForSchain";
-import { deployMessages } from "../utils/deploy/messages";
 
-import { stringValue, getPublicKey } from "../utils/helper";
+import { stringKeccak256, getPublicKey } from "../utils/helper";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, BytesLike, Wallet } from "ethers";
+import { BigNumber, Wallet } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployCommunityLocker } from "../utils/deploy/schain/communityLocker";
 import { deployCommunityPool } from "../utils/deploy/mainnet/communityPool";
 // import { LockAndDataForSchain } from "../typechain/LockAndDataForSchain";
@@ -123,7 +105,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let extensionSchain: ERC721ReferenceMintAndMetadataSchain;
 
     const schainName = "ExtensionChain";
-    const schainNameHash = web3.utils.soliditySha3("ExtensionChain");
+    const schainNameHash = stringKeccak256("ExtensionChain");
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
@@ -183,7 +165,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         // initialize schain and data
         await schainsInternal.connect(deployer).initializeSchain(schainName, deployer.address, 12345678, 12345678);
-        await schainsInternal.connect(deployer).addNodesToSchainsGroups(stringValue(schainNameHash), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        await schainsInternal.connect(deployer).addNodesToSchainsGroups(schainNameHash, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
         // set BLS Public Key to schain
         // P.s. this is test public key from test of SkaleManager.SkaleVerifier - please do not use it!!!
@@ -197,7 +179,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
                 b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
             }
         }
-        await keyStorage.connect(deployer).setBlsCommonPublicKeyForSchain(stringValue(schainNameHash), BLSPublicKey);
+        await keyStorage.connect(deployer).setBlsCommonPublicKeyForSchain(schainNameHash, BLSPublicKey);
         // await wallets.rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         // IMA mainnet part deployment
@@ -314,7 +296,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
     it("should send message", async () => {
         const tokenURI = "MyToken1";
-        const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
+        const mainnetHash = stringKeccak256("Mainnet");
         await ERC721TokenOnSchain.connect(user).setTokenURI(1, tokenURI);
         await ERC721TokenOnSchain.connect(user).approve(extensionSchain.address, 1);
         await messageProxyForSchain.connect(deployer).registerExtraContract("Mainnet", extensionSchain.address);
@@ -357,7 +339,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             sign
         ).should.be.rejectedWith("Schain wallet has not enough funds");
 
-        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+        await wallets.connect(deployer).rechargeSchainWallet(schainNameHash, {value: "1000000000000000000"});
 
         const resPost = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
@@ -400,7 +382,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             sign
         ).should.be.rejectedWith("Schain wallet has not enough funds");
 
-        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+        await wallets.connect(deployer).rechargeSchainWallet(schainNameHash, {value: "1000000000000000000"});
 
         await expect(messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
@@ -441,7 +423,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             sign
         ).should.be.rejectedWith("Schain wallet has not enough funds");
 
-        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+        await wallets.connect(deployer).rechargeSchainWallet(schainNameHash, {value: "1000000000000000000"});
 
         const resPost = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,

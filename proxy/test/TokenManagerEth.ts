@@ -34,7 +34,7 @@ import {
     TokenManagerLinker,
 } from "../typechain";
 import { gasMultiplier } from "./utils/command_line";
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -45,7 +45,7 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployEthErc20 } from "./utils/deploy/schain/ethErc20";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
@@ -54,7 +54,7 @@ import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messagePr
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
-const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+const schainHash = stringKeccak256(schainName);
 
 describe("TokenManagerEth", () => {
     let deployer: SignerWithAddress;
@@ -68,7 +68,7 @@ describe("TokenManagerEth", () => {
     let communityLocker: CommunityLocker;
     let fakeDepositBox: string;
     let fakeCommunityPool: string;
-    const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const mainnetHash = stringKeccak256("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -142,7 +142,7 @@ describe("TokenManagerEth", () => {
         await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).
             should.be.rejectedWith("Token Manager is already set");
 
-        const storedDepositBox = await tokenManagerEth.tokenManagers(stringValue(web3.utils.soliditySha3(schainName2)));
+        const storedDepositBox = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
         expect(storedDepositBox).to.equal(tokenManagerAddress);
     });
 
@@ -181,7 +181,7 @@ describe("TokenManagerEth", () => {
         // execution
         await tokenManagerEth.connect(deployer).removeTokenManager(schainName2);
         // expectation
-        const getMapping = await tokenManagerEth.tokenManagers(stringValue(web3.utils.soliditySha3(schainName2)));
+        const getMapping = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
         expect(getMapping).to.equal(nullAddress);
     });
 
@@ -279,7 +279,7 @@ describe("TokenManagerEth", () => {
             //  preparation
             await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth.address);
             const fromSchainName = "fromSchainName";
-            const fromSchainId = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainId = stringKeccak256(fromSchainName);
             const amount = "10";
             const sender = deployer.address;
             const to = user.address;

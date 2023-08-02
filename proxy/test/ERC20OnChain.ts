@@ -9,11 +9,10 @@ chai.use((chaiAsPromised as any));
 
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect } from "chai";
 
 describe("ERC20OnChain", () => {
     let deployer: SignerWithAddress;

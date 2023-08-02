@@ -24,7 +24,7 @@
  */
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
-import { ethers, upgrades, web3 } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
@@ -210,7 +210,7 @@ async function main() {
     if( contractManager?.address !== null && contractManager?.address !== "" && contractManager?.address !== "0x0000000000000000000000000000000000000000" ) {
         // register MessageProxy in ContractManager
         if( contractManager?.abi !== "" && contractManager?.abi !== undefined ) {
-            if( await web3.eth.getCode( contractManager?.address) !== "0x") {
+            if( await ethers.provider.getCode( contractManager?.address) !== "0x") {
                 const contractManagerInst = new ethers.Contract(contractManager?.address, contractManager?.abi, owner);
                 if (await contractManagerInst.owner() !== owner.address) {
                     console.log( "Owner of ContractManager is not the same of the deployer" );

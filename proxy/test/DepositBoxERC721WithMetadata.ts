@@ -34,7 +34,7 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringFromHex, stringKeccak256, getBalance, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -54,7 +54,7 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
 
@@ -69,9 +69,6 @@ const HashA = "30804919429741726545188616007474668515898092414623848790866732560
 const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
 const Counter = 0;
 
-async function getBalance(address: string) {
-    return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
-}
 describe("DepositBoxERC721WithMetadata", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
@@ -87,7 +84,7 @@ describe("DepositBoxERC721WithMetadata", () => {
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+    const schainHash = stringKeccak256(schainName);
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();

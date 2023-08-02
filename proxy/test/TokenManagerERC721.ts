@@ -34,7 +34,7 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
@@ -47,7 +47,7 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
@@ -60,10 +60,10 @@ describe("TokenManagerERC721", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
-    const schainId = stringValue(web3.utils.soliditySha3(schainName));
+    const schainId = stringKeccak256(schainName);
     const tokenId = 1;
     const mainnetName = "Mainnet";
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const mainnetId = stringKeccak256("Mainnet");
     let to: string;
     let token: ERC721OnChain;
     let tokenClone: ERC721OnChain;
@@ -212,7 +212,7 @@ describe("TokenManagerERC721", () => {
         let tokenManagerERC7212: TokenManagerERC721;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = stringKeccak256(newSchainName);
 
         beforeEach(async () => {
             erc721OnOriginChain = await deployERC721OnChain("NewToken", "NTN");

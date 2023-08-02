@@ -33,7 +33,7 @@ import {
     Linker,
     MessageProxyForMainnet,
 } from "../typechain";
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 
 
 chai.should();
@@ -48,7 +48,7 @@ import { deployContractManager } from "./utils/skale-manager-utils/contractManag
 
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 import { expect } from "chai";
@@ -240,29 +240,29 @@ describe("Linker", () => {
         // schain owner is user
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
-        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
+        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
+        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(0);
         await linker.connect(user).kill(schainName);
-        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
-        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(1);
+        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
+        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(1);
         await linker.connect(user).kill(schainName).should.be.eventually.rejectedWith("Already killed or incorrect sender");
         await linker.connect(deployer).kill(schainName);
-        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
-        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(3);
+        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(false);
+        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(3);
     });
 
     it("should kill schain by deployer first", async () => {
         // schain owner is user
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
-        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
+        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
+        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(0);
         await linker.connect(deployer).kill(schainName);
-        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
-        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(2);
+        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
+        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(2);
         await linker.connect(user).kill(schainName);
-        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
-        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(3);
+        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(false);
+        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(3);
     });
 
 });
