@@ -743,12 +743,14 @@ function printHelpTransfers( soi ) {
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "s2s-parallel" ) + cc.debug( ".........................." ) +
         cc.notice( "Sets " ) + " " + cc.note( "parallel S2S transfer mode" ) +
-        cc.notice( " and runs S2S in worker thread. " ) +
-        cc.debug( "This is default mode" ) + cc.notice( ". " ) );
+        cc.notice( " and runs S2S in worker thread." )
+    );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "s2s-simple" ) + cc.debug( "............................" ) +
         cc.notice( "Sets " ) + " " + cc.note( "simple S2S transfer mode" ) +
-        cc.notice( " and runs S2S in main thread." ) );
+        cc.notice( " and runs S2S in main thread." ) +
+        " " + cc.debug( "This is default mode" ) + cc.notice( ". " )
+    );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "net-rediscover" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
         cc.debug( "................." ) + cc.note( "SKALE NETWORK" ) +
@@ -2047,11 +2049,11 @@ function parseTransferArgs( imaState, joArg ) {
         return true;
     }
     if( joArg.name == "s2s-parallel" ) {
-        imaState.optsS2S.bParallelMode = true;
+        imaState.optsS2S.bParallelModeRefreshSNB = true;
         return true;
     }
     if( joArg.name == "s2s-simple" ) {
-        imaState.optsS2S.bParallelMode = false;
+        imaState.optsS2S.bParallelModeRefreshSNB = false;
         return true;
     }
     if( joArg.name == "no-wait-s-chain" ) {

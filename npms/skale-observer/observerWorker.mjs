@@ -244,6 +244,10 @@ class ObserverServer extends SocketServer {
         };
         const isFlush = true;
         socket.send( jo, isFlush );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            self.log( cc.debug( "Parallel periodic SNB caching did notified main thread now" ) +
+                "\n" );
+        }
         return null;
     }
     async periodicCachingStart(

@@ -1170,6 +1170,10 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
             }
         };
         gClient.send( jo );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Did informed worker thread to start periodic SNB refresh" ) +
+                "\n" );
+        }
         return true;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
