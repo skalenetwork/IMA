@@ -219,7 +219,7 @@ describe("DepositBoxEth", () => {
             // preparation
             const error = "Use deposit function";
             // execution/expectation
-            await deployer.connect(ethers.provider).sendTransaction({to: depositBoxEth.address, value: "1000000000000000000" })
+            await deployer.sendTransaction({to: depositBoxEth.address, value: ethers.utils.parseEther("1") })
                 .should.be.eventually.rejectedWith(error);
         });
 
