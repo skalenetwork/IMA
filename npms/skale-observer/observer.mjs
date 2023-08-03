@@ -1187,13 +1187,13 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
 
 export async function periodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     gFlagHaveParallelResult = false;
-    const bParallelMode =
-        ( opts && "bParallelMode" in opts &&
-        typeof opts.bParallelMode != "undefined" &&
-        opts.bParallelMode )
+    const bParallelModeRefreshSNB =
+        ( opts && "bParallelModeRefreshSNB" in opts &&
+        typeof opts.bParallelModeRefreshSNB != "undefined" &&
+        opts.bParallelModeRefreshSNB )
             ? true : false;
     let wasStarted = false;
-    if( bParallelMode ) {
+    if( bParallelModeRefreshSNB ) {
         wasStarted = await
         parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
     }

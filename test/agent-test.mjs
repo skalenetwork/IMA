@@ -265,7 +265,7 @@ const imaState = {
 
     "optsS2S": {
         "isEnabled": false,
-        "bParallelMode": true,
+        "bParallelModeRefreshSNB": false,
         "secondsToReDiscoverSkaleNetwork": 10 * 60,
         "secondsToWaitForSkaleNetworkDiscovered": 2 * 60
     },
