@@ -52,7 +52,7 @@ async function main() {
     }
 
     if ( process.env.PRIVATE_KEY_FOR_SCHAIN === undefined || process.env.PRIVATE_KEY_FOR_SCHAIN === "" ) {
-        console.log( "Please set PRIVATE_KEY_FOR_ETHEREUM to .env file" );
+        console.log( "Please set PRIVATE_KEY_FOR_SCHAIN to .env file" );
         process.exit( 128 );
     }
 
