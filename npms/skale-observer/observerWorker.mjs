@@ -154,6 +154,11 @@ class ObserverServer extends SocketServer {
         };
         self.mapApiHandlers.periodicCachingStart =
             function( joMessage, joAnswer, eventData, socket ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    self.opts.details.write(
+                        cc.debug( "Worker thread will to start periodic SNB refresh..." ) +
+                        "\n" );
+                }
                 self.periodicCachingStart(
                     socket,
                     joMessage.message.secondsToReDiscoverSkaleNetwork,
@@ -199,6 +204,11 @@ class ObserverServer extends SocketServer {
         self.bIsPeriodicCachingStepInProgress = true;
         for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
             try {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    self.opts.details.write(
+                        cc.debug( "Worker thread will invoke S-Chains caching..." ) +
+                        "\n" );
+                }
                 strError =
                     await skaleObserver.cacheSChains(
                         strChainNameConnectedTo,
@@ -216,7 +226,7 @@ class ObserverServer extends SocketServer {
         }
         self.bIsPeriodicCachingStepInProgress = false;
         if( strError ) {
-            if( log.verboseGet() >= log.verboseReversed().debug ) {
+            if( log.verboseGet() >= log.verboseReversed().error ) {
                 self.log( cc.error( "Parallel periodic SNB caching came across with error: " ) +
                     cc.warning( strError ) + "\n" );
             }
@@ -244,17 +254,49 @@ class ObserverServer extends SocketServer {
         if( secondsToReDiscoverSkaleNetwork <= 0 )
             return false;
         const fnAsyncHandler = async function() {
-            await self.periodicCachingDoNow(
-                socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom );
+            try {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    self.opts.details.write(
+                        cc.debug( "SKALE Observer will do immediate periodic SNB refresh..." ) +
+                        "\n" );
+                }
+                await self.periodicCachingDoNow(
+                    socket, secondsToReDiscoverSkaleNetwork,
+                    strChainNameConnectedTo, addressFrom );
+            } catch ( err ) {
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    self.log( cc.error( "Periodic SNB caching(async) error: " ) +
+                        cc.warning( strError ) + "\n" );
+                }
+            }
         };
-        self.intervalPeriodicSchainsCaching = setInterval( function() {
-            if( self.bIsPeriodicCachingStepInProgress )
-                return;
-            fnAsyncHandler()
-                .then( () => {
-                } ).catch( () => {
-                } );
-        }, secondsToReDiscoverSkaleNetwork * 1000 );
+        const fnPeriodicCaching = function() {
+            try {
+                if( self.bIsPeriodicCachingStepInProgress )
+                    return;
+                fnAsyncHandler()
+                    .then( () => {
+                    } ).catch( ( err ) => {
+                        if( log.verboseGet() >= log.verboseReversed().error ) {
+                            self.log( cc.error( "Periodic SNB caching(sync-delayed) error: " ) +
+                                cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                        }
+                    } );
+            } catch ( err ) {
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    self.log( cc.error( "Periodic SNB caching(sync) error: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                }
+            }
+        };
+        await fnPeriodicCaching();
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            self.opts.details.write(
+                cc.debug( "SKALE Observer will to start periodic SNB refresh..." ) +
+                "\n" );
+        }
+        self.intervalPeriodicSchainsCaching = setInterval(
+            fnPeriodicCaching, secondsToReDiscoverSkaleNetwork * 1000 );
         fnAsyncHandler(); // initial async call
         return true;
     }

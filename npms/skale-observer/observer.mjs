@@ -991,7 +991,7 @@ export async function ensureHaveWorker( opts ) {
         switch ( joMessage.method ) {
         case "periodicCachingDoNow":
             if( log.verboseGet() >= log.verboseReversed().debug ) {
-                self.log(
+                opts.details.write(
                     cc.debug( "Parallel periodic SNB caching result did arrived to main thread" ) +
                     "\n" );
             }
@@ -1154,6 +1154,10 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         }, nSecondsToWaitParallel * 1000 );
         owaspUtils.ensureObserverOptionsInitialized( opts );
         await ensureHaveWorker( opts );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Informing worker thread to start periodic SNB refresh..." ) +
+                "\n" );
+        }
         const jo = {
             "method": "periodicCachingStart",
             "message": {

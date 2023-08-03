@@ -720,6 +720,7 @@ export async function ensureHaveWorkers( opts ) {
 
                         "optsS2S": { // S-Chain to S-Chain transfer options
                             "isEnabled": true,
+                            "bParallelMode": opts.imaState.optsS2S.bParallelMode,
                             "secondsToReDiscoverSkaleNetwork":
                                 opts.imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
                             "secondsToWaitForSkaleNetworkDiscovered":
