@@ -990,6 +990,11 @@ export async function ensureHaveWorker( opts ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
         case "periodicCachingDoNow":
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                self.log(
+                    cc.debug( "Parallel periodic SNB caching result did arrived to main thread" ) +
+                    "\n" );
+            }
             setLastCachedSChains( joMessage.message );
             gFlagHaveParallelResult = true;
             if( opts && opts.details ) {

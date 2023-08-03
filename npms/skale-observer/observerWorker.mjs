@@ -215,8 +215,17 @@ class ObserverServer extends SocketServer {
             await sleep( 5 * 1000 );
         }
         self.bIsPeriodicCachingStepInProgress = false;
-        if( strError )
+        if( strError ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                self.log( cc.error( "Parallel periodic SNB caching came across with error: " ) +
+                    cc.warning( strError ) + "\n" );
+            }
             return strError;
+        }
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            self.log( cc.debug( "Parallel periodic SNB caching will notify main thread now" ) +
+                "\n" );
+        }
         const arrSChains = skaleObserver.getLastCachedSChains();
         const jo = {
             "method": "periodicCachingDoNow",
