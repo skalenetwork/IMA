@@ -1,5 +1,5 @@
 
-name: Comprehensive test
+name: IMA container test
 
 on: 
   push:
@@ -293,6 +293,23 @@ jobs:
       run: |
         node ./agent/main.mjs --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.4:2464 || true
 
+    - name: INIT - build IMA docker container
+      working-directory: ${{env.working-directory}}
+      run: |
+        echo ------------ download binaries
+        LIB_BLS_RELEASE_TAG="0.2.0-develop.3" bash ./scripts/download_binaries.sh
+        echo ------------ docker image
+        export RELEASE=false
+        export VERSION=13.13.13-test.13
+        echo "Docker image(will build) version is:" $VERSION
+        export NAME=ima
+        export BRANCH=$GIT_CURRENT_BRANCH
+        export REPO_NAME=skalenetwork/$NAME
+        export IMAGE_NAME=$REPO_NAME:$VERSION
+        export LATEST_IMAGE_NAME=$REPO_NAME:latest
+        echo "Docker image(will build) name for IMA Agent is:" $IMAGE_NAME
+        bash ./scripts/build_image.sh "" ""
+
     - name: INIT - download SGX Wallet
       working-directory: ${{env.working-directory}}
       run: |
@@ -322,13 +339,14 @@ jobs:
         echo '  sgxwallet:'                                >> docker-compose.yml
         echo '    image: skalenetwork/sgxwallet_sim:1.83.0-develop.19'                          >> docker-compose.yml
         echo '    restart: unless-stopped'                 >> docker-compose.yml
-        echo '    ports:'                                  >> docker-compose.yml
-        echo '      - "1026:1026"'                         >> docker-compose.yml
-        echo '      - "1027:1027"'                         >> docker-compose.yml
-        echo '      - "1028:1028"'                         >> docker-compose.yml
-        echo '      - "1029:1029"'                         >> docker-compose.yml
-        echo '      - "1030:1030"'                         >> docker-compose.yml
-        echo '      - "1031:1031"'                         >> docker-compose.yml
+        echo '    network_mode: "host"'                    >> docker-compose.yml
+        # echo '    ports:'                                  >> docker-compose.yml
+        # echo '      - "1026:1026"'                         >> docker-compose.yml
+        # echo '      - "1027:1027"'                         >> docker-compose.yml
+        # echo '      - "1028:1028"'                         >> docker-compose.yml
+        # echo '      - "1029:1029"'                         >> docker-compose.yml
+        # echo '      - "1030:1030"'                         >> docker-compose.yml
+        # echo '      - "1031:1031"'                         >> docker-compose.yml
         echo '    volumes:'                                >> docker-compose.yml
         echo '      - ./sgx_data:/usr/src/sdk/sgx_data'    >> docker-compose.yml
         echo '      -  /dev/urandom:/dev/random'           >> docker-compose.yml
@@ -380,7 +398,8 @@ jobs:
         cd transaction-manager
         export SGX_SERVER_URL=http://127.0.0.1:1027
         export ENDPOINT=http://127.0.0.1:8545
-        export ETH_PRIVATE_KEY=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC
+        #export ETH_PRIVATE_KEY=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC
+        export ETH_PRIVATE_KEY=fd6d151c4afe5c1c856e5a234950252be7a90210f3aa2bad4e0db037355c1dd6
         ./scripts/run-test-containers.sh
         cd ..
         echo "------------------------------------------------------------------------------------"
@@ -417,6 +436,16 @@ jobs:
         echo IMA_ROOT_DIR = $IMA_ROOT_DIR
         cd comprehensive-test/engine
         export ALL_SKALE_TEST_CLOUD_RUN=1
+        #
+        export VERSION=13.13.13-test.13
+        echo "Docker image(will run) version is:" $VERSION
+        export NAME=ima
+        export BRANCH=$GIT_CURRENT_BRANCH
+        export REPO_NAME=skalenetwork/$NAME
+        export IMAGE_NAME=$REPO_NAME:$VERSION
+        export LATEST_IMAGE_NAME=$REPO_NAME:latest
+        echo "Docker image(will run) name for IMA Agent is:" $IMAGE_NAME
+        #
         node ./index.js
         cd ../..
 

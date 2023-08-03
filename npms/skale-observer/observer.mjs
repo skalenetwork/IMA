@@ -36,6 +36,7 @@ import { UniversalDispatcherEvent, EventDispatcher }
     from "../skale-cool-socket/eventDispatcher.mjs";
 
 import * as EMC from "ethereum-multicall";
+import { clearTimeout } from "timers";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
@@ -989,6 +990,11 @@ export async function ensureHaveWorker( opts ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
         case "periodicCachingDoNow":
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                opts.details.write(
+                    cc.debug( "Parallel periodic SNB caching result did arrived to main thread" ) +
+                    "\n" );
+            }
             setLastCachedSChains( joMessage.message );
             gFlagHaveParallelResult = true;
             if( opts && opts.details ) {
@@ -1127,8 +1133,14 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
 async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     gFlagHaveParallelResult = false;
     try {
-        const nSecondsToWaitParallel = 60;
-        setTimeout( function() {
+        const nSecondsToWaitParallel = ( opts.secondsToWaitForSkaleNetworkDiscovered > 0 )
+            ? opts.secondsToWaitForSkaleNetworkDiscovered : ( 2 * 60 );
+        let iv = null;
+        iv = setTimeout( function() {
+            if( iv ) {
+                clearTimeout( iv );
+                iv = null;
+            }
             if( gFlagHaveParallelResult )
                 return;
             if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -1142,16 +1154,26 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         }, nSecondsToWaitParallel * 1000 );
         owaspUtils.ensureObserverOptionsInitialized( opts );
         await ensureHaveWorker( opts );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Informing worker thread to start periodic SNB refresh..." ) +
+                "\n" );
+        }
         const jo = {
             "method": "periodicCachingStart",
             "message": {
                 "secondsToReDiscoverSkaleNetwork":
                     parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+                "secondsToWaitForSkaleNetworkDiscovered":
+                    parseInt( opts.secondsToWaitForSkaleNetworkDiscovered ),
                 "strChainNameConnectedTo": strChainNameConnectedTo,
                 "addressFrom": addressFrom
             }
         };
         gClient.send( jo );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Did informed worker thread to start periodic SNB refresh" ) +
+                "\n" );
+        }
         return true;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -1165,19 +1187,19 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
 
 export async function periodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     gFlagHaveParallelResult = false;
-    const bParallelMode =
-        ( opts && "bParallelMode" in opts &&
-        typeof opts.bParallelMode != "undefined" &&
-        opts.bParallelMode )
+    const bParallelModeRefreshSNB =
+        ( opts && "bParallelModeRefreshSNB" in opts &&
+        typeof opts.bParallelModeRefreshSNB != "undefined" &&
+        opts.bParallelModeRefreshSNB )
             ? true : false;
     let wasStarted = false;
-    if( bParallelMode ) {
-        wasStarted =
-            parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+    if( bParallelModeRefreshSNB ) {
+        wasStarted = await
+        parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
     }
     if( wasStarted )
         return;
-    inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+    await inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
 }
 
 export async function periodicCachingStop() {
@@ -1187,7 +1209,14 @@ export async function periodicCachingStop() {
                 "method": "periodicCachingStop",
                 "message": { }
             };
-            gClient.send( jo );
+            const refClient = gClient;
+            const refWorker = gWorker;
+            gClient = null;
+            gWorker = null;
+            refClient.send( jo );
+            await sleepImpl( 100 );
+            refClient.dispose();
+            await refWorker.terminate();
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 log.write( cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +

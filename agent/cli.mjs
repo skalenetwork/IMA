@@ -741,6 +741,17 @@ function printHelpTransfers( soi ) {
         cc.error( "Disables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) +
         cc.note( "S-Chain" ) + cc.notice( " transfers." ) );
     console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-parallel" ) + cc.debug( ".........................." ) +
+        cc.notice( "Sets " ) + " " + cc.note( "parallel S2S transfer mode" ) +
+        cc.notice( " and runs S2S in worker thread." )
+    );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-simple" ) + cc.debug( "............................" ) +
+        cc.notice( "Sets " ) + " " + cc.note( "simple S2S transfer mode" ) +
+        cc.notice( " and runs S2S in main thread." ) +
+        " " + cc.debug( "This is default mode" ) + cc.notice( ". " )
+    );
+    console.log( soi + cc.debug( "--" ) +
         cc.bright( "net-rediscover" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
         cc.debug( "................." ) + cc.note( "SKALE NETWORK" ) +
         cc.notice( " re-discovery interval" ) + cc.debug( "(in seconds)" ) +
@@ -748,6 +759,13 @@ function printHelpTransfers( soi ) {
         cc.debug( " seconds or " ) + cc.sunny( "1" ) + cc.debug( " hour, specify " ) +
         cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + " " +
         cc.note( "SKALE NETWORK" ) + cc.debug( " re-discovery" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "net-wait-discovery" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "............." ) + cc.note( "SKALE NETWORK" ) +
+        cc.notice( " wait time" ) + cc.debug( "(in seconds)" ) +
+        cc.debug( " for " ) + cc.note( "SKALE NETWORK" ) +
+        cc.debug( " discovery result to arrive. " ) + cc.debug( "Default is " ) +
+        cc.sunny( "120" ) + cc.notice( "." ) );
 }
 
 function printHelpPaymentTransaction( soi ) {
@@ -2030,6 +2048,14 @@ function parseTransferArgs( imaState, joArg ) {
         imaState.optsS2S.isEnabled = false;
         return true;
     }
+    if( joArg.name == "s2s-parallel" ) {
+        imaState.optsS2S.bParallelModeRefreshSNB = true;
+        return true;
+    }
+    if( joArg.name == "s2s-simple" ) {
+        imaState.optsS2S.bParallelModeRefreshSNB = false;
+        return true;
+    }
     if( joArg.name == "no-wait-s-chain" ) {
         imaState.bNoWaitSChainStarted = true;
         return true;
@@ -2356,6 +2382,12 @@ function parseNetworkDiscoveryArgs( imaState, joArg ) {
     if( joArg.name == "net-rediscover" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
         imaState.optsS2S.secondsToReDiscoverSkaleNetwork =
+            owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "net-wait-discovery" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered =
             owaspUtils.toInteger( joArg.value );
         return true;
     }
@@ -4007,6 +4039,13 @@ function commonInitGasMultipliersAndTransactionArgs() {
             cc.debug( "..............." ) +
             ( imaState.optsS2S.secondsToReDiscoverSkaleNetwork
                 ? cc.info( imaState.optsS2S.secondsToReDiscoverSkaleNetwork.toString() )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "SKALE network max discovery wait time is" ) +
+            cc.debug( "..............." ) +
+            ( imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered
+                ? cc.info( imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered.toString() )
                 : cc.error( "disabled" ) ) +
             "\n" );
         log.write(
