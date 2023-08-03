@@ -990,6 +990,11 @@ export async function ensureHaveWorker( opts ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
         case "periodicCachingDoNow":
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                opts.details.write(
+                    cc.debug( "Parallel periodic SNB caching result did arrived to main thread" ) +
+                    "\n" );
+            }
             setLastCachedSChains( joMessage.message );
             gFlagHaveParallelResult = true;
             if( opts && opts.details ) {
@@ -1149,6 +1154,10 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         }, nSecondsToWaitParallel * 1000 );
         owaspUtils.ensureObserverOptionsInitialized( opts );
         await ensureHaveWorker( opts );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Informing worker thread to start periodic SNB refresh..." ) +
+                "\n" );
+        }
         const jo = {
             "method": "periodicCachingStart",
             "message": {
@@ -1161,6 +1170,10 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
             }
         };
         gClient.send( jo );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Did informed worker thread to start periodic SNB refresh" ) +
+                "\n" );
+        }
         return true;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -1174,13 +1187,13 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
 
 export async function periodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     gFlagHaveParallelResult = false;
-    const bParallelMode =
-        ( opts && "bParallelMode" in opts &&
-        typeof opts.bParallelMode != "undefined" &&
-        opts.bParallelMode )
+    const bParallelModeRefreshSNB =
+        ( opts && "bParallelModeRefreshSNB" in opts &&
+        typeof opts.bParallelModeRefreshSNB != "undefined" &&
+        opts.bParallelModeRefreshSNB )
             ? true : false;
     let wasStarted = false;
-    if( bParallelMode ) {
+    if( bParallelModeRefreshSNB ) {
         wasStarted = await
         parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
     }

@@ -61,7 +61,7 @@ export function initialSkaleNetworkScanForS2S() {
                 "secondsToWaitForSkaleNetworkDiscovered":
                     imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
                 "chain": imaState.chainProperties.sc,
-                "bParallelMode": true
+                "bParallelModeRefreshSNB": imaState.optsS2S.bParallelModeRefreshSNB ? true : false
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
             if( log.verboseGet() >= log.verboseReversed().information ) {
