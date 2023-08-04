@@ -79,8 +79,6 @@ describe("TokenManagerERC1155", () => {
     let communityLocker: CommunityLocker;
     let token2: ERC1155OnChain;
     let tokenClone2: ERC1155OnChain;
-    let token3: ERC1155OnChain;
-    let tokenClone3: ERC1155OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -112,8 +110,6 @@ describe("TokenManagerERC1155", () => {
         token = await deployERC1155OnChain("ELVIS Multi Token");
         tokenClone2 = await deployERC1155OnChain("ELVIS2 Multi Token");
         token2 = await deployERC1155OnChain("ELVIS2 Multi Token");
-        tokenClone3 = await deployERC1155OnChain("ELVIS3 Multi Token");
-        token3 = await deployERC1155OnChain("ELVIS3 Multi Token");
 
         to = user.address;
 

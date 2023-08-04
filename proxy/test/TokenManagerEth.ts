@@ -33,7 +33,6 @@ import {
     TokenManagerEth,
     TokenManagerLinker,
 } from "../typechain";
-import { gasMultiplier } from "./utils/command_line";
 import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
@@ -49,7 +48,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
@@ -197,7 +196,6 @@ describe("TokenManagerEth", () => {
         const amount = BigNumber.from("60");
         const amountAfter = BigNumber.from("54");
         const amountTo = BigNumber.from("6");
-        const to = user.address;
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerEth.address);
 
         await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
@@ -255,9 +253,6 @@ describe("TokenManagerEth", () => {
         });
 
         it("should be Error event with message `null`", async () => {
-            //  preparation
-            const error = "Invalid data";
-            const amount = 10;
             // for `Invalid data` message bytesData should be `0x`
             const bytesData = "0x";
             const sender = deployer.address;

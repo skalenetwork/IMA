@@ -115,7 +115,6 @@ describe("TokenManagerERC20", () => {
     it("should reject on exit if there is no mainnet token clone on schain", async () => {
         // preparation
         const error = "No token clone on schain";
-        const to = user.address;
         const amount = 10;
         // execution/expectation
         await tokenManagerErc20.connect(user).exitToMainERC20(deployer.address, amount)
@@ -228,11 +227,8 @@ describe("TokenManagerERC20", () => {
     });
 
     it("should invoke `exitToMainERC20` without mistakes", async () => {
-        const amount = "20000000000000000";
         const amountMint = "10000000000000000";
-        const amountToCost = "9000000000000000";
         const amountReduceCost = "8000000000000000";
-        const amountEth = BigNumber.from("60000000000000000");
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerErc20.address);
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
 

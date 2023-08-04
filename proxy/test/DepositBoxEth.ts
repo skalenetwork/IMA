@@ -31,7 +31,6 @@ import {
     Linker,
     MessageProxyForMainnet,
     MessagesTester,
-    ERC20OnChain,
     CommunityPool
 } from "../typechain";
 import { stringKeccak256, getBalance, getPublicKey } from "./utils/helper";
@@ -51,7 +50,6 @@ import { initializeSchain, addNodesToSchain } from "./utils/skale-manager-utils/
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessages } from "./utils/deploy/messages";
-import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 
@@ -245,13 +243,6 @@ describe("DepositBoxEth", () => {
     });
 
     describe("tests for `postMessage` function", async () => {
-        let erc20: ERC20OnChain;
-        let erc20Clone: ERC20OnChain;
-
-        beforeEach(async () => {
-            erc20 = await deployERC20OnChain("D2-token", "D2",);
-            erc20Clone = await deployERC20OnChain("Token", "T",);
-        });
 
         it("should rejected with `Sender is not a MessageProxy`", async () => {
             //  preparation
@@ -333,7 +324,7 @@ describe("DepositBoxEth", () => {
                 };
                 // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
                 // to avoid `Incorrect sender` error
-                const chain = await linker
+                await linker
                     .connect(deployer)
                     .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
                 await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
@@ -364,7 +355,7 @@ describe("DepositBoxEth", () => {
 
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            const chain = await linker
+            await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
@@ -400,8 +391,6 @@ describe("DepositBoxEth", () => {
         });
 
         it("should rejected with message `null`", async () => {
-            //  preparation
-            const amountEth = "10";
             // for `Invalid data` message bytesData should be `0x`
             const bytesData = "0x";
             const senderFromSchain = deployer.address;
@@ -409,7 +398,7 @@ describe("DepositBoxEth", () => {
 
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            const chain = await linker
+            await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
@@ -630,7 +619,7 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
-            const userBalanceBefore = await ethers.provider.getBalance(fallbackEthTester.address);
+            await ethers.provider.getBalance(fallbackEthTester.address);
 
             const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 1, [message], sign)).wait();
 

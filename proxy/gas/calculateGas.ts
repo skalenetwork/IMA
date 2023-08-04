@@ -90,9 +90,9 @@ import { stringKeccak256, getPublicKey } from "../test/utils/helper";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, BytesLike, Wallet } from "ethers";
+import { BigNumber, Wallet } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
 import { deployCommunityPool } from "../test/utils/deploy/mainnet/communityPool";
 // import { LockAndDataForSchain } from "../typechain/LockAndDataForSchain";

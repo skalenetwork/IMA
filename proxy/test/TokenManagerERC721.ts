@@ -51,7 +51,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect, should } from "chai";
+import { expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC721", () => {
@@ -76,8 +76,6 @@ describe("TokenManagerERC721", () => {
     let communityLocker: CommunityLocker;
     let token2: ERC721OnChain;
     let tokenClone2: ERC721OnChain;
-    let token3: ERC721OnChain;
-    let tokenClone3: ERC721OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -109,8 +107,6 @@ describe("TokenManagerERC721", () => {
         token = await deployERC721OnChain("SKALE", "SKL");
         tokenClone2 = await deployERC721OnChain("ELVIS2", "ELV");
         token2 = await deployERC721OnChain("SKALE2", "SKL");
-        tokenClone3 = await deployERC721OnChain("ELVIS3", "ELV");
-        token3 = await deployERC721OnChain("SKALE3", "SKL");
 
         to = user.address;
 

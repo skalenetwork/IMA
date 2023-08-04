@@ -155,11 +155,9 @@ describe("DepositBoxERC721", () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC721 token";
                 const contractHere = erc721OnChain.address;
-                const to = user.address;
                 const tokenId = 10;
                 // the wei should be MORE than (55000 * 1000000000)
                 // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-                const wei = "20000000000000000";
                 // add schain to avoid the `Unconnected chain` error
                 await linker
                     .connect(deployer)
@@ -175,7 +173,6 @@ describe("DepositBoxERC721", () => {
             it("should invoke `depositERC721` without mistakes", async () => {
                 // preparation
                 const contractHere = erc721OnChain.address;
-                const to = user.address;
                 const tokenId = 10;
                 const tokenId2 = 11;
                 // the wei should be MORE than (55000 * 1000000000)
@@ -283,7 +280,6 @@ describe("DepositBoxERC721", () => {
 
     describe("tests for `postMessage` function", async () => {
         let erc721: ERC721OnChain;
-        let erc721OnChain: ERC721OnChain;
         let weiAmount: string;
         let sign: {
             blsSignature: [BigNumber, BigNumber],
@@ -295,7 +291,6 @@ describe("DepositBoxERC721", () => {
         beforeEach(async () => {
             weiAmount = 1e18.toString();
             erc721 = await deployERC721OnChain("ERC721", "ERC721");
-            erc721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721OnChain");
 
             sign = {
                 blsSignature: BlsSignature,
@@ -319,10 +314,7 @@ describe("DepositBoxERC721", () => {
             //  preparation
             const tokenId = 10;
             const to = user.address;
-            const to0 = "0x0000000000000000000000000000000000000000";
             const senderFromSchain = deployer.address;
-
-
 
             const message = {
                 data: await messages.encodeTransferErc721Message(erc721.address, to, tokenId),

@@ -80,7 +80,6 @@ import { deployCommunityPool } from "../utils/deploy/mainnet/communityPool";
 describe("ERC721MintingFromSchainToMainnet", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
-    let schainOwner: SignerWithAddress;
     let richGuy: SignerWithAddress;
     let nodeAddress: Wallet;
 
@@ -109,7 +108,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
-        [deployer, schainOwner, user, richGuy] = await ethers.getSigners();
+        [deployer, user, richGuy] = await ethers.getSigners();
         nodeAddress = Wallet.createRandom().connect(ethers.provider);
         const balanceRichGuy = await richGuy.getBalance();
         await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
@@ -341,7 +340,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         await wallets.connect(deployer).rechargeSchainWallet(schainNameHash, {value: "1000000000000000000"});
 
-        const resPost = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
+        await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
@@ -425,7 +424,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         await wallets.connect(deployer).rechargeSchainWallet(schainNameHash, {value: "1000000000000000000"});
 
-        const resPost = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
+        await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
