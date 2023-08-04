@@ -1106,20 +1106,15 @@ describe("TokenManagerERC721", () => {
 
             expect((await erc721OnTargetChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
 
-            let erc721OnTargetZChain: ERC721OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC721Z: TokenManagerERC721;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
+            const erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC721Z = await deployTokenManagerERC721(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC721Z = await deployTokenManagerERC721(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc721OnTargetZChain.connect(deployer).grantRole(await erc721OnTargetZChain.MINTER_ROLE(), tokenManagerERC721Z.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC721Z.address);
 

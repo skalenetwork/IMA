@@ -1194,20 +1194,15 @@ describe("TokenManagerERC20", () => {
 
             expect((await erc20OnTargetChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
 
-            let erc20OnTargetZChain: ERC20OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerErc20Z: TokenManagerERC20;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc20OnTargetZChain = await deployERC20OnChain("NewTokenZ", "NTNZ");
+            const erc20OnTargetZChain = await deployERC20OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerErc20Z = await deployTokenManagerERC20(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerErc20Z = await deployTokenManagerERC20(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc20OnTargetZChain.connect(deployer).grantRole(await erc20OnTargetZChain.MINTER_ROLE(), tokenManagerErc20Z.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerErc20Z.address);
 

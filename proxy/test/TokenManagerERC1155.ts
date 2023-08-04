@@ -1076,20 +1076,15 @@ describe("TokenManagerERC1155", () => {
 
             expect((await erc1155OnTargetChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
 
-            let erc1155OnTargetZChain: ERC1155OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC1155Z: TokenManagerERC1155;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
+            const erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc1155OnTargetZChain.connect(deployer).grantRole(await erc1155OnTargetZChain.MINTER_ROLE(), tokenManagerERC1155Z.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC1155Z.address);
 
@@ -2193,20 +2188,15 @@ describe("TokenManagerERC1155", () => {
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
 
-            let erc1155OnTargetZChain: ERC1155OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC1155Z: TokenManagerERC1155;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
+            const erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc1155OnTargetZChain.connect(deployer).grantRole(await erc1155OnTargetZChain.MINTER_ROLE(), tokenManagerERC1155Z.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC1155Z.address);
 

@@ -1176,20 +1176,15 @@ describe("TokenManagerERC721WithMetadata", () => {
             expect((await erc721OnTargetChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnTargetChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
-            let erc721OnTargetZChain: ERC721OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC721WithMetadataZ: TokenManagerERC721WithMetadata;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
+            const erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc721OnTargetZChain.connect(deployer).grantRole(await erc721OnTargetZChain.MINTER_ROLE(), tokenManagerERC721WithMetadataZ.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC721WithMetadataZ.address);
 
