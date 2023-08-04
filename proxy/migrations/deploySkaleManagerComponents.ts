@@ -35,7 +35,7 @@ export function getContractKeyInAbiFile(contract: string) {
 }
 
 export async function getManifestFile(): Promise<string> {
-    return (await Manifest.forNetwork(ethers.provider)).file;;
+    return (await Manifest.forNetwork(ethers.provider)).file;
 }
 
 async function main() {

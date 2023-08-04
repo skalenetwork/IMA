@@ -232,7 +232,7 @@ describe("DepositBoxERC721", () => {
                     .connect(deployer)
                     .depositERC721Direct(schainName, contractHere, tokenId2, to)
                     .should.emit(messageProxy, "OutgoingMessage")
-                    .withArgs(schainHash, 1, depositBoxERC721.address, deployer.address, data2);;
+                    .withArgs(schainHash, 1, depositBoxERC721.address, deployer.address, data2);
                 // console.log("Gas for depositERC721:", res.receipt.gasUsed);
                 // expectation
                 expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721.address);

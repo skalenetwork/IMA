@@ -1111,7 +1111,7 @@ describe("MessageProxy", () => {
                 expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 1)).length).to.be.equal(1);
                 expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(depositBox.address);
                 await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForMainnet.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                await messageProxyForMainnet.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -1132,7 +1132,7 @@ describe("MessageProxy", () => {
                 expect((await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 1)).length).to.be.equal(1);
                 expect((await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 1))[0]).to.be.equal(depositBox.address);
                 await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
@@ -1159,7 +1159,7 @@ describe("MessageProxy", () => {
                 expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1)).length).to.be.equal(1);
                 expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1))[0]).to.be.equal(depositBox.address);
                 await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
                 await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Reimbursed contract is already added");
@@ -1687,7 +1687,7 @@ describe("MessageProxy", () => {
                 expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 1)).length).to.be.equal(1);
                 expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(messages.address);
                 await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForSchain.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                await messageProxyForSchain.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -1709,7 +1709,7 @@ describe("MessageProxy", () => {
                 expect((await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 1)).length).to.be.equal(1);
                 expect((await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 1))[0]).to.be.equal(messages.address);
                 await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address)
                 .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
