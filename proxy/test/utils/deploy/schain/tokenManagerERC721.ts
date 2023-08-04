@@ -1,5 +1,5 @@
 import { ethers, upgrades } from "hardhat";
-import { TokenManagerERC721, MessageProxyForSchain, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
+import { TokenManagerERC721, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
 
 const name = "TokenManagerERC721";
 
