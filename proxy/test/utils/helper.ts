@@ -46,7 +46,7 @@ export function stringFromHex(value: string) {
     return str;
 }
 
-export function stringKeccak256(value: string) {
+export function stringKeccak256(value: string): string {
     return ethers.utils.solidityKeccak256(["string"], [value]);
 }
 
@@ -55,6 +55,6 @@ export function getPublicKey(wallet: Wallet): [BytesLike, BytesLike] {
     return [ethers.utils.hexlify(publicKey.getX().toBuffer()), ethers.utils.hexlify(publicKey.getY().toBuffer())]
 }
 
-export async function getBalance(address: string) {
+export async function getBalance(address: string): Promise<number> {
     return parseFloat(ethers.utils.formatEther(await ethers.provider.getBalance(address)));
 }
