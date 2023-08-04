@@ -42,6 +42,7 @@ import {
     MessageProxyForSchainWithoutSignature
 } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain';
+import { SkaleABIFile } from '@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile';
 
 export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {
@@ -54,11 +55,11 @@ export async function getManifestFile(): Promise<string> {
     return (await Manifest.forNetwork(ethers.provider)).file;
 }
 
-export function getProxyMainnet(contractName: string) {
+async function getProxyMainnet(contractName: string) {
     const defaultFilePath = "../data/proxyMainnet.json";
-    const jsonData = require(defaultFilePath);
+    const jsonData = JSON.parse(await fs.readFile(defaultFilePath)) as SkaleABIFile;
     try {
-        const contractAddress = jsonData[contractName];
+        const contractAddress = jsonData[contractName] as string;
         return contractAddress;
     } catch (e) {
         console.log(e);
@@ -91,20 +92,20 @@ async function main() {
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     if(
-        getProxyMainnet("deposit_box_eth_address") === undefined ||
-        getProxyMainnet("deposit_box_eth_address") === "" ||
-        getProxyMainnet("deposit_box_erc20_address") === undefined ||
-        getProxyMainnet("deposit_box_erc20_address") === "" ||
-        getProxyMainnet("deposit_box_erc721_address") === undefined ||
-        getProxyMainnet("deposit_box_erc721_address") === "" ||
-        getProxyMainnet("deposit_box_erc1155_address") === undefined ||
-        getProxyMainnet("deposit_box_erc1155_address") === "" ||
-        getProxyMainnet("deposit_box_erc721_with_metadata_address") === undefined ||
-        getProxyMainnet("deposit_box_erc721_with_metadata_address") === "" ||
-        getProxyMainnet("community_pool_address") === undefined ||
-        getProxyMainnet("community_pool_address") === "" ||
-        getProxyMainnet("linker_address") === undefined ||
-        getProxyMainnet("linker_address") === ""
+        await getProxyMainnet("deposit_box_eth_address") === undefined ||
+        await getProxyMainnet("deposit_box_eth_address") === "" ||
+        await getProxyMainnet("deposit_box_erc20_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc20_address") === "" ||
+        await getProxyMainnet("deposit_box_erc721_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc721_address") === "" ||
+        await getProxyMainnet("deposit_box_erc1155_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc1155_address") === "" ||
+        await getProxyMainnet("deposit_box_erc721_with_metadata_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc721_with_metadata_address") === "" ||
+        await getProxyMainnet("community_pool_address") === undefined ||
+        await getProxyMainnet("community_pool_address") === "" ||
+        await getProxyMainnet("linker_address") === undefined ||
+        await getProxyMainnet("linker_address") === ""
     ) {
         console.log( "Please provide correct abi for mainnet contracts in IMA/proxy/data/proxyMainnet.json" );
         process.exit( 126 );

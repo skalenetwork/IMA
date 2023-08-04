@@ -28,6 +28,7 @@ import { ethers, upgrades } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
+import { SkaleABIFile } from '@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile';
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -40,12 +41,12 @@ export async function getManifestFile(): Promise<string> {
     return (await Manifest.forNetwork(ethers.provider)).file;
 }
 
-export function getContractManager() {
+async function getContractManager() {
     const defaultFilePath = "../data/skaleManagerComponents.json";
-    const jsonData = require(defaultFilePath);
+    const jsonData = JSON.parse(await fs.readFile(defaultFilePath)) as SkaleABIFile;
     try {
-        const contractManagerAddress = jsonData.contract_manager_address;
-        const contractManagerABI = jsonData.contract_manager_abi;
+        const contractManagerAddress = jsonData.contract_manager_address as string;
+        const contractManagerABI = jsonData.contract_manager_abi as [];
         return { address: contractManagerAddress, abi: contractManagerABI };
     } catch (e) {
         console.log(e);
@@ -76,7 +77,7 @@ async function main() {
     const [ owner,] = await ethers.getSigners();
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
-    const contractManager = getContractManager();
+    const contractManager = await getContractManager();
     const version = await getVersion();
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
@@ -209,7 +210,7 @@ async function main() {
 
     if( contractManager?.address !== null && contractManager?.address !== "" && contractManager?.address !== "0x0000000000000000000000000000000000000000" ) {
         // register MessageProxy in ContractManager
-        if( contractManager?.abi !== "" && contractManager?.abi !== undefined ) {
+        if( contractManager?.abi !== undefined ) {
             if( await ethers.provider.getCode( contractManager?.address) !== "0x") {
                 const contractManagerInst = new ethers.Contract(contractManager?.address, contractManager?.abi, owner);
                 if (await contractManagerInst.owner() !== owner.address) {
