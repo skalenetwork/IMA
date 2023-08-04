@@ -36,7 +36,7 @@ import {
 
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";
@@ -62,8 +62,8 @@ describe("TokenManagerLinker", () => {
     let linker: TokenManagerLinker;
     let communityLocker: CommunityLocker;
     const schainName = "TestSchain";
-    let fakeDepositBox: any;
-    let fakeCommunityPool: any;
+    let fakeDepositBox: string;
+    let fakeCommunityPool: string;
     let newSchainName: string;
 
     before(async () => {

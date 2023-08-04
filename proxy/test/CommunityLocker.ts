@@ -34,7 +34,7 @@ import {
 import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
@@ -57,7 +57,7 @@ describe("CommunityLocker", () => {
     let messageProxyForSchain: MessageProxyForSchainWithoutSignature;
     let messages: MessagesTester;
     let communityLocker: CommunityLocker;
-    let fakeCommunityPool: any;
+    let fakeCommunityPool: string;
     const mainnetHash = stringKeccak256("Mainnet");
 
     before(async () => {

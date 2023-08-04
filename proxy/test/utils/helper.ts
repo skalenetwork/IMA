@@ -37,19 +37,6 @@ export function createBytes32(str: string) {
     return "0".repeat(multiple) + str;
 }
 
-export function stringToHex(str: string, hex: any) {
-    try {
-        hex = unescape(encodeURIComponent(str))
-            .split("").map((v) => {
-                return v.charCodeAt(0).toString(16);
-            }).join("");
-    } catch (e) {
-        hex = str;
-        console.log("invalid text input: " + str);
-    }
-    return hex;
-}
-
 export function stringFromHex(value: string) {
     const hex = value.toString().slice(2);
     let str = '';

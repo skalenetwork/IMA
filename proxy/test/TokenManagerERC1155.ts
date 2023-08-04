@@ -38,7 +38,7 @@ import { stringKeccak256 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerERC1155 } from "./utils/deploy/schain/tokenManagerERC1155";
 import { deployERC1155OnChain } from "./utils/deploy/erc1155OnChain";
@@ -1398,7 +1398,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1462,7 +1462,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1488,7 +1488,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -1550,7 +1550,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1576,7 +1576,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -1640,7 +1640,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1677,7 +1677,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1767,7 +1767,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1832,7 +1832,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1869,7 +1869,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1891,7 +1891,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1917,7 +1917,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -1939,7 +1939,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1959,7 +1959,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -2049,7 +2049,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2071,7 +2071,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2097,7 +2097,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -2119,7 +2119,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2139,7 +2139,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -2188,7 +2188,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2270,7 +2270,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2306,7 +2306,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2389,7 +2389,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2412,7 +2412,7 @@ describe("TokenManagerERC1155", () => {
             const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
             const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);

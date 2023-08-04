@@ -188,7 +188,7 @@ async function main() {
 
     console.log("Store ABIs");
 
-    const outputObject: {[k: string]: any} = {};
+    const outputObject: {[k: string]: string | []} = {};
     for (const contract of contracts) {
         const contractKey = getContractKeyInAbiFile(contract);
         const deployedContract = deployed.get(contract);

@@ -52,10 +52,11 @@ import {
     TokenManagerLinker,
     Wallets,
     Linker,
+    IMessageProxy,
 } from "../typechain";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployLinker } from "../test/utils/deploy/mainnet/linker";
 import { deployDepositBoxEth } from "../test/utils/deploy/mainnet/depositBoxEth";
@@ -70,14 +71,6 @@ import { deployERC721OnChain } from "../test/utils/deploy/erc721OnChain";
 import { deployERC1155OnChain } from "../test/utils/deploy/erc1155OnChain";
 
 import { deployContractManager } from "../test/utils/skale-manager-utils/contractManager";
-// import { deployContractManager } from "../test/utils/skale-manager-utils/keyStorage";
-// const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-// const Nodes: NodesContract = artifacts.require("./Nodes");
-// const Schains: SchainsContract = artifacts.require("./Schains");
-// const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-// const SkaleVerifierMock: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
-// const Wallets: WalletsContract = artifacts.require("./Wallets");
-
 import { deployTokenManagerLinker } from "../test/utils/deploy/schain/tokenManagerLinker";
 import { deployTokenManagerEth } from "../test/utils/deploy/schain/tokenManagerEth";
 import { deployTokenManagerERC20 } from "../test/utils/deploy/schain/tokenManagerERC20";
@@ -95,7 +88,6 @@ import { BigNumber, Wallet } from "ethers";
 import { expect } from "chai";
 import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
 import { deployCommunityPool } from "../test/utils/deploy/mainnet/communityPool";
-// import { LockAndDataForSchain } from "../typechain/LockAndDataForSchain";
 
 describe("Gas calculation", () => {
     let deployer: SignerWithAddress;
@@ -569,7 +561,7 @@ describe("Gas calculation", () => {
             hashB: "15163860114293529009901628456926790077787470245128337652112878212941459329347",
         };
 
-        async function postIncomingMessages(startingCounter: number, arrayOfMessages: any, action: string) {
+        async function postIncomingMessages(startingCounter: number, arrayOfMessages: IMessageProxy.MessageStruct[], action: string) {
             const res = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
                 schainName,
                 startingCounter,
@@ -1091,7 +1083,7 @@ describe("Gas calculation", () => {
             async function checkBalance() {
                 const balanceIds = await ERC1155TokenOnMainnet.balanceOfBatch([user.address, user.address, user.address, user.address, user.address], [1, 2, 3, 4, 5]);
                 const balanceIdsNumber: number[] = [];
-                balanceIds.forEach((element: any) => {
+                balanceIds.forEach((element) => {
                     balanceIdsNumber.push(BigNumber.from(element).toNumber())
                 });
                 expect(balanceIdsNumber).to.deep.equal([1, 2, 3, 4, 5]);

@@ -303,7 +303,7 @@ async function main() {
         console.log("Contract with address ", extraContract.address, "registered as extra contract");
     }
 
-    const jsonObjectABI: {[k: string]: any} = { };
+    const jsonObjectABI: {[k: string]: string | []} = { };
     for( const contractName of contracts ) {
         const propertyName = getContractKeyInAbiFile(contractName);
 

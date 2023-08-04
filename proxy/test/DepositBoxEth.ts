@@ -39,7 +39,7 @@ import chai = require("chai");
 import chaiAlmost = require("chai-almost");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 chai.use(chaiAlmost(0.002));
 
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";

@@ -37,7 +37,7 @@ import { stringKeccak256 } from "./utils/helper";
 
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
 import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";

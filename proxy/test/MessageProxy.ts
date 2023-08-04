@@ -40,7 +40,7 @@ import {
     EtherbaseMock,
     SchainsInternal
 } from "../typechain/";
-import { stringToHex, getPublicKey } from "./utils/helper";
+import { getPublicKey } from "./utils/helper";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
@@ -1010,7 +1010,7 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            const sixtyFourTimesA ="0x" + stringToHex("".padStart(64,"A"), null);
+            const sixtyFourTimesA = ethers.utils.hexlify(Array(64).fill("A".charCodeAt(0)));
             const event = {
                 msgCounter: BigNumber.from(0),
                 message: sixtyFourTimesA

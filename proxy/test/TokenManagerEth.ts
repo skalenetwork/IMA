@@ -36,7 +36,7 @@ import {
 import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";

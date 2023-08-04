@@ -38,7 +38,7 @@ import { stringFromHex, getPublicKey } from "./utils/helper";
 import chai = require("chai");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
 import { deployLinker } from "./utils/deploy/mainnet/linker";

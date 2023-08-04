@@ -37,7 +37,7 @@ import {
 
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
@@ -64,7 +64,7 @@ describe("TokenManagerERC20", () => {
     const schainId = ethers.utils.solidityKeccak256(["string"], [schainName]);
     const mainnetId = ethers.utils.solidityKeccak256(["string"], ["Mainnet"]);
     let fakeDepositBox: string;
-    let fakeCommunityPool: any;
+    let fakeCommunityPool: string;
     let erc20OnChain: ERC20OnChain;
     let eRC20OnChain2: ERC20OnChain;
     let erc20OnMainnet: ERC20OnChain;

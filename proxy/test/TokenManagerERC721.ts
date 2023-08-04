@@ -38,7 +38,7 @@ import { stringKeccak256 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerERC721 } from "./utils/deploy/schain/tokenManagerERC721";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";

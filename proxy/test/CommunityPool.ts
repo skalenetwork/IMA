@@ -14,7 +14,7 @@ import chai = require("chai");
 import chaiAlmost = require("chai-almost");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 chai.use(chaiAlmost(0.000000000002));
 
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
@@ -46,7 +46,7 @@ describe("CommunityPool", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
     const schainName2 = "Schain2";
-    let minTransactionGas: any;
+    let minTransactionGas: BigNumber;
 
     before(async () => {
         [deployer, user, node] = await ethers.getSigners();
@@ -131,7 +131,7 @@ describe("CommunityPool", () => {
             await messageProxy.grantRole(extraContractRegistrarRole, deployer.address);
             await messageProxy.registerExtraContractForAll(communityPool.address);
             const tx = await messageProxy.addConnectedChain(schainName);
-            const wei = minTransactionGas.mul(tx.gasPrice);
+            const wei = minTransactionGas.mul(tx.gasPrice as BigNumber);
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: wei.toString() });
             await messageProxy.removeExtraContractForAll(communityPool.address);
             await communityPool.connect(user).withdrawFunds(schainName, wei.toString())
@@ -247,7 +247,7 @@ describe("CommunityPool", () => {
 
         it("should allow to withdraw money", async () => {
             await messageProxy.registerExtraContract(schainName, communityPool.address);
-            const gasPrice = (await messageProxy.addConnectedChain(schainName)).gasPrice;
+            const gasPrice = (await messageProxy.addConnectedChain(schainName)).gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice).toNumber();
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: wei.toString(), gasPrice });
         });
@@ -311,7 +311,7 @@ describe("CommunityPool", () => {
         it("should be rejected with Node address must be set", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            const gasPrice = tx.gasPrice;
+            const gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice).mul(2);
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, "0x0000000000000000000000000000000000000000", user.address, 0)
@@ -322,7 +322,7 @@ describe("CommunityPool", () => {
             const balanceBefore = await getBalance(node.address);
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            const gasPrice = tx.gasPrice;
+            const gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice).mul(2);
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice });
@@ -333,7 +333,7 @@ describe("CommunityPool", () => {
         it("should lock user", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            const gasPrice = tx.gasPrice;
+            const gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
@@ -345,7 +345,7 @@ describe("CommunityPool", () => {
         it("should lock user with extra low balance", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            let gasPrice = tx.gasPrice;
+            let gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice);
             gasPrice = gasPrice?.mul(2);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;

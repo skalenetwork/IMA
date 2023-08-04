@@ -5,7 +5,7 @@ import {
 } from "../typechain";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 

@@ -46,7 +46,7 @@ import {
 } from "../../typechain";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 chai.use(solidity);
 
 import { deployLinker } from "../utils/deploy/mainnet/linker";
