@@ -42,7 +42,7 @@ export async function getManifestFile(): Promise<string> {
 }
 
 async function getContractManager() {
-    const defaultFilePath = "../data/skaleManagerComponents.json";
+    const defaultFilePath = "data/skaleManagerComponents.json";
     const jsonData = JSON.parse(await fs.readFile(defaultFilePath)) as SkaleABIFile;
     try {
         const contractManagerAddress = jsonData.contract_manager_address as string;

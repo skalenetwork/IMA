@@ -56,7 +56,7 @@ export async function getManifestFile(): Promise<string> {
 }
 
 async function getProxyMainnet(contractName: string) {
-    const defaultFilePath = "../data/proxyMainnet.json";
+    const defaultFilePath = "data/proxyMainnet.json";
     const jsonData = JSON.parse(await fs.readFile(defaultFilePath)) as SkaleABIFile;
     try {
         const contractAddress = jsonData[contractName] as string;
