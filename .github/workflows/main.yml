@@ -70,7 +70,7 @@ jobs:
 
     - name: Lint typescript
       working-directory: ${{env.working-directory}}
-      run: yarn tslint
+      run: yarn eslint
 
     - name: Slither checks
       working-directory: ${{env.working-directory}}
