@@ -110,13 +110,13 @@ async function main() {
         console.log( "Please provide correct abi for mainnet contracts in IMA/proxy/data/proxyMainnet.json" );
         process.exit( 126 );
     }
-    const depositBoxEthAddress = getProxyMainnet("deposit_box_eth_address");
-    const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
-    const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
-    const depositBoxERC1155Address = getProxyMainnet("deposit_box_erc1155_address");
-    const depositBoxERC721WithMetadataAddress = getProxyMainnet("deposit_box_erc721_with_metadata_address");
-    const communityPoolAddress = getProxyMainnet("community_pool_address");
-    const linkerAddress = getProxyMainnet("linker_address");
+    const depositBoxEthAddress = await getProxyMainnet("deposit_box_eth_address");
+    const depositBoxERC20Address = await getProxyMainnet("deposit_box_erc20_address");
+    const depositBoxERC721Address = await getProxyMainnet("deposit_box_erc721_address");
+    const depositBoxERC1155Address = await getProxyMainnet("deposit_box_erc1155_address");
+    const depositBoxERC721WithMetadataAddress = await getProxyMainnet("deposit_box_erc721_with_metadata_address");
+    const communityPoolAddress = await getProxyMainnet("community_pool_address");
+    const linkerAddress = await getProxyMainnet("linker_address");
 
     console.log("Deploy KeyStorage");
     const keyStorageFactory = await ethers.getContractFactory("KeyStorage");
