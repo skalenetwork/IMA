@@ -272,35 +272,72 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
             cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
     }
-
-    // optimized scanner
-    const bnBlockId =
-        owaspUtils.toBN(
-            await optsTransfer.joMessageProxySrc.callStatic.getLastOutgoingMessageBlockId(
-                optsTransfer.chainNameDst,
-                { from: optsTransfer.joAccountSrc.address() } ) );
+    // first, try optimized scanner
     optsTransfer.arrLogRecordReferences = [];
     try {
-        optsTransfer.arrLogRecordReferences =
-            await findOutAllReferenceLogRecords(
-                optsTransfer.details, optsTransfer.strLogPrefixShort,
-                optsTransfer.ethersProviderSrc, optsTransfer.joMessageProxySrc,
-                bnBlockId, optsTransfer.nIncMsgCnt, optsTransfer.nOutMsgCnt, true
-            );
+        optsTransfer.strActionName =
+            "in-getOutgoingMessagesCounter()--joMessageProxySrc.getLastOutgoingMessageBlockId()";
+        const bnBlockId =
+            owaspUtils.toBN(
+                await optsTransfer.joMessageProxySrc.callStatic.getLastOutgoingMessageBlockId(
+                    optsTransfer.chainNameDst,
+                    { from: optsTransfer.joAccountSrc.address() } ) );
+        try {
+            optsTransfer.strActionName =
+                "in-getOutgoingMessagesCounter()--findOutAllReferenceLogRecords()";
+            optsTransfer.arrLogRecordReferences =
+                await findOutAllReferenceLogRecords(
+                    optsTransfer.details, optsTransfer.strLogPrefixShort,
+                    optsTransfer.ethersProviderSrc, optsTransfer.joMessageProxySrc,
+                    bnBlockId, optsTransfer.nIncMsgCnt, optsTransfer.nOutMsgCnt, true
+                );
+            return true; // success, finish at this point
+        } catch ( err ) {
+            optsTransfer.arrLogRecordReferences = [];
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                optsTransfer.details.write(
+                    optsTransfer.strLogPrefix + cc.warning( "Optimized log search is " ) +
+                    cc.error( "off" ) + cc.warning( " Running old IMA smart contracts?" ) +
+                    cc.success( " Please upgrade, if possible." ) +
+                    cc.warning( " This message is based on error: " ) +
+                    cc.success( " Please upgrade, if possible." ) +
+                    cc.warning( " Error is: " ) +
+                    cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
+        }
     } catch ( err ) {
         optsTransfer.arrLogRecordReferences = [];
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            optsTransfer.details.write(
-                optsTransfer.strLogPrefix + cc.warning( "Optimized log search is " ) +
-                cc.error( "off" ) + cc.warning( ". Running old IMA smart contracts?" ) +
-                cc.success( " Please upgrade, if possible." ) +
-                cc.warning( " This message is based on error: " ) +
-                cc.success( " Please upgrade, if possible." ) +
-                cc.warning( " Error is: " ) +
-                cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.warning( "Optimized log search is un-available." ) + "\n" );
         }
     }
+    // second, use classic raw events search
+    optsTransfer.strActionName =
+        "in-getOutgoingMessagesCounter()--classic-records-scanner";
+    const attempts = 10;
+    const strEventName = "OutgoingMessage";
+    const nBlockFrom = 0;
+    const nBlockTo = "latest";
+    for( let nWalkMsgNumber = optsTransfer.nIncMsgCnt;
+        nWalkMsgNumber < optsTransfer.nOutMsgCnt;
+        ++ nWalkMsgNumber
+    ) {
+        const joFilter = optsTransfer.joMessageProxySrc.filters[strEventName](
+            owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainIdDst ), // dstChainHash
+            nWalkMsgNumber
+        );
+        const arrLogRecordReferencesWalk = await imaEventLogScan.safeGetPastEventsProgressive(
+            optsTransfer.details, optsTransfer.strLogPrefixShort,
+            optsTransfer.ethersProviderSrc, attempts, optsTransfer.joMessageProxySrc,
+            strEventName,
+            nBlockFrom, nBlockTo, joFilter
+        );
+        optsTransfer.arrLogRecordReferences =
+            optsTransfer.arrLogRecordReferences.concat( arrLogRecordReferencesWalk );
+    }
+
     return true;
 }
 
