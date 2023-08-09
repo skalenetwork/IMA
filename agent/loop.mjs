@@ -454,6 +454,14 @@ const gArrClients = [];
 
 export function notifyCacheChangedSNB( arrSChainsCached ) {
     const cntWorkers = gArrWorkers.length;
+    if( cntWorkers == 0 )
+        return;
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write(
+            cc.debug( "Loop module will broadcast arrSChainsCached event to its " ) +
+            cc.info( cntWorkers ) + cc.debug( " worker(s)..." ) +
+            "\n" );
+    }
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
             "method": "schainsCached",
@@ -461,6 +469,11 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
                 "arrSChainsCached": arrSChainsCached
             }
         };
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log( cc.debug( "S-Chains cache will be sent to " ) +
+                cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker " ) +
+                cc.j( joMessage.message.arrSChainsCached ) + "\n" );
+        }
         gArrClients[idxWorker].send( jo );
     }
 }
@@ -565,6 +578,12 @@ export async function ensureHaveWorkers( opts ) {
     if( gArrWorkers.length > 0 )
         return gArrWorkers;
     const cntWorkers = 2;
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write(
+            cc.debug( "Loop module will create its " ) +
+            cc.info( cntWorkers ) + cc.debug( " worker(s)..." ) +
+            "\n" );
+    }
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker,
@@ -739,14 +758,24 @@ export async function ensureHaveWorkers( opts ) {
         };
         gArrClients[idxWorker].send( jo );
     }
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write(
+            cc.debug( "Loop module did created its " ) +
+            cc.info( gArrWorkers.length ) + cc.debug( " worker(s)" ) +
+            "\n" );
+    }
 }
 
 export async function runParallelLoops( opts ) {
     if( log.verboseGet() >= log.verboseReversed().notice )
         log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
     await ensureHaveWorkers( opts );
-    if( log.verboseGet() >= log.verboseReversed().notice )
-        log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().notice ) {
+        log.write( cc.success( "Done, did started parallel IMA transfer loops, have " ) +
+        cc.info( gArrWorkers.length ) + cc.success( " worker(s) and " ) +
+        cc.info( gArrClients.length ) + cc.success( " clients(s)." ) +
+        "\n" );
+    }
     return true;
 }
 

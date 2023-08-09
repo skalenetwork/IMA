@@ -101,6 +101,11 @@ class ObserverServer extends SocketServer {
                 const isFlush = true;
                 socket.send( jo, isFlush );
             } );
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write(
+                    cc.debug( "Loop worker " ) + cc.notice( workerData.url ) +
+                    cc.debug( " will save cached S-Chains..." ) + "\n" );
+            }
             skaleObserver.setLastCachedSChains( self.opts.imaState.arrSChainsCached );
             joAnswer.message = {
                 "method": "" + joMessage.method,
@@ -174,6 +179,11 @@ class ObserverServer extends SocketServer {
             return joAnswer;
         };
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                self.log( cc.debug( "S-Chains cache did arrived to " ) +
+                    cc.notice( workerData.url ) + cc.debug( " loop worker " ) +
+                    cc.j( joMessage.message.arrSChainsCached ) + "\n" );
+            }
             skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
         };
         // eslint-disable-next-line dot-notation

@@ -957,10 +957,19 @@ export function getLastCachedSChains() {
 export function setLastCachedSChains( arrSChainsCached ) {
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
         gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
+        if( log.verboseGet() >= log.verboseReversed().debug )
+            log.write( cc.debug( "Will dispatch arrSChainsCached event..." ) + "\n" );
+
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
                 { "detail": { "arrSChainsCached": getLastCachedSChains() } } ) );
+    } else {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Cannot dispatch arrSChainsCached event with bad object " ) +
+                cc.j( arrSChainsCached ) + "\n" );
+        }
     }
 }
 
@@ -1156,6 +1165,10 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         await ensureHaveWorker( opts );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( cc.debug( "Informing worker thread to start periodic SNB refresh..." ) +
+                "\n" );
+        }
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Will inform worker thread to start periodic SNB refresh..." ) +
                 "\n" );
         }
         const jo = {

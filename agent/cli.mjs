@@ -743,13 +743,13 @@ function printHelpTransfers( soi ) {
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "s2s-parallel" ) + cc.debug( ".........................." ) +
         cc.notice( "Sets " ) + " " + cc.note( "parallel S2S transfer mode" ) +
-        cc.notice( " and runs S2S in worker thread." )
+        cc.notice( " and runs S2S in worker thread." ) +
+        " " + cc.debug( "This is default mode" ) + cc.notice( ". " )
     );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "s2s-simple" ) + cc.debug( "............................" ) +
         cc.notice( "Sets " ) + " " + cc.note( "simple S2S transfer mode" ) +
-        cc.notice( " and runs S2S in main thread." ) +
-        " " + cc.debug( "This is default mode" ) + cc.notice( ". " )
+        cc.notice( " and runs S2S in main thread." )
     );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "net-rediscover" ) + cc.sunny( "=" ) + cc.attention( "number" ) +

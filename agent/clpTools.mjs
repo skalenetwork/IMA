@@ -1478,7 +1478,7 @@ export function commandLineTaskLoopSimple() {
     const imaState = state.get();
     discoveryTools.initialSkaleNetworkScanForS2S();
     imaState.arrActions.push( {
-        "name": "M<->S and S->S transfer loop, simple mode",
+        "name": "M<->S and S->S transfer loop, startup simple mode",
         "fn": async function() {
             state.setPreventExitAfterLastAction( true );
             if( ! imaState.bNoWaitSChainStarted )
