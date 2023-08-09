@@ -40,7 +40,7 @@ import {
     EtherbaseMock,
     SchainsInternal
 } from "../typechain/";
-import { getPublicKey } from "./utils/helper";
+import { getPublicKey, stringKeccak256 } from "./utils/helper";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
@@ -86,7 +86,7 @@ describe("MessageProxy", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const zeroBytes32 = "0x0000000000000000000000000000000000000000000000000000000000000000"
     const schainName = "Schain";
-    const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+    const schainHash = stringKeccak256(schainName);
 
     const BlsSignature: [BigNumber, BigNumber] = [
         BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -341,7 +341,7 @@ describe("MessageProxy", () => {
             const schainOwner = user;
             const schainsInternal = (await ethers.getContractFactory("SchainsInternal")).attach(await contractManager.getContract("SchainsInternal")) as SchainsInternal;
             const otherSchainName = "something else";
-            const otherSchainHash = ethers.utils.solidityKeccak256(["string"], [otherSchainName]);
+            const otherSchainHash = stringKeccak256(otherSchainName);
 
             await schainsInternal.initializeSchain(schainName, schainOwner.address, 0, 0);
             await messageProxyForMainnet.addConnectedChain(schainName);

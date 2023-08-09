@@ -33,7 +33,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, getPublicKey } from "./utils/helper";
+import { stringFromHex, getPublicKey, stringKeccak256 } from "./utils/helper";
 
 import chai = require("chai");
 
@@ -83,7 +83,7 @@ describe("DepositBoxERC20", () => {
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+    const schainHash = stringKeccak256(schainName);
 
     before(async () => {
         [deployer, schainOwner, user, user2, richGuy] = await ethers.getSigners();
