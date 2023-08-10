@@ -499,10 +499,15 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
         };
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( cc.debug( "S-Chains cache will be sent to " ) +
-                cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker " ) +
-                cc.j( joMessage.message.arrSChainsCached ) + "\n" );
+                cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker..." ) +
+                "\n" );
         }
         gArrClients[idxWorker].send( jo );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "S-Chains cache did sent to " ) +
+                cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker" ) +
+                "\n" );
+        }
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
         log.write(
