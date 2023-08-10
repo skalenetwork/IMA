@@ -607,7 +607,7 @@ export async function loadSChainsOptimal( addressFrom, opts ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.success( "All " ) + cc.info( cntSChains ) +
                 cc.debug( " S-Chain(s) loaded in " ) +
-                threadInfo.threadDescription() + cc.success( ":" ) +
+                threadInfo.threadDescription() + cc.success( ": " ) +
                 cc.j( arrSChains ) + "\n" );
         }
     }
