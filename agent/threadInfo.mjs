@@ -33,11 +33,19 @@ export const sleep = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
+export function getCurrentThreadID() {
+    return worker_threads.threadId;
+}
+
+export function isMainThread() {
+    return worker_threads.isMainThread ? true : false;
+}
+
 export function threadDescription( isColorized ) {
     if( typeof isColorized == "undefined" )
         isColorized = true;
-    const tid = worker_threads.threadId;
-    const st = worker_threads.isMainThread ? "main" : "worker";
+    const tid = getCurrentThreadID();
+    const st = isMainThread() ? "main" : "worker";
     return isColorized
         ? ( cc.sunny( st ) + cc.bright( " thread " ) + cc.info( tid ) )
         : ( st + " thread " + tid );
