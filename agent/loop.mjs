@@ -477,8 +477,13 @@ const gArrClients = [];
 
 export function notifyCacheChangedSNB( arrSChainsCached ) {
     const cntWorkers = gArrWorkers.length;
-    if( cntWorkers == 0 )
+    if( cntWorkers == 0 ) {
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log( cc.warning( "Will skip chainsCacheChanged dispatch event with " ) +
+                cc.warning( "no chains arrived in " ) + threadInfo.threadDescription() + "\n" );
+        }
         return;
+    }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
         log.write(
             cc.debug( "Loop module will broadcast arrSChainsCached event to its " ) +
@@ -499,8 +504,18 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
         }
         gArrClients[idxWorker].send( jo );
     }
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write(
+            cc.debug( "Loop module did finished broadcasting arrSChainsCached event to its " ) +
+            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
+            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+    }
 }
 
+if( log.verboseGet() >= log.verboseReversed().debug ) {
+    log( cc.debug( "Will sent chainsCacheChanged dispatch event handler in " ) +
+    threadInfo.threadDescription() + "\n" );
+}
 skaleObserver.events.on( "chainsCacheChanged", function( eventData ) {
     notifyCacheChangedSNB( eventData.detail.arrSChainsCached );
 } );

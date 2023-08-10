@@ -954,9 +954,8 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
         if( opts && opts.details ) {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 opts.details.write( cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-                    cc.debug( " cache was updated in this thread: " ) +
-                    cc.j( gArrSChainsCached ) + cc.debug( " in " ) +
-                    threadInfo.threadDescription() + "\n" );
+                    cc.debug( " cache was updated in " ) + threadInfo.threadDescription() +
+                    cc.debug( ": " ) + cc.j( gArrSChainsCached ) + "\n" );
             }
         }
         if( opts.fnCacheChanged )
@@ -985,6 +984,13 @@ export function getLastCachedSChains() {
 }
 
 export function setLastCachedSChains( arrSChainsCached ) {
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write( cc.debug( "Will set arrSChainsCached in " ) +
+            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        log.write( cc.debug( "Value of arrSChainsCached in " ) +
+            threadInfo.threadDescription() + cc.debug( " is: " ) +
+            cc.j( arrSChainsCached ) + "\n" );
+    }
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
         gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
