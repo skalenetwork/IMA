@@ -418,7 +418,7 @@ async function doTheJob() {
             if( log.verboseGet() >= log.verboseReversed().critical ) {
                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " Exception occurred while executing action: " ) +
-                    cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
         }

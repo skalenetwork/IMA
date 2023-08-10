@@ -1233,7 +1233,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
                 const strError =
                     optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " Exception from signing messages function: " ) +
-                    cc.error( owaspUtils.extractErrorMessage( err ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
                 optsTransfer.details.write( strError );
@@ -1387,7 +1387,7 @@ export async function doTransfer(
             const strError = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                 cc.error( " Error in " ) + optsTransfer.strGatheredDetailsName_colored +
                 cc.error( " during " + optsTransfer.strActionName + ": " ) +
-                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n";
             optsTransfer.details.write( strError );
@@ -1439,7 +1439,8 @@ export async function doAllS2S( // s-chain --> s-chain
     const cntSChains = arrSChainsCached.length;
     if( log.verboseGet() >= log.verboseReversed().information ) {
         log.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
-            cc.debug( " S-Chain(s) connected to this S-Chain for performing S2S transfers." ) +
+            cc.debug( " S-Chain(s) connected to this S-Chain for performing S2S transfers in " ) +
+            threadInfo.threadDescription() + cc.debug( "." ) +
             "\n" );
     }
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
@@ -1451,7 +1452,8 @@ export async function doAllS2S( // s-chain --> s-chain
         const chainIdSrc = "" + joSChain.data.computed.chainId;
         if( log.verboseGet() >= log.verboseReversed().information ) {
             log.write( cc.debug( "S2S transfer walk trough " ) + cc.info( chainNameSrc ) +
-                cc.debug( "/" ) + cc.info( chainIdSrc ) + cc.debug( " S-Chain..." ) + "\n" );
+                cc.debug( "/" ) + cc.info( chainIdSrc ) + cc.debug( " S-Chain in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
         let bOK = false;
         try {
@@ -1459,8 +1461,9 @@ export async function doAllS2S( // s-chain --> s-chain
             if( ! await pwa.checkOnLoopStart( imaState, "s2s", nIndexS2S ) ) {
                 imaState.loopState.s2s.wasInProgress = false;
                 if( log.verboseGet() >= log.verboseReversed().notice ) {
-                    log.write( cc.warning( "Skipped(s2s) due to cancel mode reported from PWA" ) +
-                        "\n" );
+                    log.write(
+                        cc.warning( "Skipped(s2s) due to cancel mode reported from PWA in " ) +
+                        threadInfo.threadDescription() + cc.debug( "" ) + "\n" );
                 }
             } else {
                 if( loop.checkTimeFraming( null, "s2s", joRuntimeOpts ) ) {
@@ -1526,8 +1529,9 @@ export async function doAllS2S( // s-chain --> s-chain
                     bOK = true;
                     if( log.verboseGet() >= log.verboseReversed().notice ) {
                         const strLogPrefix = cc.attention( "S2S Loop:" ) + " ";
-                        log.write( strLogPrefix +
-                            cc.warning( "Skipped(s2s) due to time framing check" ) + "\n" );
+                        log.write( strLogPrefix + cc.warning( "Skipped(s2s) in " ) +
+                            threadInfo.threadDescription() +
+                            cc.debug( " due to time framing check" ) + "\n" );
                     }
                 }
             }
@@ -1537,6 +1541,7 @@ export async function doAllS2S( // s-chain --> s-chain
                 const strError = owaspUtils.extractErrorMessage( err );
                 log.write( cc.fatal( "S2S STEP ERROR:" ) + cc.error( " From S-Chain " ) +
                     cc.info( chainNameSrc ) + cc.error( ", error is: " ) + cc.warning( strError ) +
+                    cc.error( " in " ) + threadInfo.threadDescription() +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
             imaState.loopState.s2s.isInProgress = false;
@@ -1552,14 +1557,15 @@ export async function doAllS2S( // s-chain --> s-chain
     if( "joExtraSignOpts" in joRuntimeOpts )
         delete joRuntimeOpts.joExtraSignOpts; // reset/clear
     if( log.verboseGet() >= log.verboseReversed().debug && ( cntOK > 0 || cntFail > 0 ) ) {
-        let s = cc.debug( "Stats for S2S steps:" );
+        let s = cc.debug( "Stats for S2S steps in " ) +
+            threadInfo.threadDescription() + cc.debug( ": " );
         if( cntOK > 0 ) {
             s += " " + cc.info( cntOK ) +
-                cc.success( " S-Chain(s) processed OKay" ) + cc.debug( ", " );
+                cc.success( "S-Chain(s) processed OKay" ) + cc.debug( ", " );
         }
         if( cntFail > 0 ) {
             s += " " + cc.info( cntFail ) +
-                cc.error( " S-Chain(s) failed" );
+                cc.error( "S-Chain(s) failed" );
         }
         log.write( s + "\n" );
     }

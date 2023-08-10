@@ -37,6 +37,7 @@ import * as imaCLI from "./cli.mjs";
 import * as state from "./state.mjs";
 import * as pwa from "./pwa.mjs";
 import * as log from "../npms/skale-log/log.mjs";
+import * as threadInfo from "./threadInfo.mjs";
 
 let imaState = state.get();
 
@@ -125,7 +126,8 @@ class ObserverServer extends SocketServer {
                     self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
                         cc.note( "Main-net" ) +
                         cc.warning( " URL specified in command line arguments" ) +
-                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                        cc.debug( "(needed for particular operations only) in " ) +
+                        threadInfo.threadDescription() + "\n" );
                 }
             }
 
@@ -141,7 +143,8 @@ class ObserverServer extends SocketServer {
                     self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
                         cc.note( "Main-net" ) +
                         cc.warning( " URL specified in command line arguments" ) +
-                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                        cc.debug( "(needed for particular operations only) in " ) +
+                        threadInfo.threadDescription() + "\n" );
                 }
             }
 
@@ -174,14 +177,16 @@ class ObserverServer extends SocketServer {
             loop.runTransferLoop( self.opts.imaState.optsLoop );
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 self.log( cc.debug( "Full init compete for in-worker IMA loop" ) +
-                    " " + cc.notice( workerData.url ) + "\n" );
+                    " " + cc.notice( workerData.url ) + cc.debug( " in " ) +
+                    threadInfo.threadDescription() + "\n" );
             }
             return joAnswer;
         };
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
             if( log.verboseGet() >= log.verboseReversed().debug ) {
                 self.log( cc.debug( "S-Chains cache did arrived to " ) +
-                    cc.notice( workerData.url ) + cc.debug( " loop worker " ) +
+                    cc.notice( workerData.url ) + cc.debug( " loop worker in " ) +
+                    threadInfo.threadDescription() + cc.debug( ": " ) +
                     cc.j( joMessage.message.arrSChainsCached ) + "\n" );
             }
             skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
@@ -201,7 +206,8 @@ class ObserverServer extends SocketServer {
             };
         if( log.verboseGet() >= log.verboseReversed().information ) {
             self.log( cc.debug( "Initialized in-worker IMA loop " ) +
-                cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
+                cc.info( workerData.url ) + cc.debug( " server in " ) +
+                threadInfo.threadDescription() + "\n" );
         }
     }
     dispose() {
@@ -220,7 +226,8 @@ const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        self.log( cc.debug( "Disposed in-worker IMA loop" ) +
+        self.log( cc.debug( "Disposed in-worker in " ) +
+        threadInfo.threadDescription() + cc.debug( " IMA loop" ) +
         " " + cc.notice( workerData.url ) + "\n" );
     }
 } );
