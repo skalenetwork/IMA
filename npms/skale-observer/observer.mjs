@@ -958,6 +958,24 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
                     cc.debug( ": " ) + cc.j( gArrSChainsCached ) + "\n" );
             }
         }
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "Will dispatch inThread-arrSChainsCached event in " ) +
+                    threadInfo.threadDescription() + "\n" );
+            }
+        }
+        events.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "inThread-arrSChainsCached",
+                { "detail": { "arrSChainsCached": arrSChains } } ) );
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "Did dispatched inThread-arrSChainsCached event in " ) +
+                    threadInfo.threadDescription() + "\n" );
+            }
+        }
         if( opts.fnCacheChanged )
             opts.fnCacheChanged( gArrSChainsCached, null ); // null - no error
     } catch ( err ) {

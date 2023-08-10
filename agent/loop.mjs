@@ -517,11 +517,15 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
     }
 }
 
-if( log.verboseGet() >= log.verboseReversed().debug ) {
-    log.write( cc.debug( "Will sent chainsCacheChanged dispatch event handler in " ) +
-    threadInfo.threadDescription() + "\n" );
+if( log.verboseGet() >= log.verboseReversed().trace ) {
+    log.write( cc.debug( "Subscribe to chainsCacheChanged event in " ) +
+        threadInfo.threadDescription() + "\n" );
 }
 skaleObserver.events.on( "chainsCacheChanged", function( eventData ) {
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        log.write( cc.debug( "Did arrived chainsCacheChanged event in " ) +
+            threadInfo.threadDescription() + "\n" );
+    }
     notifyCacheChangedSNB( eventData.detail.arrSChainsCached );
 } );
 
@@ -622,16 +626,13 @@ export async function ensureHaveWorkers( opts ) {
         return gArrWorkers;
     const cntWorkers = 2;
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write(
-            cc.debug( "Loop module will create its " ) +
+        log.write( cc.debug( "Loop module will create its " ) +
             cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
-            threadInfo.threadDescription() + cc.debug( "..." ) +
-            "\n" );
+            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
     }
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
-            url: "ima_loop_server" + idxWorker,
-            cc: { isEnabled: cc.isEnabled() }
+            url: "ima_loop_server" + idxWorker, cc: { isEnabled: cc.isEnabled() }
         };
         gArrWorkers.push(
             new threadInfo.Worker(
@@ -643,24 +644,20 @@ export async function ensureHaveWorkers( opts ) {
             if( networkLayer.outOfWorkerAPIs.onMessage( gArrWorkers[idxWorker], jo ) )
                 return;
         } );
-        gArrClients.push(
-            new networkLayer.OutOfWorkerSocketClientPipe(
-                workerData.url, gArrWorkers[idxWorker] )
-        );
+        gArrClients.push( new networkLayer.OutOfWorkerSocketClientPipe(
+            workerData.url, gArrWorkers[idxWorker] ) );
         gArrClients[idxWorker].on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             switch ( joMessage.method ) {
             case "log":
                 log.write( cc.attention( "LOOP WORKER" ) +
-                    " " + cc.notice( workerData.url ) + " " + joMessage.message + "\n"
-                );
+                    " " + cc.notice( workerData.url ) + " " + joMessage.message + "\n" );
                 break;
             case "saveTransferError":
                 imaTransferErrorHandling.saveTransferError(
                     joMessage.message.category,
                     joMessage.message.textLog,
-                    joMessage.message.ts
-                );
+                    joMessage.message.ts );
                 break;
             case "saveTransferSuccess":
                 imaTransferErrorHandling.saveTransferSuccess( joMessage.message.category );
@@ -670,9 +667,7 @@ export async function ensureHaveWorkers( opts ) {
         await threadInfo.sleep( 3 * 1000 );
         const optsLoop = {
             joRuntimeOpts: {
-                isInsideWorker: true,
-                idxChainKnownForS2S: 0,
-                cntChainsKnownForS2S: 0
+                isInsideWorker: true, idxChainKnownForS2S: 0, cntChainsKnownForS2S: 0
             },
             isDelayFirstRun: false,
             enableStepOracle: ( idxWorker == 0 ) ? true : false,
@@ -795,20 +790,28 @@ export async function ensureHaveWorkers( opts ) {
                         "isCrossImaBlsMode": opts.imaState.isCrossImaBlsMode
                     }
                 },
-                "cc": {
-                    "isEnabled": cc.isEnabled()
-                }
+                "cc": { "isEnabled": cc.isEnabled() }
             }
         };
         gArrClients[idxWorker].send( jo );
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write(
-            cc.debug( "Loop module did created its " ) +
+        log.write( cc.debug( "Loop module did created its " ) +
             cc.info( gArrWorkers.length ) + cc.debug( " worker(s) in " ) +
-            threadInfo.threadDescription() + cc.debug( "" ) +
-            "\n" );
+            threadInfo.threadDescription() + cc.debug( "" ) + "\n" );
     }
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        log.write( cc.debug( "Subscribe to inThread-arrSChainsCached event in " ) +
+            threadInfo.threadDescription() + "\n" );
+    }
+    skaleObserver.events.on( "inThread-arrSChainsCached", function( eventData ) {
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            log.write( cc.debug( "Did arrived inThread-arrSChainsCached event in " ) +
+                threadInfo.threadDescription() + "\n" );
+        }
+        if( threadInfo.isMainThread() )
+            notifyCacheChangedSNB( eventData.detail.arrSChainsCached );
+    } );
 }
 
 export async function runParallelLoops( opts ) {
