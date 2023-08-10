@@ -479,7 +479,7 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
     const cntWorkers = gArrWorkers.length;
     if( cntWorkers == 0 ) {
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log( cc.warning( "Will skip chainsCacheChanged dispatch event with " ) +
+            log.write( cc.warning( "Will skip chainsCacheChanged dispatch event with " ) +
                 cc.warning( "no chains arrived in " ) + threadInfo.threadDescription() + "\n" );
         }
         return;
@@ -498,7 +498,7 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
             }
         };
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log( cc.debug( "S-Chains cache will be sent to " ) +
+            log.write( cc.debug( "S-Chains cache will be sent to " ) +
                 cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker " ) +
                 cc.j( joMessage.message.arrSChainsCached ) + "\n" );
         }
@@ -513,7 +513,7 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
 }
 
 if( log.verboseGet() >= log.verboseReversed().debug ) {
-    log( cc.debug( "Will sent chainsCacheChanged dispatch event handler in " ) +
+    log.write( cc.debug( "Will sent chainsCacheChanged dispatch event handler in " ) +
     threadInfo.threadDescription() + "\n" );
 }
 skaleObserver.events.on( "chainsCacheChanged", function( eventData ) {
