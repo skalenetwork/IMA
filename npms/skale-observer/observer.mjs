@@ -26,7 +26,7 @@
 import * as path from "path";
 import * as url from "url";
 import * as networkLayer from "../skale-cool-socket/socket.mjs";
-import { Worker } from "worker_threads";
+import * as threadInfo from "../../agent/threadInfo.mjs";
 import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as log from "../skale-log/log.mjs";
@@ -56,7 +56,8 @@ export function getSChainIndexInNode( computedSChainId, arrChainIdsOnNode ) {
     }
     throw new Error(
         "S-Chain " + computedSChainId + " is not found in the list: " +
-        JSON.stringify( arrChainIdsOnNode ) );
+        JSON.stringify( arrChainIdsOnNode ) + "in " +
+        threadInfo.threadDescription( false ) );
 }
 
 export function getSChainBasePortOnNode( computedSChainId, arrChainIdsOnNode, basePortOfNode ) {
@@ -178,8 +179,10 @@ async function isMulticallAvailable( mn ) {
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
 export async function loadSChainParts( joSChain, addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     let isEMC = false;
     if( opts.imaState.isEnabledMultiCall )
         isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
@@ -322,8 +325,10 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
 
 export async function getSChainsCount( addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( ! opts.imaState )
-        throw new Error( "Cannot get S-Chains count, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error( "Cannot get S-Chains count, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     const cntSChains =
         await opts.imaState.joSChainsInternal.callStatic.numberOfSchains(
             { from: addressFrom } );
@@ -353,13 +358,16 @@ function process_sc_data( rawData ) {
 
 export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChains, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error(
+            "Cannot load S-Chain description in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) +
                 cc.info( idxSChain + 1 ) + cc.debug( " of " ) + cc.info( cntSChains ) +
-                cc.debug( "..." ) + "\n" );
+                cc.debug( " in " ) + threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
     hash = hash ||
@@ -395,8 +403,11 @@ export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChai
 
 export async function loadSChains( addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chains parts in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error(
+            "Cannot load S-Chains parts in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     let isEMC = false;
     if( opts.imaState.isEnabledMultiCall )
         isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
@@ -410,7 +421,8 @@ export async function loadSChainsWithEMC( addressFrom, opts ) {
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
-                cc.debug( " S-Chain(s) to load..." ) + "\n" );
+                cc.debug( " S-Chain(s) to load in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
     const multicall = new EMC.Multicall( {
@@ -569,13 +581,16 @@ export async function loadSChainsWithEMC( addressFrom, opts ) {
 
 export async function loadSChainsOptimal( addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     const cntSChains = await getSChainsCount( addressFrom, opts );
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
-                cc.debug( " S-Chain(s) to load..." ) + "\n" );
+                cc.debug( " S-Chain(s) to load in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
     const arrSChains = [];
@@ -591,18 +606,24 @@ export async function loadSChainsOptimal( addressFrom, opts ) {
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.success( "All " ) + cc.info( cntSChains ) +
-                cc.debug( " S-Chain(s) loaded:" ) + cc.j( arrSChains ) + "\n" );
+                cc.debug( " S-Chain(s) loaded in " ) +
+                threadInfo.threadDescription() + cc.success( ": " ) +
+                cc.j( arrSChains ) + "\n" );
         }
     }
     return arrSChains;
 }
 
 export async function loadCachedSChainsSimplified( addressFrom, opts ) {
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     if( opts && opts.details ) {
-        if( log.verboseGet() >= log.verboseReversed().trace )
-            opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Will request all S-Chain(s) hashes in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        }
     }
     const arrSChainHashes =
         await opts.imaState.joSChainsInternal.callStatic.getSchains(
@@ -646,11 +667,15 @@ export async function loadSChainsConnectedOnly(
     addressFrom,
     opts
 ) {
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     if( opts && opts.details ) {
-        if( log.verboseGet() >= log.verboseReversed().trace )
-            opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Will request all S-Chain(s) hashes in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        }
     }
     const arrSChainHashes =
         await opts.imaState.joSChainsInternal.callStatic.getSchains(
@@ -739,8 +764,10 @@ export async function checkConnectedSChains(
     strChainNameConnectedTo, arrSChains, addressFrom, opts
 ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( ! opts.imaState )
-        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
+    if( ! opts.imaState ) {
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
+            threadInfo.threadDescription( false ) );
+    }
     const cntSChains = arrSChains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
@@ -927,16 +954,36 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
         if( opts && opts.details ) {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 opts.details.write( cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-                    cc.debug( " cache was updated in this thread: " ) +
-                    cc.j( gArrSChainsCached ) + "\n" );
+                    cc.debug( " cache was updated in " ) + threadInfo.threadDescription() +
+                    cc.debug( ": " ) + cc.j( gArrSChainsCached ) + "\n" );
+            }
+        }
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "Will dispatch inThread-arrSChainsCached event in " ) +
+                    threadInfo.threadDescription() + "\n" );
+            }
+        }
+        events.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "inThread-arrSChainsCached",
+                { "detail": { "arrSChainsCached": arrSChains } } ) );
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "Did dispatched inThread-arrSChainsCached event in " ) +
+                    threadInfo.threadDescription() + "\n" );
             }
         }
         if( opts.fnCacheChanged )
             opts.fnCacheChanged( gArrSChainsCached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extractErrorMessage( err );
-        if( ! strError )
-            strError = "unknown exception during S-Chains download";
+        if( ! strError ) {
+            strError = "unknown exception during S-Chains download in " +
+                threadInfo.threadDescription( false );
+        }
         if( opts.fnCacheChanged )
             opts.fnCacheChanged( gArrSChainsCached, strError );
         if( opts && opts.details ) {
@@ -955,18 +1002,33 @@ export function getLastCachedSChains() {
 }
 
 export function setLastCachedSChains( arrSChainsCached ) {
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write( cc.debug( "Will set arrSChainsCached in " ) +
+            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        log.write( cc.debug( "Value of arrSChainsCached in " ) +
+            threadInfo.threadDescription() + cc.debug( " is: " ) +
+            cc.j( arrSChainsCached ) + "\n" );
+    }
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
         gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Will dispatch arrSChainsCached event in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        }
+
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
                 { "detail": { "arrSChainsCached": getLastCachedSChains() } } ) );
+    } else {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Cannot dispatch arrSChainsCached event with bad object " ) +
+                cc.j( arrSChainsCached ) + cc.error( " in " ) +
+                threadInfo.threadDescription() + "\n" );
+        }
     }
 }
-
-const sleepImpl = ( milliseconds ) => {
-    return new Promise( resolve => setTimeout( resolve, milliseconds ) );
-};
 
 let gWorker = null;
 let gClient = null;
@@ -977,7 +1039,7 @@ export async function ensureHaveWorker( opts ) {
         return gWorker;
     const url = "skale_observer_worker_server";
     gWorker =
-        new Worker(
+        new threadInfo.Worker(
             path.join( __dirname, "observerWorker.mjs" ),
             { "type": "module" }
         );
@@ -992,15 +1054,16 @@ export async function ensureHaveWorker( opts ) {
         case "periodicCachingDoNow":
             if( log.verboseGet() >= log.verboseReversed().debug ) {
                 opts.details.write(
-                    cc.debug( "Parallel periodic SNB caching result did arrived to main thread" ) +
-                    "\n" );
+                    cc.debug( "Parallel periodic SNB caching result did arrived to " ) +
+                    threadInfo.threadDescription() + "\n" );
             }
             setLastCachedSChains( joMessage.message );
             gFlagHaveParallelResult = true;
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
                     opts.details.write( cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-                        cc.debug( " cache was updated using data arrived from SNB worker: " ) +
+                        cc.debug( " cache was updated using data arrived from SNB worker in " ) +
+                        threadInfo.threadDescription() + cc.debug( ": " ) +
                         cc.j( gArrSChainsCached ) + "\n" );
                 }
             }
@@ -1010,7 +1073,7 @@ export async function ensureHaveWorker( opts ) {
             break;
         } // switch ( joMessage.method )
     } );
-    await sleepImpl( 1000 );
+    await threadInfo.sleep( 1000 );
     const jo = {
         "method": "init",
         "message": {
@@ -1122,7 +1185,8 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
         return true;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            log.write( cc.error( "Failed to start in-thread periodic SNB refresh, error is: " ) +
+            log.write( cc.error( "Failed to start in-thread periodic SNB refresh in " ) +
+                threadInfo.threadDescription() + cc.error( ", error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
@@ -1144,7 +1208,8 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
             if( gFlagHaveParallelResult )
                 return;
             if( log.verboseGet() >= log.verboseReversed().error ) {
-                log.write( cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+                log.write( cc.error( "Failed to start parallel periodic SNB refresh in " ) +
+                    threadInfo.threadDescription() + cc.error( ", error is: " ) +
                     cc.warning( "timeout of " ) + cc.info( nSecondsToWaitParallel ) +
                     cc.warning( " reached, will restart periodic SNB refresh " +
                         "in non-parallel mode" ) + "\n" );
@@ -1155,8 +1220,8 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         owaspUtils.ensureObserverOptionsInitialized( opts );
         await ensureHaveWorker( opts );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.debug( "Informing worker thread to start periodic SNB refresh..." ) +
-                "\n" );
+            log.write( threadInfo.threadDescription() +
+                cc.debug( " will inform worker thread to start periodic SNB refresh..." ) + "\n" );
         }
         const jo = {
             "method": "periodicCachingStart",
@@ -1171,13 +1236,14 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         };
         gClient.send( jo );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.debug( "Did informed worker thread to start periodic SNB refresh" ) +
-                "\n" );
+            log.write( threadInfo.threadDescription() +
+                cc.debug( " did informed worker thread to start periodic SNB refresh" ) + "\n" );
         }
         return true;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            log.write( cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+            log.write( cc.error( "Failed to start parallel periodic SNB refresh in " ) +
+                threadInfo.threadDescription() + cc.error( ", error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
@@ -1214,12 +1280,13 @@ export async function periodicCachingStop() {
             gClient = null;
             gWorker = null;
             refClient.send( jo );
-            await sleepImpl( 100 );
+            await threadInfo.sleep( 100 );
             refClient.dispose();
             await refWorker.terminate();
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
-                log.write( cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +
+                log.write( cc.error( "Failed to stop parallel periodic SNB refresh in " ) +
+                    threadInfo.threadDescription() + cc.error( ", error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
@@ -1231,7 +1298,8 @@ export async function periodicCachingStop() {
             gIntervalPeriodicCaching = null;
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
-                log.write( cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
+                log.write( cc.error( "Failed to stop in-thread periodic SNB refresh in " ) +
+                    threadInfo.threadDescription() + cc.error( ", error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }

@@ -291,7 +291,7 @@ export async function safeGetTransactionCount(
     if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
             details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
-                cc.note( strFnName + "()" ) + + cc.error( " via " ) + cc.u( u ) +
+                cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
                 cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
         }
         throw new Error(

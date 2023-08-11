@@ -544,7 +544,7 @@ export async function checkTransactionToSchain(
             details.write( strLogPrefix +
                 cc.fatal( "CRITICAL PoW-mining ERROR(checkTransactionToSchain):" ) + " " +
                 cc.error( "exception occur before PoW-mining, error is:" ) + " " +
-                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
@@ -575,7 +575,7 @@ export async function calculatePowNumber( address, nonce, gas, details, strLogPr
             details.write( strLogPrefix +
                 cc.fatal( "CRITICAL PoW-mining ERROR(calculatePowNumber):" ) + " " +
                 cc.error( "exception occur during PoW-mining, error is:" ) + " " +
-                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
