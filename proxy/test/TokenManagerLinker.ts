@@ -31,13 +31,12 @@ import {
     TokenManagerERC20,
     TokenManagerERC721,
     TokenManagerLinker,
-    MessageProxyForSchainTester,
-    MessagesTester
+    MessageProxyForSchainTester
 } from "../typechain";
 
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";
@@ -45,7 +44,6 @@ import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20
 import { deployTokenManagerERC721 } from "./utils/deploy/schain/tokenManagerERC721";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
-import { deployMessages } from "./utils/deploy/messages";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
@@ -56,7 +54,6 @@ import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 describe("TokenManagerLinker", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
-    let user2: SignerWithAddress;
 
     let tokenManagerEth: TokenManagerEth;
     let tokenManagerERC20: TokenManagerERC20;
@@ -64,14 +61,13 @@ describe("TokenManagerLinker", () => {
     let messageProxy: MessageProxyForSchainTester;
     let linker: TokenManagerLinker;
     let communityLocker: CommunityLocker;
-    let messages: MessagesTester;
     const schainName = "TestSchain";
-    let fakeDepositBox: any;
-    let fakeCommunityPool: any;
+    let fakeDepositBox: string;
+    let fakeCommunityPool: string;
     let newSchainName: string;
 
     before(async () => {
-        [deployer, user, user2] = await ethers.getSigners();
+        [deployer, user] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -86,7 +82,6 @@ describe("TokenManagerLinker", () => {
         tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox, "0x0000000000000000000000000000000000000000");
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
-        messages = await deployMessages();
         const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
         await messageProxy.connect(deployer).grantRole(chainConnectorRole, linker.address);
         const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();

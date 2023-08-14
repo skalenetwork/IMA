@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { ContractManager, KeyStorageMock } from "../../../typechain";
+import { stringKeccak256 } from "../helper";
 
 const BLSPublicKey = {
     x: {
@@ -25,5 +26,5 @@ export async function setCommonPublicKey(
     } else {
         keyStorageInstance = factory.attach(await contractManager.getContract("KeyStorage")) as KeyStorageMock;
     }
-    await keyStorageInstance.setBlsCommonPublicKeyForSchain(ethers.utils.solidityKeccak256(['string'], [schainName]), BLSPublicKey);
+    await keyStorageInstance.setBlsCommonPublicKeyForSchain(stringKeccak256(schainName), BLSPublicKey);
 }

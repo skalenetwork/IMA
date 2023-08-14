@@ -82,8 +82,8 @@ async function readValidations() {
             throw new ValidationsCacheOutdated();
         }
         return data;
-    } catch (e: any) {
-        if (e.code === 'ENOENT') {
+    } catch (e) {
+        if ( e instanceof Error && (e as NodeJS.ErrnoException).code === 'ENOENT') {
             throw new ValidationsCacheNotFound();
         } else {
             throw e;
