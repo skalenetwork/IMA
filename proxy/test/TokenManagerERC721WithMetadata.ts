@@ -34,11 +34,11 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerERC721WithMetadata } from "./utils/deploy/schain/tokenManagerERC721WithMetadata";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
@@ -47,11 +47,11 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect, should } from "chai";
+import { expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC721WithMetadata", () => {
@@ -60,11 +60,11 @@ describe("TokenManagerERC721WithMetadata", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
-    const schainId = stringValue(web3.utils.soliditySha3(schainName));
+    const schainId = stringKeccak256(schainName);
     const tokenId = 1;
     const tokenURI = "Hello1";
     const mainnetName = "Mainnet";
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const mainnetId = stringKeccak256("Mainnet");
     let to: string;
     let token: ERC721OnChain;
     let tokenClone: ERC721OnChain;
@@ -77,8 +77,6 @@ describe("TokenManagerERC721WithMetadata", () => {
     let communityLocker: CommunityLocker;
     let token2: ERC721OnChain;
     let tokenClone2: ERC721OnChain;
-    let token3: ERC721OnChain;
-    let tokenClone3: ERC721OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -110,8 +108,6 @@ describe("TokenManagerERC721WithMetadata", () => {
         token = await deployERC721OnChain("SKALE", "SKL");
         tokenClone2 = await deployERC721OnChain("ELVIS2", "ELV");
         token2 = await deployERC721OnChain("SKALE2", "SKL");
-        tokenClone3 = await deployERC721OnChain("ELVIS3", "ELV");
-        token3 = await deployERC721OnChain("SKALE3", "SKL");
 
         to = user.address;
 
@@ -217,7 +213,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         let tokenManagerERC721WithMetadata2: TokenManagerERC721WithMetadata;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = stringKeccak256(newSchainName);
 
         beforeEach(async () => {
             erc721OnOriginChain = await deployERC721OnChain("NewToken", "NTN");
@@ -1180,20 +1176,15 @@ describe("TokenManagerERC721WithMetadata", () => {
             expect((await erc721OnTargetChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnTargetChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
-            let erc721OnTargetZChain: ERC721OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC721WithMetadataZ: TokenManagerERC721WithMetadata;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
+            const erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc721OnTargetZChain.connect(deployer).grantRole(await erc721OnTargetZChain.MINTER_ROLE(), tokenManagerERC721WithMetadataZ.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC721WithMetadataZ.address);
 
