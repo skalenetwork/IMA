@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { ERC1155OnChain } from "../../../typechain/ERC1155OnChain";
+import { ERC1155OnChain } from "../../../typechain";
 
 export async function deployERC1155OnChain(
     uri: string

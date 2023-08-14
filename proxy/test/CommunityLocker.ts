@@ -31,18 +31,18 @@ import {
     MessagesTester,
     TokenManagerLinker,
 } from "../typechain";
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { BigNumber } from "ethers";
 import { currentTime, skipTime } from "./utils/time";
@@ -57,8 +57,8 @@ describe("CommunityLocker", () => {
     let messageProxyForSchain: MessageProxyForSchainWithoutSignature;
     let messages: MessagesTester;
     let communityLocker: CommunityLocker;
-    let fakeCommunityPool: any;
-    const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
+    let fakeCommunityPool: string;
+    const mainnetHash = stringKeccak256("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -74,7 +74,7 @@ describe("CommunityLocker", () => {
     })
 
     it("should activate user", async () => {
-        const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
+        const schainHash = stringKeccak256("Schain");
         const data = await messages.encodeActivateUserMessage(deployer.address);
         const fakeData = await messages.encodeTransferEthMessage(user.address, 1);
         await communityLocker.postMessage(mainnetHash, fakeCommunityPool, data)

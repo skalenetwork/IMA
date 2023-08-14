@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { MessagesTester } from "../../../typechain/MessagesTester";
+import { MessagesTester } from "../../../typechain";
 
 export async function deployMessages() {
     const factory = await ethers.getContractFactory("MessagesTester");
