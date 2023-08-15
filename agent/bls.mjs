@@ -1477,7 +1477,7 @@ async function doSignConfigureChainAccessParams( optsSignOperation ) {
 async function doSignProcessHandleCall(
     optsSignOperation,
     joNode, joParams,
-    joIn, joOut, err
+    joIn, joOut, err, strNodeURL, i
 ) {
     ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
     if( err ) {
@@ -1485,11 +1485,11 @@ async function doSignProcessHandleCall(
         const strErrorMessage =
             optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
             cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-            cc.error( " failed, RPC call reported error: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", " ) + cc.notice( "sequence ID" ) +
-            cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
-            "\n";
+            cc.error( "(node #" ) + cc.info( i ) + cc.error( " via " ) +
+            cc.notice( strNodeURL ) + cc.error( ") failed, RPC call reported error: " ) +
+            cc.warning( owaspUtils.extractErrorMessage( err ) ) + cc.error( ", " ) +
+            cc.notice( "sequence ID" ) + cc.error( " is " ) +
+            cc.attention( optsSignOperation.sequenceId ) + "\n";
         if( log.verboseGet() >= log.verboseReversed().error ) {
             if( log.id != optsSignOperation.details.id )
                 log.write( strErrorMessage );
@@ -1713,7 +1713,9 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 optsSignOperation.details.write( optsSignOperation.strLogPrefix +
                     log.generateTimestampString( null, true ) + " " + cc.debug( "Will invoke " ) +
-                    cc.info( "skale_imaVerifyAndSign" ) + cc.debug( " for transfer from chain " ) +
+                    cc.info( "skale_imaVerifyAndSign" ) + cc.debug( " to node #" ) + cc.info( i ) +
+                    cc.debug( " via " ) + cc.notice( strNodeURL ) +
+                    cc.debug( " for transfer from chain " ) +
                     cc.info( optsSignOperation.fromChainName ) + cc.debug( " to chain " ) +
                     cc.info( optsSignOperation.targetChainName ) + cc.debug( " with params " ) +
                     cc.j( joParams ) + cc.debug( ", " ) + cc.notice( "sequence ID" ) +
@@ -1724,9 +1726,7 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
                 "params": joParams
             }, async function( joIn, joOut, err ) {
                 await doSignProcessHandleCall(
-                    optsSignOperation,
-                    joNode, joParams,
-                    joIn, joOut, err
+                    optsSignOperation, joNode, joParams, joIn, joOut, err, strNodeURL, i
                 );
             } ); // joCall.call ...
         } ); // rpcCall.create ...
