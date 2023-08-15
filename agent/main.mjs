@@ -367,14 +367,10 @@ function initJsonRpcServer() {
 
                 break;
             case "skale_getCachedSNB":
-                joAnswer = {
-                    "arrSChainsCached": skaleObserver.getLastCachedSChains()
-                };
+                joAnswer.arrSChainsCached = skaleObserver.getLastCachedSChains();
                 break;
             case "skale_historySNB":
-                joAnswer = {
-                    "arrCacheHistory": skaleObserver.getLastCachedHistory()
-                };
+                joAnswer.arrCacheHistory = skaleObserver.getLastCachedHistory();
                 break;
             case "skale_refreshSNB":
                 {
@@ -391,7 +387,7 @@ function initJsonRpcServer() {
                             imaState.optsS2S.bParallelModeRefreshSNB ? true : false
                     };
                     skaleObserver.refreshNowSNB( opts ); // async call, no await here
-                    joAnswer = {};
+                    joAnswer.result = "Done";
                 }
                 break;
             default:

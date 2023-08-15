@@ -1053,7 +1053,7 @@ export function setLastCachedHistoryMaxSize( m ) {
 
 export async function refreshNowSNB( opts ) {
     const addressFrom = opts.imaState.chainProperties.mn.joAccount.address();
-    const strChainNameConnectedTo = imaState.chainProperties.sc.strChainName;
+    const strChainNameConnectedTo = opts.imaState.chainProperties.sc.strChainName;
     await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
 }
 
