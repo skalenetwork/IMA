@@ -40,6 +40,7 @@ import * as imaBLS from "./bls.mjs";
 import * as pwa from "./pwa.mjs";
 import * as clpTools from "./clpTools.mjs";
 import * as discoveryTools from "./discoveryTools.mjs";
+import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 
 import * as state from "./state.mjs";
 
@@ -364,6 +365,34 @@ function initJsonRpcServer() {
                 ) )
                     await loop.spreadArrivedStateOfPendingWorkAnalysis( joMessage );
 
+                break;
+            case "skale_getCachedSNB":
+                joAnswer = {
+                    "arrSChainsCached": skaleObserver.getLastCachedSChains()
+                };
+                break;
+            case "skale_historySNB":
+                joAnswer = {
+                    "arrCacheHistory": skaleObserver.getLastCachedHistory()
+                };
+                break;
+            case "skale_refreshSNB":
+                {
+                    const opts = {
+                        imaState: imaState,
+                        "details": log,
+                        "bStopNeeded": false,
+                        "secondsToReDiscoverSkaleNetwork":
+                            imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
+                        "secondsToWaitForSkaleNetworkDiscovered":
+                            imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
+                        "chain": imaState.chainProperties.sc,
+                        "bParallelModeRefreshSNB":
+                            imaState.optsS2S.bParallelModeRefreshSNB ? true : false
+                    };
+                    skaleObserver.refreshNowSNB( opts ); // async call, no await here
+                    joAnswer = {};
+                }
                 break;
             default:
                 throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
