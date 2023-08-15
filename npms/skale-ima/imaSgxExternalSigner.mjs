@@ -26,7 +26,7 @@ function postConvertBN( jo, name ) {
         return;
     if( typeof jo[name] != "object" )
         return;
-    jo[name] = jo[name].toHexString();
+    jo[name] = owaspUtils.toHexStringSafe( jo[name] );
 }
 
 async function run() {

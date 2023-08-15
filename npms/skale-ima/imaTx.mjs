@@ -193,7 +193,7 @@ async function payedCallTM( optsPayedCall ) {
                     typeof txAdjusted[strName] == "object" &&
                     typeof txAdjusted[strName].toHexString == "function"
                 )
-                    txAdjusted[strName] = txAdjusted[strName].toHexString();
+                    txAdjusted[strName] = owaspUtils.toHexStringSafe( txAdjusted[strName] );
             }
             if( "gasLimit" in txAdjusted )
                 delete txAdjusted.gasLimit;
@@ -261,10 +261,10 @@ async function payedCallSGX( optsPayedCall ) {
         "\"" + chainId + "\" " +
         "\"" + ( tx.data ? tx.data : "" ) + "\" " +
         "\"" + tx.to + "\" " +
-        "\"" + ( tx.value ? tx.value.toHexString() : "0" ) + "\" " +
-        "\"" + tx.gasPrice.toHexString() + "\" " +
-        "\"" + tx.gasLimit.toHexString() + "\" " +
-        "\"" + tx.nonce.toHexString() + "\" " +
+        "\"" + owaspUtils.toHexStringSafe( tx.value ) + "\" " +
+        "\"" + owaspUtils.toHexStringSafe( tx.gasPrice ) + "\" " +
+        "\"" + owaspUtils.toHexStringSafe( tx.gasLimit ) + "\" " +
+        "\"" + owaspUtils.toHexStringSafe( tx.nonce ) + "\" " +
         "\"" + ( optsPayedCall.joAccount.strPathSslCert
         ? optsPayedCall.joAccount.strPathSslCert : "" ) + "\" " +
         "\"" + ( optsPayedCall.joAccount.strPathSslKey
@@ -482,22 +482,25 @@ export async function checkTransactionToSchain(
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix + cc.debug( "Will check whether PoW-mining " +
                 "is needed for sender " ) + cc.notice( strFromAddress ) +
-                cc.debug( " with balance " ) + cc.info( balance.toHexString() ) +
-                cc.debug( " using required balance " ) + cc.info( requiredBalance.toHexString() ) +
-                cc.debug( ", gas limit is " ) + cc.info( unsignedTx.gasLimit.toHexString() ) +
+                cc.debug( " with balance " ) + cc.info( owaspUtils.toHexStringSafe( balance ) ) +
+                cc.debug( " using required balance " ) +
+                cc.info( owaspUtils.toHexStringSafe( requiredBalance ) ) +
+                cc.debug( ", gas limit is " ) +
+                cc.info( owaspUtils.toHexStringSafe( unsignedTx.gasLimit ) ) +
                 cc.debug( " gas, checked unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
         }
         if( balance.lt( requiredBalance ) ) {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.warning( "Insufficient funds for " ) +
                     cc.notice( strFromAddress ) + cc.warning( ", will run PoW-mining to get " ) +
-                    cc.info( unsignedTx.gasLimit.toHexString() ) + cc.warning( " of gas" ) + "\n" );
+                    cc.info( owaspUtils.toHexStringSafe( unsignedTx.gasLimit ) ) +
+                    cc.warning( " of gas" ) + "\n" );
             }
             let powNumber =
                 await calculatePowNumber(
                     strFromAddress,
                     owaspUtils.toBN( unsignedTx.nonce ).toHexString(),
-                    unsignedTx.gasLimit.toHexString(),
+                    owaspUtils.toHexStringSafe( unsignedTx.gasLimit ),
                     details,
                     strLogPrefix
                 );
