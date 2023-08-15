@@ -1502,7 +1502,8 @@ async function doSignProcessHandleCall(
         optsSignOperation.details.write( optsSignOperation.strLogPrefix +
             log.generateTimestampString( null, true ) + " " +
             cc.debug( "Got answer from " ) + cc.info( "skale_imaVerifyAndSign" ) +
-            cc.debug( " for transfer from chain " ) + cc.info( optsSignOperation.fromChainName ) +
+            cc.error( "(node #" ) + cc.info( i ) + cc.error( " via " ) + cc.notice( strNodeURL ) +
+            cc.debug( ") for transfer from chain " ) + cc.info( optsSignOperation.fromChainName ) +
             cc.debug( " to chain " ) + cc.info( optsSignOperation.targetChainName ) +
             cc.debug( " with params " ) + cc.j( joParams ) + cc.debug( ", answer is " ) +
             cc.j( joOut ) + cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) +
