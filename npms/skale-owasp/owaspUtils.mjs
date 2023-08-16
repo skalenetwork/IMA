@@ -811,3 +811,15 @@ export function toBN( x ) {
 export function isNumeric( s ) {
     return /^\d+$/.test( s );
 }
+
+export function toHexStringSafe( val ) {
+    if( ! val )
+        return "0x0";
+    if( "toHexString" in val && typeof val.toHexString == "function" )
+        return val.toHexString();
+    if( typeof val == "number" || typeof val == "bigint" )
+        return ensureStartsWith0x( val.toString( 16 ) );
+    if( "toString" in val && typeof val.toString == "function" )
+        return val.toString();
+    return "" + val;
+}
