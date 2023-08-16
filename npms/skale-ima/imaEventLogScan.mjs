@@ -584,12 +584,12 @@ export async function safeGetPastEventsIterative(
             cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) +
             cc.info( nBlockTo.toHexString() ) + cc.debug( " block range..." ) + "\n" );
     }
-    let idxBlockSubRangeFrom = nBlockFrom;
+    let idxBlockSubRangeTo = nBlockTo;
     for( ; true; ) {
-        let idxBlockSubRangeTo = idxBlockSubRangeFrom.add(
+        let idxBlockSubRangeFrom = idxBlockSubRangeTo.sub(
             owaspUtils.toBN( imaHelperAPIs.getBlocksCountInInIterativeStepOfEventsScan() ) );
-        if( idxBlockSubRangeTo.gt( nBlockTo ) )
-            idxBlockSubRangeTo = nBlockTo;
+        if( idxBlockSubRangeFrom.lt( nBlockFrom ) )
+            idxBlockSubRangeFrom = nBlockFrom;
         try {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.debug( "Iterative scan of " ) +
@@ -627,8 +627,8 @@ export async function safeGetPastEventsIterative(
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
         }
-        idxBlockSubRangeFrom = idxBlockSubRangeTo;
-        if( idxBlockSubRangeFrom.eq( nBlockTo ) )
+        idxBlockSubRangeTo = idxBlockSubRangeFrom;
+        if( idxBlockSubRangeTo.lte( nBlockFrom ) )
             break;
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
