@@ -1,0 +1,117 @@
+= SKALE Chain to SKALE Chain Custom Messages
+
+As a SKALE Chain Owner, you can setup custom messages for transferring any arbitrary data between any two SKALE Chains through IMA.
+
+[[setup]]
+== Setup Custom Messages
+
+The following one-time setup is required for SKALE Chains.
+
+=== 0. Assign role
+
+This role assignment must be done on both origin & target chains.
+
+include::partial$missing-chain-connector-role.adoc[]
+
+=== 1. Connect each SKALE Chain
+
+You must connect each chain in both directions by executing two connectSchain() transaction on each respective chain.
+
+⇢ To connect the `target` chain to the `origin` chain, run `connectSchain(targetSchainName)` in **TokenManagerLinker** contract on the `origin` chain. 
+
+⇠ To connect the `origin` chain to the `target` chain, run `connectSchain(originSchainName)` in **TokenManagerLinker** contract on the `target` chain.
+
+[NOTE]
+Only the `REGISTRAR_ROLE` in TokenManagerLinker may execute `connectSchain`. So you must be granted with this role on this contract.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s/connect-chain-imajs.js[]
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s/connect-chain-web3.js[]
+----
+--
+====
+
+=== 2. Deploy Custom Contract on Origin
+
+Deploy your Custom Contract contract on the Origin chain, which must implement calling `MessageProxy.postOutgoingMessage` to send message through the IMA agent.
+
+[source,javascript]
+----
+TODO
+----
+
+=== 3. Deploy Custom Contract on Target
+
+The custom contract on the target chain MUST implement `postMessage`. 
+
+[source,javascript]
+----
+TODO
+----
+
+=== 4. Register Custom Contract on Target
+
+You need to register the custom contract using the `registerExtraContract` method in the MessageProxyForSchain contract on the targetSchain. 
+
+[NOTE]
+Only `EXTRA_CONTRACT_REGISTRAR_ROLE` can perform `registerExtraContract`.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+TODO
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+TODO
+----
+--
+====
+
+=== 5. Register Custom Contract on Origin.
+
+You need to register the custom contract using the `registerExtraContract` method in the MessageProxyForSchain contract on the originSchain. 
+
+[NOTE]
+Only `EXTRA_CONTRACT_REGISTRAR_ROLE` can perform `registerExtraContract`.
+
+[tabs]
+====
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+TODO
+----
+--
+====
+
