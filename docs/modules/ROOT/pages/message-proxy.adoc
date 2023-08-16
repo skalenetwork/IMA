@@ -20,6 +20,12 @@ MessageProxyForSchain.setNewGasLimit(3M)
 ```
 ====
 
+[WARNING]
+====
+Be sure to properly set how transactions to extra contracts on Ethereum are to be reimbursed. If this is not properly set, then the SKALE Chain owner wallet will be used to reimburse end-user transactions to Ethereum. See xref:funding-exits.adoc[Funding Exits].
+
+====
+
 == Implementation
 
 First, your contracts must be registered to MessageProxy on Mainnet and on your SKALE Chain. This enables MessageProxy to interact with your specific contracts.
@@ -142,3 +148,18 @@ Calling only from EXTRA_CONTRACT_REGISTRAR_ROLE
 Removes extra contract from all skale-chains and “Mainnet”(already connected or would be connected) - means that MessageProxyForSchain will revert messages from this contract to all schains and “Mainnet”
 
 Calling only from EXTRA_CONTRACT_REGISTRAR_ROLE
+
+
+== Reimbursement
+
+SKALE Chain owners are responsible for setting the logic of how transactions to extra contracts are reimbursed. The out-of-the-box DepositBox contracts specify that end-users' CommunityPool balances are used to reimburse the node conducting the Ethereum transaction. For extra contracts, you must use the `addReimbursedContract` and `removeReimburseContract` methods in MessageProxyForMainnet to enable transactions to extra contracts to be reimbursed through the end-user's community pool. See xref:funding-exits.adoc[Funding Exits] for more information on the reimbursement process.
+
+[NOTE]
+Only the `EXTRA_CONTRACT_REGISTRAR_ROLE` or SKALE Chain owner may execute these methods.
+
+
+```javascript
+await messageProxyForMainnet.addReimbursedContract(schainName, extraContract.address)
+await messageProxyForMainnet.removeReimbursedContract(schainName, extraContract.address)
+```
+
