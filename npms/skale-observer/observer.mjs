@@ -929,6 +929,8 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
 }
 
 let gArrSChainsCached = [];
+const gArrCacheHistory = [];
+let nMaxSizeOfArrCacheHistory = 20;
 
 export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
@@ -1011,11 +1013,17 @@ export function setLastCachedSChains( arrSChainsCached ) {
     }
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
         gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
+        gArrCacheHistory.push( {
+            "ts": "" + log.generateTimestampString( null, false ),
+            "arrSChainsCached": JSON.parse( JSON.stringify( arrSChainsCached ) )
+        } );
+        const nMaxSize = getLastCachedHistoryMaxSize();
+        while( gArrCacheHistory.length > nMaxSize )
+            gArrCacheHistory.shift();
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( cc.debug( "Will dispatch arrSChainsCached event in " ) +
                 threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
-
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
@@ -1028,6 +1036,25 @@ export function setLastCachedSChains( arrSChainsCached ) {
                 threadInfo.threadDescription() + "\n" );
         }
     }
+}
+
+export function getLastCachedHistory() {
+    return gArrCacheHistory;
+}
+
+export function getLastCachedHistoryMaxSize() {
+    return 0 + nMaxSizeOfArrCacheHistory;
+}
+export function setLastCachedHistoryMaxSize( m ) {
+    nMaxSizeOfArrCacheHistory = 0 + n;
+    if( nMaxSizeOfArrCacheHistory < 0 )
+        nMaxSizeOfArrCacheHistory = 0;
+}
+
+export async function refreshNowSNB( opts ) {
+    const addressFrom = opts.imaState.chainProperties.mn.joAccount.address();
+    const strChainNameConnectedTo = opts.imaState.chainProperties.sc.strChainName;
+    await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
 }
 
 let gWorker = null;
