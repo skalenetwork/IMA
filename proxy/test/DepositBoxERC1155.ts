@@ -34,13 +34,13 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringKeccak256, getPublicKey, getBalance } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 chai.use(chaiAlmost(0.002));
 
 import { deployDepositBoxERC1155 } from "./utils/deploy/mainnet/depositBoxERC1155";
@@ -54,11 +54,11 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployERC1155OnChain } from "./utils/deploy/erc1155OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 
 const BlsSignature: [BigNumber, BigNumber] = [
@@ -69,9 +69,6 @@ const HashA = "30804919429741726545188616007474668515898092414623848790866732560
 const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
 const Counter = 0;
 
-async function getBalance(address: string) {
-    return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
-}
 describe("DepositBoxERC1155", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
@@ -87,7 +84,7 @@ describe("DepositBoxERC1155", () => {
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+    const schainHash = stringKeccak256(schainName);
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();
@@ -172,12 +169,10 @@ describe("DepositBoxERC1155", () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC1155 token";
                 const contractHere = erc1155.address;
-                const to = user.address;
                 const id = 5;
                 const amount = 7;
                 // the wei should be MORE than (55000 * 1000000000)
                 // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-                const wei = "20000000000000000";
                 // add schain to avoid the `Unconnected chain` error
                 await linker
                     .connect(deployer)
@@ -193,7 +188,6 @@ describe("DepositBoxERC1155", () => {
             it("should invoke `depositERC1155` without mistakes", async () => {
                 // preparation
                 const contractHere = erc1155.address;
-                const to = user.address;
                 const id = 5;
                 const amount = 7;
                 const id2 = 10;
@@ -266,12 +260,10 @@ describe("DepositBoxERC1155", () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC1155 token Batch";
                 const contractHere = erc1155.address;
-                const to = user.address;
                 const ids = [1, 2, 3];
                 const amounts = [3, 2, 1];
                 // the wei should be MORE than (55000 * 1000000000)
                 // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-                const wei = "20000000000000000";
                 // add schain to avoid the `Unconnected chain` error
                 await linker
                     .connect(deployer)
@@ -287,7 +279,6 @@ describe("DepositBoxERC1155", () => {
             it("should invoke `depositERC1155Batch` without mistakes", async () => {
                 // preparation
                 const contractHere = erc1155.address;
-                const to = user.address;
                 const ids = [1, 2, 3];
                 const amounts = [3, 2, 1];
                 const ids2 = [5, 4, 99];
@@ -308,7 +299,7 @@ describe("DepositBoxERC1155", () => {
                 await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155Batch(schainName, contractHere, ids, amounts);
-                const res = await (await depositBoxERC1155
+                await (await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155Batch(schainName, contractHere, ids2, amounts2)).wait();
                 // console.log("Gas for depositERC1155:", res.receipt.gasUsed);
@@ -424,7 +415,6 @@ describe("DepositBoxERC1155", () => {
             const id = 5;
             const amount = 7;
             const to = user.address;
-            const to0 = "0x0000000000000000000000000000000000000000"; // ERC1155 address
             const senderFromSchain = deployer.address;
             const wei = 1e18.toString();
 
@@ -465,7 +455,7 @@ describe("DepositBoxERC1155", () => {
             // execution
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);
-            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
+            await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
@@ -480,7 +470,6 @@ describe("DepositBoxERC1155", () => {
             const ids = [5, 6, 7];
             const amounts = [100, 100, 100];
             const to = user.address;
-            const to0 = "0x0000000000000000000000000000000000000000"; // ERC1155 address
             const senderFromSchain = deployer.address;
             const wei = 1e18.toString();
 
@@ -521,7 +510,7 @@ describe("DepositBoxERC1155", () => {
             // execution
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);
-            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
+            await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);

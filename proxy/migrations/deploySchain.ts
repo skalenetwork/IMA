@@ -24,12 +24,11 @@
  */
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, network } from "hardhat";
 import hre from "hardhat";
 import { getAbi, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
-import { Contract } from '@ethersproject/contracts';
 import {
     CommunityLocker,
     EthErc20,
@@ -42,7 +41,8 @@ import {
     TokenManagerERC721WithMetadata,
     MessageProxyForSchainWithoutSignature
 } from '../typechain';
-import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
+import { TokenManagerERC1155 } from '../typechain';
+import { SkaleABIFile } from '@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile';
 
 export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {
@@ -52,14 +52,14 @@ export function getContractKeyInAbiFile(contract: string): string {
 }
 
 export async function getManifestFile(): Promise<string> {
-    return (await Manifest.forNetwork(ethers.provider)).file;;
+    return (await Manifest.forNetwork(ethers.provider)).file;
 }
 
-export function getProxyMainnet(contractName: string) {
-    const defaultFilePath = "../data/proxyMainnet.json";
-    const jsonData = require(defaultFilePath);
+async function getProxyMainnet(contractName: string) {
+    const defaultFilePath = "data/proxyMainnet.json";
+    const jsonData = JSON.parse(await fs.readFile(defaultFilePath)) as SkaleABIFile;
     try {
-        const contractAddress = jsonData[contractName];
+        const contractAddress = jsonData[contractName] as string;
         return contractAddress;
     } catch (e) {
         console.log(e);
@@ -92,31 +92,31 @@ async function main() {
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     if(
-        getProxyMainnet("deposit_box_eth_address") === undefined ||
-        getProxyMainnet("deposit_box_eth_address") === "" ||
-        getProxyMainnet("deposit_box_erc20_address") === undefined ||
-        getProxyMainnet("deposit_box_erc20_address") === "" ||
-        getProxyMainnet("deposit_box_erc721_address") === undefined ||
-        getProxyMainnet("deposit_box_erc721_address") === "" ||
-        getProxyMainnet("deposit_box_erc1155_address") === undefined ||
-        getProxyMainnet("deposit_box_erc1155_address") === "" ||
-        getProxyMainnet("deposit_box_erc721_with_metadata_address") === undefined ||
-        getProxyMainnet("deposit_box_erc721_with_metadata_address") === "" ||
-        getProxyMainnet("community_pool_address") === undefined ||
-        getProxyMainnet("community_pool_address") === "" ||
-        getProxyMainnet("linker_address") === undefined ||
-        getProxyMainnet("linker_address") === ""
+        await getProxyMainnet("deposit_box_eth_address") === undefined ||
+        await getProxyMainnet("deposit_box_eth_address") === "" ||
+        await getProxyMainnet("deposit_box_erc20_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc20_address") === "" ||
+        await getProxyMainnet("deposit_box_erc721_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc721_address") === "" ||
+        await getProxyMainnet("deposit_box_erc1155_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc1155_address") === "" ||
+        await getProxyMainnet("deposit_box_erc721_with_metadata_address") === undefined ||
+        await getProxyMainnet("deposit_box_erc721_with_metadata_address") === "" ||
+        await getProxyMainnet("community_pool_address") === undefined ||
+        await getProxyMainnet("community_pool_address") === "" ||
+        await getProxyMainnet("linker_address") === undefined ||
+        await getProxyMainnet("linker_address") === ""
     ) {
         console.log( "Please provide correct abi for mainnet contracts in IMA/proxy/data/proxyMainnet.json" );
         process.exit( 126 );
     }
-    const depositBoxEthAddress = getProxyMainnet("deposit_box_eth_address");
-    const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
-    const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
-    const depositBoxERC1155Address = getProxyMainnet("deposit_box_erc1155_address");
-    const depositBoxERC721WithMetadataAddress = getProxyMainnet("deposit_box_erc721_with_metadata_address");
-    const communityPoolAddress = getProxyMainnet("community_pool_address");
-    const linkerAddress = getProxyMainnet("linker_address");
+    const depositBoxEthAddress = await getProxyMainnet("deposit_box_eth_address");
+    const depositBoxERC20Address = await getProxyMainnet("deposit_box_erc20_address");
+    const depositBoxERC721Address = await getProxyMainnet("deposit_box_erc721_address");
+    const depositBoxERC1155Address = await getProxyMainnet("deposit_box_erc1155_address");
+    const depositBoxERC721WithMetadataAddress = await getProxyMainnet("deposit_box_erc721_with_metadata_address");
+    const communityPoolAddress = await getProxyMainnet("community_pool_address");
+    const linkerAddress = await getProxyMainnet("linker_address");
 
     console.log("Deploy KeyStorage");
     const keyStorageFactory = await ethers.getContractFactory("KeyStorage");
@@ -194,8 +194,38 @@ async function main() {
     deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface } );
     console.log("Contract TokenManagerERC20 deployed to", tokenManagerERC20.address);
 
+    /*
+    In the moment of this code was written
+    ganache had a bug
+    that prevented proper execution
+    of estimateGas function
+    during deployment of smart contract
+    that exceed 24KB limit.
+
+    In addition to this problem
+    upgrade-hardhat library
+    did not supported
+    manual gas limit configuration.
+
+    TODO: in case of any one or both issues fixed
+    please remove this crazy workaround below
+    */
+    if (network.config.gas === "auto") {
+        throw Error("Can't use auto because of problems with gas estimations");
+    }
+    if (!process.env.PRIVATE_KEY_FOR_SCHAIN) {
+        throw Error("PRIVATE_KEY_FOR_SCHAIN is not set");
+    }
+    const key = process.env.PRIVATE_KEY_FOR_SCHAIN;
+    const signerWithFixedGasEstimation = new ethers.Wallet(key, ethers.provider);
+    signerWithFixedGasEstimation.estimateGas = async() => {
+        return ethers.BigNumber.from(network.config.gas as number);
+    }
+
+    // The end of TODO:
+
     console.log("Deploy TokenManagerERC721");
-    const tokenManagerERC721Factory = await ethers.getContractFactory("TokenManagerERC721");
+    const tokenManagerERC721Factory = await ethers.getContractFactory("TokenManagerERC721", signerWithFixedGasEstimation);
     const tokenManagerERC721 = await upgrades.deployProxy(tokenManagerERC721Factory, [
         schainName,
         messageProxy.address,
@@ -208,7 +238,7 @@ async function main() {
     console.log("Contract TokenManagerERC721 deployed to", tokenManagerERC721.address);
 
     console.log("Deploy TokenManagerERC1155");
-    const tokenManagerERC1155Factory = await ethers.getContractFactory("TokenManagerERC1155");
+    const tokenManagerERC1155Factory = await ethers.getContractFactory("TokenManagerERC1155", signerWithFixedGasEstimation);
     const tokenManagerERC1155 = await upgrades.deployProxy(tokenManagerERC1155Factory, [
         schainName,
         messageProxy.address,
@@ -221,7 +251,7 @@ async function main() {
     console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
 
     console.log("Deploy TokenManagerERC721WithMetadata");
-    const tokenManagerERC721WithMetadataFactory = await ethers.getContractFactory("TokenManagerERC721WithMetadata");
+    const tokenManagerERC721WithMetadataFactory = await ethers.getContractFactory("TokenManagerERC721WithMetadata", signerWithFixedGasEstimation);
     const tokenManagerERC721WithMetadata = await upgrades.deployProxy(tokenManagerERC721WithMetadataFactory, [
         schainName,
         messageProxy.address,
@@ -259,7 +289,6 @@ async function main() {
     await communityLocker.grantRole(constantSetterRole, owner.address);
     console.log("Grant CONSTANT_SETTER_ROLE to owner of schain");
 
-    let extraContract: Contract;
     const extraContracts = [
         tokenManagerEth,
         tokenManagerERC20,
@@ -270,12 +299,12 @@ async function main() {
     ];
     const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
     await messageProxy.grantRole(extraContractRegistrarRole, owner.address);
-    for (extraContract of extraContracts) {
+    for (const extraContract of extraContracts) {
         await messageProxy.registerExtraContractForAll(extraContract.address)
         console.log("Contract with address ", extraContract.address, "registered as extra contract");
     }
 
-    const jsonObjectABI: {[k: string]: any} = { };
+    const jsonObjectABI: {[k: string]: string | []} = { };
     for( const contractName of contracts ) {
         const propertyName = getContractKeyInAbiFile(contractName);
 
