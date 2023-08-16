@@ -145,7 +145,11 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        require(
+            contractOnSchain.getApproved(tokenId) == address(this) || 
+            contractOnSchain.isApprovedForAll(msg.sender, address(this)), 
+            "Not allowed ERC721 Token"
+        );
         bytes memory data = Messages.encodeTransferErc721MessageWithMetadata(
             contractOnMainChain,
             to,

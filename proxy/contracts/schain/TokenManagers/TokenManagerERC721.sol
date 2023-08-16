@@ -329,7 +329,11 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        require(
+            contractOnSchain.getApproved(tokenId) == address(this) || 
+            contractOnSchain.isApprovedForAll(msg.sender, address(this)), 
+            "Not allowed ERC721 Token"
+        );
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
