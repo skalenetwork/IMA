@@ -184,7 +184,7 @@ export async function safeGetPastEventsProgressive(
         } catch ( err ) {}
     }
     if( log.verboseGet() >= log.verboseReversed().error ) {
-        details.write( strLogPrefix + cc.error( "Could not not get Event \"" ) +
+        details.write( strLogPrefix + cc.error( "Could not get Event \"" ) +
             cc.info( strEventName ) + cc.error( "\", from block " ) +
             cc.info( joLastPlan.nBlockFrom ) + cc.error( ", to block " ) +
             cc.info( joLastPlan.nBlockTo ) + cc.debug( ", block range is " ) +
