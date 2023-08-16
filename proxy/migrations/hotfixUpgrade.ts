@@ -1,5 +1,5 @@
 import { ethers, upgrades, run } from "hardhat";
-import { ProxyAdmin } from "../typechain/ProxyAdmin";
+import { ProxyAdmin } from "../typechain";
 import * as ProxyAdminArtifacts from "@openzeppelin/upgrades-core/artifacts/ProxyAdmin.json"
 
 async function main() {

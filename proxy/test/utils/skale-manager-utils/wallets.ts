@@ -1,6 +1,7 @@
 import { initializeSchain, isSchainActive } from "./schainsInternal";
 import { ethers } from "hardhat";
 import { ContractManager, Wallets } from "../../../typechain";
+import { stringKeccak256 } from "../helper";
 
 const nameWallets = "Wallets";
 
@@ -25,6 +26,6 @@ export async function rechargeSchainWallet(
     if ( !schainActive )
         await initializeSchain(contractManager, schainName, owner, 1, 1);
 
-    const schainHash = await ethers.utils.solidityKeccak256(['string'], [schainName]);
+    const schainHash = stringKeccak256(schainName);
     await walletsInstance.rechargeSchainWallet(schainHash, {value: amountEth /*"1000000000000000000"*/});
 }
