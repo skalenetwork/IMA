@@ -63,14 +63,12 @@ export function initialSkaleNetworkScanForS2S() {
                 "chain": imaState.chainProperties.sc,
                 "bParallelModeRefreshSNB": imaState.optsS2S.bParallelModeRefreshSNB ? true : false
             };
-            const addressFrom = imaState.chainProperties.mn.joAccount.address();
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write( strLogPrefix +
                     cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             }
             await skaleObserver.periodicCachingStart(
                 imaState.chainProperties.sc.strChainName,
-                addressFrom,
                 opts
             );
             if( log.verboseGet() >= log.verboseReversed().information ) {
