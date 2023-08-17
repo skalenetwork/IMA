@@ -104,8 +104,9 @@ export async function safeGetPastEventsProgressive(
             nBlockFrom, nBlockTo, joFilter
         );
     }
-    const nLatestBlockNumber =
-        owaspUtils.toBN( await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider )
+    ).add( owaspUtils.toBN( 1 ) );
     let isLastLatest = false;
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
@@ -204,8 +205,9 @@ export async function getContractCallEvents(
     const n10 = owaspUtils.toBN( 10 );
     let nBlockFrom = nBlockNumber.sub( n10 ), nBlockTo = nBlockNumber.add( n10 );
     const nBlockZero = owaspUtils.toBN( 0 );
-    const nLatestBlockNumber =
-        owaspUtils.toBN( await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider )
+    ).add( owaspUtils.toBN( 1 ) );
     if( nBlockFrom.lt( nBlockZero ) )
         nBlockFrom = nBlockZero;
     if( nBlockTo.gt( nLatestBlockNumber ) )
@@ -399,7 +401,8 @@ export async function safeGetPastEvents(
         "Event \"" + strEventName + "\" doesn't exist in this contract";
     if( nBlockTo == "latest" ) {
         const nLatestBlockNumber = owaspUtils.toBN(
-            await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+            await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider )
+        ).add( owaspUtils.toBN( 1 ) );
         nBlockTo = nLatestBlockNumber;
     } else
         nBlockTo = owaspUtils.toBN( nBlockTo );
@@ -541,8 +544,9 @@ export async function safeGetPastEventsIterative(
             strEventName, nBlockFrom, nBlockTo, joFilter
         );
     }
-    const nLatestBlockNumber =
-        owaspUtils.toBN( await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider )
+    ).add( owaspUtils.toBN( 1 ) );
     let isLastLatest = false;
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
