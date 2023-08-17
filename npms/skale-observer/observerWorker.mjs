@@ -167,8 +167,7 @@ class ObserverServer extends SocketServer {
                 self.periodicCachingStart(
                     socket,
                     joMessage.message.secondsToReDiscoverSkaleNetwork,
-                    joMessage.message.strChainNameConnectedTo,
-                    joMessage.message.addressFrom
+                    joMessage.message.strChainNameConnectedTo
                 );
                 joAnswer.message = {
                     "method": "" + joMessage.method,
@@ -201,7 +200,7 @@ class ObserverServer extends SocketServer {
         super.dispose();
     }
     async periodicCachingDoNow(
-        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
+        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo
     ) {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
@@ -218,7 +217,6 @@ class ObserverServer extends SocketServer {
                 strError =
                     await skaleObserver.cacheSChains(
                         strChainNameConnectedTo,
-                        addressFrom,
                         self.opts
                     );
                 if( ! strError )
@@ -261,9 +259,7 @@ class ObserverServer extends SocketServer {
         }
         return null;
     }
-    async periodicCachingStart(
-        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
-    ) {
+    async periodicCachingStart( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo ) {
         const self = this;
         await self.periodicCachingStop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
@@ -277,8 +273,7 @@ class ObserverServer extends SocketServer {
                         "\n" );
                 }
                 await self.periodicCachingDoNow(
-                    socket, secondsToReDiscoverSkaleNetwork,
-                    strChainNameConnectedTo, addressFrom );
+                    socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo );
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
                     self.log( cc.error( "Periodic SNB caching(async) error in " ) +

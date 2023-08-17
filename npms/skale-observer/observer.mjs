@@ -177,7 +177,7 @@ async function isMulticallAvailable( mn ) {
 }
 
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
-export async function loadSChainParts( joSChain, addressFrom, opts ) {
+export async function loadSChainParts( joSChain, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided in " +
@@ -190,9 +190,7 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
     const computedSChainId = owaspUtils.ethersMod.ethers.utils.id( joSChain.data.name );
     const chainId = owaspUtils.computeChainIdFromSChainName( joSChain.data.name );
     const arrNodeIds =
-        await opts.imaState.joSChainsInternal.callStatic.getNodesInGroup(
-            computedSChainId,
-            { from: addressFrom } );
+        await opts.imaState.joSChainsInternal.callStatic.getNodesInGroup( computedSChainId );
     const nodes = [];
     if( isEMC ) {
         const multicall = new EMC.Multicall( {
@@ -289,24 +287,21 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
             if( opts && opts.bStopNeeded )
                 return;
             const node =
-                await opts.imaState.joNodes.callStatic.nodes( nodeId, { from: addressFrom } );
+                await opts.imaState.joNodes.callStatic.nodes( nodeId );
             const nodeDict = {
                 "id": nodeId,
                 "name": node[0],
                 "ip": owaspUtils.ipFromHex( node[1] ),
                 "basePort": node[3],
-                "domain":
-                    await opts.imaState.joNodes.callStatic.getNodeDomainName(
-                        nodeId, { from: addressFrom } ),
+                "domain": await opts.imaState.joNodes.callStatic.getNodeDomainName( nodeId ),
                 "isMaintenance":
-                    await opts.imaState.joNodes.callStatic.isNodeInMaintenance(
-                        nodeId, { from: addressFrom } )
+                    await opts.imaState.joNodes.callStatic.isNodeInMaintenance( nodeId )
             };
             if( opts && opts.bStopNeeded )
                 return;
             const arrFetchedSChainIds =
                 await opts.imaState.joSChainsInternal.callStatic.getSchainHashesForNode(
-                    nodeId, { from: addressFrom } );
+                    nodeId );
             nodeDict.basePortOfSChain =
                 getSChainBasePortOnNode(
                     computedSChainId, arrFetchedSChainIds, nodeDict.basePort );
@@ -323,15 +318,13 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
     joSChain.data.computed.nodes = nodes;
 }
 
-export async function getSChainsCount( addressFrom, opts ) {
+export async function getSChainsCount( opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
         throw new Error( "Cannot get S-Chains count, no imaState is provided in " +
             threadInfo.threadDescription( false ) );
     }
-    const cntSChains =
-        await opts.imaState.joSChainsInternal.callStatic.numberOfSchains(
-            { from: addressFrom } );
+    const cntSChains = await opts.imaState.joSChainsInternal.callStatic.numberOfSchains();
     return cntSChains;
 }
 
@@ -356,7 +349,7 @@ function process_sc_data( rawData ) {
     return joData;
 }
 
-export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChains, opts ) {
+export async function loadSChain( idxSChain, hash, joData, cntSChains, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
         throw new Error(
@@ -370,9 +363,7 @@ export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChai
                 cc.debug( " in " ) + threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
-    hash = hash ||
-        await opts.imaState.joSChainsInternal.callStatic.schainsAtSystem(
-            idxSChain, { from: addressFrom } );
+    hash = hash || await opts.imaState.joSChainsInternal.callStatic.schainsAtSystem( idxSChain );
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace )
             opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
@@ -380,17 +371,16 @@ export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChai
     if( opts && opts.bStopNeeded )
         return null;
     joData = joData ||
-        process_sc_data( await opts.imaState.joSChainsInternal.callStatic.schains(
-            hash, { from: addressFrom } ) );
+        process_sc_data( await opts.imaState.joSChainsInternal.callStatic.schains( hash ) );
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace )
             opts.details.write( cc.debug( "    Data of chain is " ) + cc.j( joData ) + "\n" );
     }
     const joSChain = { "data": joData };
-    removeSChainDescDataNumKeys( joSChain.data, addressFrom );
+    removeSChainDescDataNumKeys( joSChain.data );
     if( opts && opts.bStopNeeded )
         return null;
-    await loadSChainParts( joSChain, addressFrom, opts );
+    await loadSChainParts( joSChain, opts );
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.debug( "    Desc " ) + cc.j( joSChain.data ) + "\n" );
@@ -401,7 +391,7 @@ export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChai
     return joSChain;
 }
 
-export async function loadSChains( addressFrom, opts ) {
+export async function loadSChains( opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
         throw new Error(
@@ -412,12 +402,12 @@ export async function loadSChains( addressFrom, opts ) {
     if( opts.imaState.isEnabledMultiCall )
         isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
     if( isEMC )
-        return await loadSChainsWithEMC( addressFrom, opts );
-    return await loadSChainsOptimal( addressFrom, opts );
+        return await loadSChainsWithEMC( opts );
+    return await loadSChainsOptimal( opts );
 }
 
-export async function loadSChainsWithEMC( addressFrom, opts ) {
-    const cntSChains = await getSChainsCount( addressFrom, opts );
+export async function loadSChainsWithEMC( opts ) {
+    const cntSChains = await getSChainsCount( opts );
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
@@ -565,7 +555,7 @@ export async function loadSChainsWithEMC( addressFrom, opts ) {
         const hash = arrSChainHashes[idxSChain];
         const joData = arrSChainDataRecords[idxSChain];
         const joSChain = await loadSChain( // with hash + joData
-            addressFrom, idxSChain, hash, joData, cntSChains, opts );
+            idxSChain, hash, joData, cntSChains, opts );
         if( ! joSChain )
             break;
         arrSChains.push( joSChain );
@@ -579,13 +569,13 @@ export async function loadSChainsWithEMC( addressFrom, opts ) {
     return arrSChains;
 }
 
-export async function loadSChainsOptimal( addressFrom, opts ) {
+export async function loadSChainsOptimal( opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
             threadInfo.threadDescription( false ) );
     }
-    const cntSChains = await getSChainsCount( addressFrom, opts );
+    const cntSChains = await getSChainsCount( opts );
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
@@ -597,8 +587,7 @@ export async function loadSChainsOptimal( addressFrom, opts ) {
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const joSChain = await loadSChain(
-            addressFrom, idxSChain, null, null, cntSChains, opts );
+        const joSChain = await loadSChain( idxSChain, null, null, cntSChains, opts );
         if( ! joSChain )
             break;
         arrSChains.push( joSChain );
@@ -626,8 +615,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
         }
     }
     const arrSChainHashes =
-        await opts.imaState.joSChainsInternal.callStatic.getSchains(
-            { from: addressFrom } );
+        await opts.imaState.joSChainsInternal.callStatic.getSchains();
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -641,8 +629,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
             break;
         const strSChainHash = arrSChainHashes[idxSChain];
         const strSChainName =
-            await opts.imaState.joSChainsInternal.callStatic.getSchainName(
-                strSChainHash, { from: addressFrom } );
+            await opts.imaState.joSChainsInternal.callStatic.getSchainName( strSChainHash );
         if( opts && opts.details ) {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
@@ -653,8 +640,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
         }
         if( opts && opts.bStopNeeded )
             break;
-        const joSChain = await loadSChain(
-            addressFrom, idxSChain, strSChainHash, null, cntSChains, opts );
+        const joSChain = await loadSChain( idxSChain, strSChainHash, null, cntSChains, opts );
         if( ! joSChain )
             break;
         arrSChains.push( joSChain );
@@ -662,11 +648,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
     return arrSChains;
 }
 
-export async function loadSChainsConnectedOnly(
-    strChainNameConnectedTo,
-    addressFrom,
-    opts
-) {
+export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) {
     if( ! opts.imaState ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
             threadInfo.threadDescription( false ) );
@@ -677,9 +659,7 @@ export async function loadSChainsConnectedOnly(
                 threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
-    const arrSChainHashes =
-        await opts.imaState.joSChainsInternal.callStatic.getSchains(
-            { from: addressFrom } );
+    const arrSChainHashes = await opts.imaState.joSChainsInternal.callStatic.getSchains();
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details ) {
         if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -700,8 +680,7 @@ export async function loadSChainsConnectedOnly(
                 break;
             const strSChainHash = arrSChainHashes[idxSChain];
             const strSChainName =
-                await opts.imaState.joSChainsInternal.callStatic.getSchainName(
-                    strSChainHash, { from: addressFrom } );
+                await opts.imaState.joSChainsInternal.callStatic.getSchainName( strSChainHash );
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
                     opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
@@ -731,8 +710,7 @@ export async function loadSChainsConnectedOnly(
                 }
             }
             const isConnected =
-                await joMessageProxySChain.callStatic.isConnectedChain(
-                    strSChainName, { from: addressFrom } );
+                await joMessageProxySChain.callStatic.isConnectedChain( strSChainName );
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
                     opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
@@ -741,8 +719,7 @@ export async function loadSChainsConnectedOnly(
             }
             if( ! isConnected )
                 continue;
-            const joSChain = await loadSChain(
-                addressFrom, idxSChain, strSChainHash, null, cntSChains, opts );
+            const joSChain = await loadSChain( idxSChain, strSChainHash, null, cntSChains, opts );
             if( ! joSChain )
                 break;
             joSChain.isConnected = true;
@@ -760,9 +737,7 @@ export async function loadSChainsConnectedOnly(
     return arrSChains;
 }
 
-export async function checkConnectedSChains(
-    strChainNameConnectedTo, arrSChains, addressFrom, opts
-) {
+export async function checkConnectedSChains( strChainNameConnectedTo, arrSChains, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
@@ -794,8 +769,7 @@ export async function checkConnectedSChains(
                     ethersProvider
                 );
             joSChain.isConnected =
-                await joMessageProxySChain.callStatic.isConnectedChain(
-                    strChainNameConnectedTo, { from: addressFrom } );
+                await joMessageProxySChain.callStatic.isConnectedChain( strChainNameConnectedTo );
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace )
                     opts.details.write( cc.debug( "Got " ) + cc.yn( joSChain.isConnected ) + "\n" );
@@ -932,11 +906,11 @@ let gArrSChainsCached = [];
 const gArrCacheHistory = [];
 let nMaxSizeOfArrCacheHistory = 20;
 
-export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts ) {
+export async function cacheSChains( strChainNameConnectedTo, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     let strError = null;
     try {
-        const arrSChains = await loadSChains( addressFrom, opts );
+        const arrSChains = await loadSChains( opts );
         if( strChainNameConnectedTo &&
             ( typeof strChainNameConnectedTo == "string" ) &&
             strChainNameConnectedTo.length > 0
@@ -944,7 +918,6 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
             await checkConnectedSChains(
                 strChainNameConnectedTo,
                 arrSChains,
-                addressFrom,
                 opts
             );
             gArrSChainsCached = await filterSChainsMarkedAsConnected(
@@ -1052,9 +1025,8 @@ export function setLastCachedHistoryMaxSize( m ) {
 }
 
 export async function refreshNowSNB( opts ) {
-    const addressFrom = opts.imaState.chainProperties.mn.joAccount.address();
     const strChainNameConnectedTo = opts.imaState.chainProperties.sc.strChainName;
-    await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
+    await cacheSChains( strChainNameConnectedTo, opts );
 }
 
 let gWorker = null;
@@ -1197,12 +1169,12 @@ export async function ensureHaveWorker( opts ) {
     gClient.send( jo );
 }
 
-async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
+async function inThreadPeriodicCachingStart( strChainNameConnectedTo, opts ) {
     if( gIntervalPeriodicCaching != null )
         return;
     try {
         const fnDoCachingNow = async function() {
-            await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
+            await cacheSChains( strChainNameConnectedTo, opts );
         };
         gIntervalPeriodicCaching =
             setInterval(
@@ -1221,7 +1193,7 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
     return false;
 }
 
-async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
+async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
     gFlagHaveParallelResult = false;
     try {
         const nSecondsToWaitParallel = ( opts.secondsToWaitForSkaleNetworkDiscovered > 0 )
@@ -1242,7 +1214,7 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
                         "in non-parallel mode" ) + "\n" );
             }
             periodicCachingStop();
-            inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+            inThreadPeriodicCachingStart( strChainNameConnectedTo, opts );
         }, nSecondsToWaitParallel * 1000 );
         owaspUtils.ensureObserverOptionsInitialized( opts );
         await ensureHaveWorker( opts );
@@ -1257,8 +1229,7 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
                     parseInt( opts.secondsToReDiscoverSkaleNetwork ),
                 "secondsToWaitForSkaleNetworkDiscovered":
                     parseInt( opts.secondsToWaitForSkaleNetworkDiscovered ),
-                "strChainNameConnectedTo": strChainNameConnectedTo,
-                "addressFrom": addressFrom
+                "strChainNameConnectedTo": strChainNameConnectedTo
             }
         };
         gClient.send( jo );
@@ -1278,7 +1249,7 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
     return false;
 }
 
-export async function periodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
+export async function periodicCachingStart( strChainNameConnectedTo, opts ) {
     gFlagHaveParallelResult = false;
     const bParallelModeRefreshSNB =
         ( opts && "bParallelModeRefreshSNB" in opts &&
@@ -1288,11 +1259,11 @@ export async function periodicCachingStart( strChainNameConnectedTo, addressFrom
     let wasStarted = false;
     if( bParallelModeRefreshSNB ) {
         wasStarted = await
-        parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+        parallelPeriodicCachingStart( strChainNameConnectedTo, opts );
     }
     if( wasStarted )
         return;
-    await inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
+    await inThreadPeriodicCachingStart( strChainNameConnectedTo, opts );
 }
 
 export async function periodicCachingStop() {
