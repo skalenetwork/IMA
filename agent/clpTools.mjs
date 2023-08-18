@@ -1478,7 +1478,7 @@ export function commandLineTaskLoopSimple() {
     const imaState = state.get();
     discoveryTools.initialSkaleNetworkScanForS2S();
     imaState.arrActions.push( {
-        "name": "M<->S and S->S transfer loop, simple mode",
+        "name": "M<->S and S->S transfer loop, startup simple mode",
         "fn": async function() {
             state.setPreventExitAfterLastAction( true );
             if( ! imaState.bNoWaitSChainStarted )
@@ -1654,8 +1654,7 @@ export function commandLineTaskBrowseSkaleNetwork() {
                 "details": log,
                 "bStopNeeded": false
             };
-            const addressFrom = imaState.chainProperties.mn.joAccount.address();
-            const arrSChains = await skaleObserver.loadSChains( addressFrom, opts );
+            const arrSChains = await skaleObserver.loadSChains( opts );
             const cnt = arrSChains.length;
             log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) +
                 cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) +
@@ -1684,16 +1683,12 @@ export function commandLineTaskBrowseConnectedSChains() {
                     cc.debug( "Downloading SKALE network information..." ) + "\n" );
             }
             const opts = {
-                imaState: imaState,
+                "imaState": imaState,
                 "details": log,
                 "bStopNeeded": false
             };
-            const addressFrom = imaState.chainProperties.mn.joAccount.address();
             const arrSChainsCached = await skaleObserver.loadSChainsConnectedOnly(
-                imaState.chainProperties.sc.strChainName,
-                addressFrom,
-                opts
-            );
+                imaState.chainProperties.sc.strChainName, opts );
             const cnt = arrSChainsCached.length;
             log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) +
                 cc.normal( " connected S-Chain(s): " ) + cc.j( arrSChainsCached ) + "\n" );

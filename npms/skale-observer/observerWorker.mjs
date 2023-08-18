@@ -32,6 +32,7 @@ import * as cc from "../skale-cc/cc.mjs";
 import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
 import * as skaleObserver from "./observer.mjs";
 import * as log from "../skale-log/log.mjs";
+import * as threadInfo from "../../agent/threadInfo.mjs";
 
 const gURL = "skale_observer_worker_server";
 
@@ -102,7 +103,8 @@ class ObserverServer extends SocketServer {
                     self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
                         cc.note( "Main-net" ) +
                         cc.warning( " URL specified in command line arguments" ) +
-                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                        cc.debug( "(needed for particular operations only) in " ) +
+                        threadInfo.threadDescription() + "\n" );
                 }
             }
 
@@ -118,7 +120,8 @@ class ObserverServer extends SocketServer {
                     self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
                         cc.note( "Main-net" ) +
                         cc.warning( " URL specified in command line arguments" ) +
-                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                        cc.debug( "(needed for particular operations only) in " ) +
+                        threadInfo.threadDescription() + "\n" );
                 }
             }
             self.opts.imaState.joNodes =
@@ -147,7 +150,8 @@ class ObserverServer extends SocketServer {
                     self.opts.imaState.chainProperties.sc.ethersProvider
                 );
             if( log.verboseGet() >= log.verboseReversed().information ) {
-                self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " +
+                self.log( cc.debug( "Full init compete for in-worker SNB server in " ) +
+                    threadInfo.threadDescription() + " " +
                     cc.notice( gURL ) + "\n" );
             }
             return joAnswer;
@@ -156,14 +160,14 @@ class ObserverServer extends SocketServer {
             function( joMessage, joAnswer, eventData, socket ) {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     self.opts.details.write(
-                        cc.debug( "Worker thread will to start periodic SNB refresh..." ) +
+                        threadInfo.threadDescription() +
+                        cc.debug( " will to start periodic SNB refresh ..." ) +
                         "\n" );
                 }
                 self.periodicCachingStart(
                     socket,
                     joMessage.message.secondsToReDiscoverSkaleNetwork,
-                    joMessage.message.strChainNameConnectedTo,
-                    joMessage.message.addressFrom
+                    joMessage.message.strChainNameConnectedTo
                 );
                 joAnswer.message = {
                     "method": "" + joMessage.method,
@@ -181,7 +185,8 @@ class ObserverServer extends SocketServer {
             return joAnswer;
         };
         if( log.verboseGet() >= log.verboseReversed().information ) {
-            self.log( cc.debug( "Initialized in-worker SNB server" ) + " " +
+            self.log( cc.debug( "Initialized in-worker SNB server in " ) +
+                threadInfo.threadDescription() + cc.debug( " is " ) +
                 cc.notice( gURL ) + "\n" );
         }
     }
@@ -195,7 +200,7 @@ class ObserverServer extends SocketServer {
         super.dispose();
     }
     async periodicCachingDoNow(
-        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
+        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo
     ) {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
@@ -205,22 +210,23 @@ class ObserverServer extends SocketServer {
         for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
             try {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
-                    self.opts.details.write(
-                        cc.debug( "Worker thread will invoke S-Chains caching..." ) +
+                    self.opts.details.write( threadInfo.threadDescription() +
+                        cc.debug( " thread will invoke S-Chains caching..." ) +
                         "\n" );
                 }
                 strError =
                     await skaleObserver.cacheSChains(
                         strChainNameConnectedTo,
-                        addressFrom,
                         self.opts
                     );
                 if( ! strError )
                     break;
             } catch ( err ) {
                 strError = owaspUtils.extractErrorMessage( err );
-                if( ! strError )
-                    strError = "runtime error without description";
+                if( ! strError ) {
+                    strError = "runtime error without description in " +
+                        threadInfo.threadDescription( false );
+                }
             }
             await sleep( 5 * 1000 );
         }
@@ -228,12 +234,14 @@ class ObserverServer extends SocketServer {
         if( strError ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 self.log( cc.error( "Parallel periodic SNB caching came across with error: " ) +
-                    cc.warning( strError ) + "\n" );
+                    cc.warning( strError ) + cc.error( " in " ) + threadInfo.threadDescription() +
+                    "\n" );
             }
             return strError;
         }
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            self.log( cc.debug( "Parallel periodic SNB caching will notify main thread now" ) +
+            self.log( cc.debug( "Parallel periodic SNB caching in " ) +
+                threadInfo.threadDescription() + cc.debug( " will notify main thread now" ) +
                 "\n" );
         }
         const arrSChains = skaleObserver.getLastCachedSChains();
@@ -245,14 +253,13 @@ class ObserverServer extends SocketServer {
         const isFlush = true;
         socket.send( jo, isFlush );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            self.log( cc.debug( "Parallel periodic SNB caching did notified main thread now" ) +
+            self.log( cc.debug( "Parallel periodic SNB caching in " ) +
+                threadInfo.threadDescription() + cc.debug( " did notified main thread now" ) +
                 "\n" );
         }
         return null;
     }
-    async periodicCachingStart(
-        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
-    ) {
+    async periodicCachingStart( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo ) {
         const self = this;
         await self.periodicCachingStop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
@@ -261,15 +268,16 @@ class ObserverServer extends SocketServer {
             try {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     self.opts.details.write(
-                        cc.debug( "SKALE Observer will do immediate periodic SNB refresh..." ) +
+                        cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
+                        cc.debug( " will do immediate periodic SNB refresh..." ) +
                         "\n" );
                 }
                 await self.periodicCachingDoNow(
-                    socket, secondsToReDiscoverSkaleNetwork,
-                    strChainNameConnectedTo, addressFrom );
+                    socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo );
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
-                    self.log( cc.error( "Periodic SNB caching(async) error: " ) +
+                    self.log( cc.error( "Periodic SNB caching(async) error in " ) +
+                        threadInfo.threadDescription() + cc.debug( ": " ) +
                         cc.warning( strError ) + "\n" );
                 }
             }
@@ -282,13 +290,15 @@ class ObserverServer extends SocketServer {
                     .then( () => {
                     } ).catch( ( err ) => {
                         if( log.verboseGet() >= log.verboseReversed().error ) {
-                            self.log( cc.error( "Periodic SNB caching(sync-delayed) error: " ) +
+                            self.log( cc.error( "Periodic SNB caching(sync-delayed) in " ) +
+                                threadInfo.threadDescription() + cc.error( " error: " ) +
                                 cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
                         }
                     } );
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
-                    self.log( cc.error( "Periodic SNB caching(sync) error: " ) +
+                    self.log( cc.error( "Periodic SNB caching(sync) in " ) +
+                        threadInfo.threadDescription() + cc.error( " error: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
                 }
             }
@@ -296,7 +306,8 @@ class ObserverServer extends SocketServer {
         await fnPeriodicCaching();
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             self.opts.details.write(
-                cc.debug( "SKALE Observer will to start periodic SNB refresh..." ) +
+                cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
+                cc.debug( " will to start periodic SNB refresh..." ) +
                 "\n" );
         }
         self.intervalPeriodicSchainsCaching = setInterval(
@@ -319,6 +330,9 @@ const acceptor = new networkLayer.InWorkerSocketServerAcceptor( gURL, doSendMess
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
-    if( log.verboseGet() >= log.verboseReversed().debug )
-        self.log( cc.debug( "Disposed in-worker SNB server" ) + " " + cc.notice( gURL ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        self.log( cc.debug( "Disposed in-worker in " ) +
+            threadInfo.threadDescription() + cc.debug( " SNB server" ) + " " +
+            cc.notice( gURL ) + "\n" );
+    }
 } );

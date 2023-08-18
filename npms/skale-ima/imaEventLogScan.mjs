@@ -104,12 +104,13 @@ export async function safeGetPastEventsProgressive(
             nBlockFrom, nBlockTo, joFilter
         );
     }
-    const nLatestBlockNumber =
-        owaspUtils.toBN( await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumberPlus1 = nLatestBlockNumber.add( owaspUtils.toBN( 1 ) );
     let isLastLatest = false;
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
-        nBlockTo = nLatestBlockNumber;
+        nBlockTo = nLatestBlockNumberPlus1;
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix + cc.debug( "Iterative scan up to latest block " ) +
                 cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
@@ -117,7 +118,7 @@ export async function safeGetPastEventsProgressive(
         }
     } else {
         nBlockTo = owaspUtils.toBN( nBlockTo );
-        if( nBlockTo.eq( nLatestBlockNumber ) )
+        if( nBlockTo.gte( nLatestBlockNumber ) )
             isLastLatest = true;
     }
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
@@ -143,7 +144,7 @@ export async function safeGetPastEventsProgressive(
             cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
     }
     const arrProgressiveEventsScanPlan =
-        createProgressiveEventsScanPlan( details, nLatestBlockNumber );
+        createProgressiveEventsScanPlan( details, nLatestBlockNumberPlus1 );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) +
             cc.debug( " scan plan is: " ) + cc.j( arrProgressiveEventsScanPlan ) + "\n" );
@@ -184,7 +185,7 @@ export async function safeGetPastEventsProgressive(
         } catch ( err ) {}
     }
     if( log.verboseGet() >= log.verboseReversed().error ) {
-        details.write( strLogPrefix + cc.error( "Could not not get Event \"" ) +
+        details.write( strLogPrefix + cc.error( "Could not get Event \"" ) +
             cc.info( strEventName ) + cc.error( "\", from block " ) +
             cc.info( joLastPlan.nBlockFrom ) + cc.error( ", to block " ) +
             cc.info( joLastPlan.nBlockTo ) + cc.debug( ", block range is " ) +
@@ -204,12 +205,13 @@ export async function getContractCallEvents(
     const n10 = owaspUtils.toBN( 10 );
     let nBlockFrom = nBlockNumber.sub( n10 ), nBlockTo = nBlockNumber.add( n10 );
     const nBlockZero = owaspUtils.toBN( 0 );
-    const nLatestBlockNumber =
-        owaspUtils.toBN( await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumberPlus1 = nLatestBlockNumber.add( owaspUtils.toBN( 1 ) );
     if( nBlockFrom.lt( nBlockZero ) )
         nBlockFrom = nBlockZero;
-    if( nBlockTo.gt( nLatestBlockNumber ) )
-        nBlockTo = nLatestBlockNumber;
+    if( nBlockTo.gte( nLatestBlockNumber ) )
+        nBlockTo = nLatestBlockNumberPlus1;
     const joAllEventsInBlock =
         await safeGetPastEventsIterative(
             details, strLogPrefix, ethersProvider, 10, joContract, strEventName,
@@ -291,7 +293,7 @@ export async function safeGetTransactionCount(
     if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
             details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
-                cc.note( strFnName + "()" ) + + cc.error( " via " ) + cc.u( u ) +
+                cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
                 cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
         }
         throw new Error(
@@ -400,7 +402,8 @@ export async function safeGetPastEvents(
     if( nBlockTo == "latest" ) {
         const nLatestBlockNumber = owaspUtils.toBN(
             await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
-        nBlockTo = nLatestBlockNumber;
+        const nLatestBlockNumberPlus1 = nLatestBlockNumber.add( owaspUtils.toBN( 1 ) );
+        nBlockTo = nLatestBlockNumberPlus1;
     } else
         nBlockTo = owaspUtils.toBN( nBlockTo );
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
@@ -541,12 +544,13 @@ export async function safeGetPastEventsIterative(
             strEventName, nBlockFrom, nBlockTo, joFilter
         );
     }
-    const nLatestBlockNumber =
-        owaspUtils.toBN( await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
+    const nLatestBlockNumberPlus1 = nLatestBlockNumber.add( owaspUtils.toBN( 1 ) );
     let isLastLatest = false;
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
-        nBlockTo = nLatestBlockNumber;
+        nBlockTo = nLatestBlockNumberPlus1;
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix + cc.debug( "Iterative scan up to latest block " ) +
                 cc.info( "#" ) + cc.info( nBlockTo.toHexString() ) +
@@ -554,7 +558,7 @@ export async function safeGetPastEventsIterative(
         }
     } else {
         nBlockTo = owaspUtils.toBN( nBlockTo );
-        if( nBlockTo.eq( nLatestBlockNumber ) )
+        if( nBlockTo.gte( nLatestBlockNumber ) )
             isLastLatest = true;
     }
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
@@ -584,12 +588,12 @@ export async function safeGetPastEventsIterative(
             cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) +
             cc.info( nBlockTo.toHexString() ) + cc.debug( " block range..." ) + "\n" );
     }
-    let idxBlockSubRangeFrom = nBlockFrom;
+    let idxBlockSubRangeTo = nBlockTo;
     for( ; true; ) {
-        let idxBlockSubRangeTo = idxBlockSubRangeFrom.add(
+        let idxBlockSubRangeFrom = idxBlockSubRangeTo.sub(
             owaspUtils.toBN( imaHelperAPIs.getBlocksCountInInIterativeStepOfEventsScan() ) );
-        if( idxBlockSubRangeTo.gt( nBlockTo ) )
-            idxBlockSubRangeTo = nBlockTo;
+        if( idxBlockSubRangeFrom.lt( nBlockFrom ) )
+            idxBlockSubRangeFrom = nBlockFrom;
         try {
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.debug( "Iterative scan of " ) +
@@ -627,8 +631,8 @@ export async function safeGetPastEventsIterative(
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
         }
-        idxBlockSubRangeFrom = idxBlockSubRangeTo;
-        if( idxBlockSubRangeFrom.eq( nBlockTo ) )
+        idxBlockSubRangeTo = idxBlockSubRangeFrom;
+        if( idxBlockSubRangeTo.lte( nBlockFrom ) )
             break;
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
