@@ -1561,11 +1561,11 @@ export async function doAllS2S( // s-chain --> s-chain
         let s = cc.debug( "Stats for S2S steps in " ) +
             threadInfo.threadDescription() + cc.debug( ": " );
         if( cntOK > 0 ) {
-            s += " " + cc.info( cntOK ) +
+            s += " " + cc.info( cntOK ) + " " +
                 cc.success( "S-Chain(s) processed OKay" ) + cc.debug( ", " );
         }
         if( cntFail > 0 ) {
-            s += " " + cc.info( cntFail ) +
+            s += " " + cc.info( cntFail ) + " " +
                 cc.error( "S-Chain(s) failed" );
         }
         log.write( s + "\n" );
