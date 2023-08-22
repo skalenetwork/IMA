@@ -648,7 +648,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
     return arrSChains;
 }
 
-async function checkWhetherSChainIsConnected( joMessageProxySChain, opts ) {
+async function checkWhetherSChainIsConnected( strSChainName, joMessageProxySChain, opts ) {
     let isConnected = false, isQueryPassed = false;
     const cntAttempts = (
         "cntAttemptsCheckConnectedState" in opts &&
@@ -751,7 +751,8 @@ export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) 
                         cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
                 }
             }
-            const isConnected = await checkWhetherSChainIsConnected( joMessageProxySChain, opts );
+            const isConnected = await checkWhetherSChainIsConnected(
+                strSChainName, joMessageProxySChain, opts );
             if( ! isConnected )
                 continue;
             const joSChain = await loadSChain( idxSChain, strSChainHash, null, cntSChains, opts );
@@ -803,8 +804,8 @@ export async function checkConnectedSChains( strChainNameConnectedTo, arrSChains
                     opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     ethersProvider
                 );
-            joSChain.isConnected =
-                await checkWhetherSChainIsConnected( joMessageProxySChain, opts );
+            joSChain.isConnected = await checkWhetherSChainIsConnected(
+                strChainNameConnectedTo, joMessageProxySChain, opts );
         } catch ( err ) {
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
