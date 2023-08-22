@@ -648,6 +648,49 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
     return arrSChains;
 }
 
+async function checkWhetherSChainIsConnected( joMessageProxySChain, opts ) {
+    let isConnected = false, isQueryPassed = false;
+    const cntAttempts = (
+        "cntAttemptsCheckConnectedState" in opts &&
+        typeof opts.cntAttemptsCheckConnectedState == "number" &&
+        opts.cntAttemptsCheckConnectedState > 0 )
+        ? opts.cntAttemptsCheckConnectedState : 3;
+    for( let idxAttempt = 0; idxAttempt < cntAttempts; ++ idxAttempt ) {
+        try {
+            isConnected =
+                await joMessageProxySChain.callStatic.isConnectedChain( strSChainName );
+            isQueryPassed = true;
+            break;
+        } catch ( err ) {
+            isConnected = false;
+            if( opts && opts.details ) {
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    opts.details.write( cc.error( "Failed attempt " ) +
+                        cc.info( idxAttempt ) + cc.error( " of " ) +
+                        cc.info( cntAttempts ) +
+                        cc.error( " to query connected state of " ) +
+                        cc.info( strSChainName ) + cc.debug( " and S-Chain, got error: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                }
+            }
+        }
+    }
+    if( opts && opts.details ) {
+        if( ! isQueryPassed ) {
+            if( log.verboseGet() >= log.verboseReversed().warning ) {
+                opts.details.write( cc.debug( "Will assume S-Chain " ) +
+                    cc.info( strSChainName ) + cc.debug( " connected status: " ) +
+                    cc.yn( isConnected ) + "\n" );
+            }
+        } else if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
+                cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
+        }
+    }
+    return isConnected;
+}
+
 export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) {
     if( ! opts.imaState ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided in " +
@@ -691,7 +734,6 @@ export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) 
             }
             if( opts && opts.bStopNeeded )
                 break;
-
             if( strChainNameConnectedTo == strSChainName ) {
                 if( opts && opts.details ) {
                     if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -709,14 +751,7 @@ export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) 
                         cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
                 }
             }
-            const isConnected =
-                await joMessageProxySChain.callStatic.isConnectedChain( strSChainName );
-            if( opts && opts.details ) {
-                if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
-                        cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
-                }
-            }
+            const isConnected = await checkWhetherSChainIsConnected( joMessageProxySChain, opts );
             if( ! isConnected )
                 continue;
             const joSChain = await loadSChain( idxSChain, strSChainHash, null, cntSChains, opts );
@@ -769,11 +804,7 @@ export async function checkConnectedSChains( strChainNameConnectedTo, arrSChains
                     ethersProvider
                 );
             joSChain.isConnected =
-                await joMessageProxySChain.callStatic.isConnectedChain( strChainNameConnectedTo );
-            if( opts && opts.details ) {
-                if( log.verboseGet() >= log.verboseReversed().trace )
-                    opts.details.write( cc.debug( "Got " ) + cc.yn( joSChain.isConnected ) + "\n" );
-            }
+                await checkWhetherSChainIsConnected( joMessageProxySChain, opts );
         } catch ( err ) {
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
