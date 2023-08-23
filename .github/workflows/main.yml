@@ -10,13 +10,18 @@ on:
     branches-ignore:
       - 'docs-v*'
 
+env:
+  NODE_VERSION: 18
+  PYTHON_VERSION: 3.8
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
     runs-on: ubuntu-latest
 
-    env:
-      working-directory: ./proxy
+    defaults:
+      run:
+        working-directory: proxy
 
     steps:
     - uses: actions/checkout@v2
@@ -43,47 +48,41 @@ jobs:
     - name: Install PYTHON
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: 16
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Install project
-      working-directory: ${{env.working-directory}}
-      run: |
-        yarn install
+      run: yarn install
 
     - name: Install slither
-      working-directory: ${{env.working-directory}}
       run: pip3 install -r scripts/requirements.txt
 
     - name: Lint solidity
-      working-directory: ${{env.working-directory}}
       run: yarn lint
 
     - name: Compile typescript
-      working-directory: ${{env.working-directory}}
       run: yarn tsc
 
     - name: Lint typescript
-      working-directory: ${{env.working-directory}}
       run: yarn eslint
 
     - name: Slither checks
-      working-directory: ${{env.working-directory}}
       run: yarn slither
 
+    - name: Test ABI generation
+      run: npx hardhat run scripts/generateAbi.ts
+
     - name: Gas calculation test
-      working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
 
     - name: Test upgrade
-      run: bash ./proxy/scripts/test_upgrade.sh
+      run: bash scripts/test_upgrade.sh
 
     - name: Run tests
-      working-directory: ${{env.working-directory}}
       run: |
         npx hardhat coverage --solcoverjs .solcover.js
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
@@ -120,12 +119,12 @@ jobs:
     - name: Install PYTHON
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: ${{ env. PYTHON_VERSION }}
 
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: 16
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Install project
       run: |
@@ -329,12 +328,12 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v2
       with:
-        node-version: '16'
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Compile contracts
       working-directory: ./proxy
