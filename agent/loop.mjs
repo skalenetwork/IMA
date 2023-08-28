@@ -425,33 +425,45 @@ export async function singleTransferLoop( optsLoop ) {
             log.write( strLogPrefix + cc.debug( imaHelperAPIs.longSeparator ) + "\n" );
         let b0 = false, b1 = false, b2 = false, b3 = false;
         // Oracle loop part:
-        if( optsLoop.enableStepOracle && imaState.loopState.oracle.isInProgress ) {
-            imaState.loopState.oracle.wasInProgress = false;
-            printLoopPartSkippedWarning( "Oracle" );
+        if( optsLoop.enableStepOracle ) {
+            if( imaState.loopState.oracle.isInProgress ) {
+                imaState.loopState.oracle.wasInProgress = false;
+                printLoopPartSkippedWarning( "Oracle" );
+                b0 = true;
+            } else
+                b0 = await singleTransferLoopPartOracle( optsLoop, strLogPrefix );
         } else
-            b0 = await singleTransferLoopPartOracle( optsLoop, strLogPrefix );
-
+            b0 = true;
         // M2S loop part:
-        if( optsLoop.enableStepM2S && imaState.loopState.m2s.isInProgress ) {
-            imaState.loopState.m2s.wasInProgress = false;
-            printLoopPartSkippedWarning( "M2S" );
+        if( optsLoop.enableStepM2S ) {
+            if( imaState.loopState.m2s.isInProgress ) {
+                imaState.loopState.m2s.wasInProgress = false;
+                printLoopPartSkippedWarning( "M2S" );
+                b1 = true;
+            } else
+                b1 = await singleTransferLoopPartM2S( optsLoop, strLogPrefix );
         } else
-            b1 = await singleTransferLoopPartM2S( optsLoop, strLogPrefix );
-
+            b1 = true;
         // S2M loop part:
-        if( optsLoop.enableStepS2M && imaState.loopState.s2m.isInProgress ) {
-            imaState.loopState.s2m.wasInProgress = false;
-            printLoopPartSkippedWarning( "S2M" );
+        if( optsLoop.enableStepS2M ) {
+            if( imaState.loopState.s2m.isInProgress ) {
+                imaState.loopState.s2m.wasInProgress = false;
+                printLoopPartSkippedWarning( "S2M" );
+                b2 = true;
+            } else
+                b2 = await singleTransferLoopPartS2M( optsLoop, strLogPrefix );
         } else
-            b2 = await singleTransferLoopPartS2M( optsLoop, strLogPrefix );
-
+            b2 = true;
         // S2S loop part:
-        if( optsLoop.enableStepS2S && imaState.loopState.s2s.isInProgress ) {
-            imaState.loopState.s2s.wasInProgress = false;
-            printLoopPartSkippedWarning( "S2S" );
+        if( optsLoop.enableStepS2S ) {
+            if( imaState.loopState.s2s.isInProgress ) {
+                imaState.loopState.s2s.wasInProgress = false;
+                printLoopPartSkippedWarning( "S2S" );
+                b3 = true;
+            } else
+                b3 = await singleTransferLoopPartS2S( optsLoop, strLogPrefix );
         } else
-            b3 = await singleTransferLoopPartS2S( optsLoop, strLogPrefix );
-
+            b3 = true;
         // Final status check loop part:
         const bResult = b0 && b1 && b2 && b3;
         if( log.verboseGet() >= log.verboseReversed().notice ) {
