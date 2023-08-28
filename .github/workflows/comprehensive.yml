@@ -101,15 +101,6 @@ jobs:
         sudo sh install-docker.sh
         docker --version
         docker-compose --version
-        # - name: INIT - install docker with compose
-        #   run: |
-        #     echo " --------------------------- remove old packages ------------------------------------------------------------------------------------------------------ "
-        #     sudo apt-get remove docker* containerd* || true
-        #     echo " --------------------------- install containerd.io ---------------------------------------------------------------------------------------------------- "
-        #     sudo apt-get install containerd.io
-        #     echo " --------------------------- install docker.io -------------------------------------------------------------------------------------------------------- "
-        #     echo " --------------------------- install docker-compose --------------------------------------------------------------------------------------------------- "
-        #     sudo apt-get install docker-compose
 
     - name: INIT - reconfigure docker and restart its daemon
       run: |
