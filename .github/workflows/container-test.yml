@@ -86,12 +86,18 @@ jobs:
         echo ------------ lscpu
         lscpu || true
 
-    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps
+    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps, curl
       run: |
         sudo apt-get update
         sudo apt-get install libc6 net-tools btrfs-progs zip unzip
         sudo apt-get install bash
         sudo apt-get install procps
+        sudo apt-get install curl
+
+    - name: INIT - install docker
+      run: |
+        curl -fsSL https://get.docker.com -o install-docker.sh
+        sudo sh install-docker.sh
 
     - name: INIT - install docker with compose
       run: |
