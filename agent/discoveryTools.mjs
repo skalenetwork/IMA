@@ -61,7 +61,8 @@ export function initialSkaleNetworkScanForS2S() {
                 "secondsToWaitForSkaleNetworkDiscovered":
                     imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
                 "chain": imaState.chainProperties.sc,
-                "bParallelModeRefreshSNB": imaState.optsS2S.bParallelModeRefreshSNB ? true : false
+                "bParallelModeRefreshSNB": imaState.optsS2S.bParallelModeRefreshSNB ? true : false,
+                "isForceMultiAttemptsUntilSuccess": true
             };
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write( strLogPrefix +

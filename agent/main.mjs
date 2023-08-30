@@ -384,7 +384,8 @@ function initJsonRpcServer() {
                             imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
                         "chain": imaState.chainProperties.sc,
                         "bParallelModeRefreshSNB":
-                            imaState.optsS2S.bParallelModeRefreshSNB ? true : false
+                            imaState.optsS2S.bParallelModeRefreshSNB ? true : false,
+                        "isForceMultiAttemptsUntilSuccess": false
                     };
                     skaleObserver.refreshNowSNB( opts ); // async call, no await here
                     joAnswer.result = "Done";
