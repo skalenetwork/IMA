@@ -293,13 +293,19 @@ class ObserverServer extends SocketServer {
                         cc.debug( " will do immediate periodic SNB refresh..." ) +
                         "\n" );
                 }
-                await self.periodicCachingDoNow(
-                    socket,
-                    secondsToReDiscoverSkaleNetwork,
-                    strChainNameConnectedTo,
-                    ( !!isForceMultiAttemptsUntilSuccess )
-                );
-                isForceMultiAttemptsUntilSuccess = false;
+                while( true ) {
+                    const strError =
+                        await self.periodicCachingDoNow(
+                            socket,
+                            secondsToReDiscoverSkaleNetwork,
+                            strChainNameConnectedTo,
+                            ( !!isForceMultiAttemptsUntilSuccess )
+                        );
+                    if( strError && isForceMultiAttemptsUntilSuccess )
+                        continue;
+                    isForceMultiAttemptsUntilSuccess = false;
+                    break;
+                }
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
                     self.log( cc.error( "Periodic SNB caching(async) error in " ) +
