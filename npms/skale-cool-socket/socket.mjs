@@ -245,7 +245,7 @@ export class BasicSocketPipe extends EventDispatcher {
             this.implSend( data );
             return;
         }
-        isFlush = ( isFlush == undefined || isFlush == null ) ? true : ( isFlush ? true : false );
+        isFlush = ( isFlush == undefined || isFlush == null ) ? true : ( !!( isFlush ) );
         const jo = socketReceivedDataReverseMarshall( data );
         if( settings.logging.net.socket.accumulate )
             console.log( this.socketLoggingTextPrefix( "accumulate" ), data );
@@ -664,10 +664,10 @@ export class OutOfWorkerRelay extends EventDispatcher {
             ? ( "" + strRelayName ) : "unnamed";
         self.isAutoFlushIncoming =
             ( isAutoFlushIncoming == null || isAutoFlushIncoming == undefined )
-                ? true : ( isAutoFlushIncoming ? true : false );
+                ? true : ( !!isAutoFlushIncoming );
         self.isAutoFlushOutgoing =
             ( isAutoFlushOutgoing == null || isAutoFlushOutgoing == undefined )
-                ? true : ( isAutoFlushOutgoing ? true : false );
+                ? true : ( !!( isAutoFlushOutgoing ) );
         if( ! acceptor ) {
             throw new Error( "OutOfWorkerRelay \"" + self.strRelayName +
                 "\" needs acceptor for normal functionality" );
@@ -898,10 +898,10 @@ export class OneToOneRelay extends EventDispatcher {
                 ? ( "" + strRelayName ) : "unnamed";
         self.isAutoFlushIncoming =
             ( isAutoFlushIncoming == null || isAutoFlushIncoming == undefined )
-                ? true : ( isAutoFlushIncoming ? true : false );
+                ? true : ( !!isAutoFlushIncoming );
         self.isAutoFlushOutgoing =
             ( isAutoFlushOutgoing == null || isAutoFlushOutgoing == undefined )
-                ? true : ( isAutoFlushOutgoing ? true : false );
+                ? true : ( !!isAutoFlushIncoming );
         self.pipeIncoming = pipeIncoming;
         self.pipeOutgoing = pipeOutgoing;
         if( ( !( "strSavedRemoteAddress" in pipeIncoming ) ) ||
@@ -1129,7 +1129,7 @@ export class OneToOneRelay extends EventDispatcher {
 export class DirectPipe extends BasicSocketPipe {
     constructor( counterPipe, isBroadcastOpenEvents ) {
         super();
-        isBroadcastOpenEvents = isBroadcastOpenEvents ? true : false;
+        isBroadcastOpenEvents = ( !!isBroadcastOpenEvents );
         this.socketType = "Direct";
         this.socketSubtype = "direct.not.initialized.yet";
         this.isConnected = false;
@@ -3289,7 +3289,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
         this.isConnected = false;
         this.rtcPeer = null;
         this.isAutoCloseSignalingPipeOnDataChannelOpen =
-            settings.net.rtc.isAutoCloseSignalingPipeOnDataChannelOpen ? true : false;
+            ( !!( settings.net.rtc.isAutoCloseSignalingPipeOnDataChannelOpen ) );
         this.url = "rtc_client_pipe-" + this.strSignalingServerURL;
         this.reconnect();
     }

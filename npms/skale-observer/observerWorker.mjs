@@ -297,7 +297,7 @@ class ObserverServer extends SocketServer {
                     socket,
                     secondsToReDiscoverSkaleNetwork,
                     strChainNameConnectedTo,
-                    isForceMultiAttemptsUntilSuccess ? true : false
+                    ( !!isForceMultiAttemptsUntilSuccess )
                 );
                 isForceMultiAttemptsUntilSuccess = false;
             } catch ( err ) {
