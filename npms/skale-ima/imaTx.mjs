@@ -277,7 +277,8 @@ async function payedCallSGX( optsPayedCall ) {
         encoding: "utf-8"
     };
     const rv = childProcessModule.spawnSync( strCmd, joSpawnOptions );
-    optsPayedCall.joReceipt = JSON.parse( rv.stdout.toString( "utf8" ) );
+    const strStdOutFromExternalInvocation = rv.stdout.toString( "utf8" );
+    optsPayedCall.joReceipt = JSON.parse( strStdOutFromExternalInvocation.toString( "utf8" ) );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsPayedCall.details.write( optsPayedCall.strLogPrefix +
             cc.debug( "Result from external SGX signer is: " ) +
@@ -530,7 +531,7 @@ export async function checkTransactionToSchain(
                 throw new Error(
                     "Failed to compute gas price with PoW-mining (2), got zero value" );
             }
-            unsignedTx.gasPrice = powNumber.toHexString();
+            unsignedTx.gasPrice = owaspUtils.toBN( powNumber.toHexString() );
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.success( "Success, finally (after PoW-mining) " +
                     "modified unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
