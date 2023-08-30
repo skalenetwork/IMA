@@ -217,7 +217,7 @@ class ObserverServer extends SocketServer {
                 ( isForceMultiAttemptsUntilSuccess
                     ? cc.warning( "forced" )
                     : cc.success( "normal" ) ) +
-                cc.debug( "mode..." ) + "\n" );
+                cc.debug( " mode..." ) + "\n" );
         }
         for( let idxAttempt = 0;
             // eslint-disable-next-line no-unmodified-loop-condition
