@@ -646,7 +646,7 @@ function moneyUnitNameToPostMultiplier( s ) {
 
 export function parseMoneySpecToWei( s, isThrowException ) {
     try {
-        isThrowException = isThrowException ? true : false;
+        isThrowException = ( !!isThrowException );
         if( s == null || s == undefined ) {
             if( isThrowException )
                 throw new Error( "no parse-able value provided" );

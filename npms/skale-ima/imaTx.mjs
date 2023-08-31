@@ -45,24 +45,24 @@ let redis = null;
 let gFlagDryRunIsEnabled = true;
 
 export function dryRunIsEnabled() {
-    return gFlagDryRunIsEnabled ? true : false;
+    return ( !!gFlagDryRunIsEnabled );
 }
 export function dryRunEnable( isEnable ) {
     gFlagDryRunIsEnabled = ( isEnable != null && isEnable != undefined )
-        ? ( isEnable ? true : false ) : true;
-    return gFlagDryRunIsEnabled ? true : false;
+        ? ( !!isEnable ) : true;
+    return ( !!gFlagDryRunIsEnabled );
 }
 
 let gFlagDryRunIsIgnored = true;
 
 export function dryRunIsIgnored() {
-    return gFlagDryRunIsIgnored ? true : false;
+    return ( !!gFlagDryRunIsIgnored );
 }
 
 export function dryRunIgnore( isIgnored ) {
     gFlagDryRunIsIgnored = ( isIgnored != null && isIgnored != undefined )
-        ? ( isIgnored ? true : false ) : true;
-    return gFlagDryRunIsIgnored ? true : false;
+        ? ( !!isIgnored ) : true;
+    return ( !!gFlagDryRunIsIgnored );
 }
 
 export async function dryRunCall(
@@ -76,7 +76,7 @@ export async function dryRunCall(
     if( ! dryRunIsEnabled() )
         return null; // success
     isDryRunResultIgnore = ( isDryRunResultIgnore != null && isDryRunResultIgnore != undefined )
-        ? ( isDryRunResultIgnore ? true : false ) : false;
+        ? ( !!isDryRunResultIgnore ) : false;
     const strContractMethodDescription =
         cc.notice( strContractName ) + cc.debug( "(" ) + cc.info( joContract.address ) +
         cc.debug( ")." ) + cc.notice( strMethodName );

@@ -230,7 +230,7 @@ export async function handleLoopStateArrived(
                 strMessageHash, nNodeNumber, signature, imaState.isPrintPWA );
         if( ! isSignatureOK )
             throw new Error( "BLS verification failed" );
-        joProps.isInProgress = isStart ? true : false;
+        joProps.isInProgress = ( !!isStart );
         joProps.ts = 0 + ts;
         if( log.verboseGet() >= log.verboseReversed().error ) {
             if( imaState.isPrintPWA ) {
@@ -310,7 +310,7 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
                             "nNodeNumber": 0 + imaState.nNodeNumber,
                             "strLoopWorkType": "" + strLoopWorkType,
                             "nIndexS2S": 0 + nIndexS2S,
-                            "isStart": isStart ? true : false,
+                            "isStart": ( !!isStart ),
                             "ts": nUtcUnixTimeStamp,
                             "signature": signature
                         }

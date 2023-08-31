@@ -408,8 +408,7 @@ class SignalingCategory extends EventDispatcher {
         try {
             idSpace = "" + ( idSpace ? idSpace.toString() : settings.rtcSpace.defaultSpaceName );
             isAutoAlloc =
-                ( isAutoAlloc == null || isAutoAlloc == undefined ) ? true : ( isAutoAlloc
-                    ? true : false );
+                ( isAutoAlloc == null || isAutoAlloc == undefined ) ? true : ( !!isAutoAlloc );
             let signalingSpace = null;
             if( idSpace in this.mapSpaces )
                 signalingSpace = this.mapSpaces[idSpace];
@@ -477,7 +476,7 @@ class SignalingManager extends EventDispatcher {
             idCategory = "" + ( idCategory
                 ? idCategory.toString() : settings.rtcSpace.defaultSpaceCategory );
             isAutoAlloc = ( isAutoAlloc == null || isAutoAlloc == undefined )
-                ? true : ( isAutoAlloc ? true : false );
+                ? true : ( !!isAutoAlloc );
             let signalingCategory = null;
             if( idCategory in this.mapCategories )
                 signalingCategory = this.mapCategories[idCategory];

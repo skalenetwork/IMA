@@ -37,7 +37,7 @@ export function getPrintTimestamps() {
 }
 
 export function setPrintTimestamps( b ) {
-    gFlagLogWithTimeStamps = b ? true : false;
+    gFlagLogWithTimeStamps = ( !!b );
 }
 
 export function n2s( n, sz ) {
@@ -50,7 +50,7 @@ export function n2s( n, sz ) {
 export function generateTimestampString( ts, isColorized ) {
     isColorized =
         ( typeof isColorized == "undefined" )
-            ? true : ( isColorized ? true : false );
+            ? true : ( !!isColorized );
     ts = ( ts instanceof Date ) ? ts : new Date();
     const ccDate = function( x ) { return isColorized ? cc.date( x ) : x; };
     const ccTime = function( x ) { return isColorized ? cc.time( x ) : x; };
@@ -422,10 +422,10 @@ let gFlagIsExposeDetails = false;
 let gVerboseLevel = 0 + verboseReversed().information;
 
 export function exposeDetailsGet() {
-    return gFlagIsExposeDetails ? true : false;
+    return ( !!gFlagIsExposeDetails );
 }
 export function exposeDetailsSet( isExpose ) {
-    gFlagIsExposeDetails = isExpose ? true : false;
+    gFlagIsExposeDetails = ( !!isExpose );
 }
 
 export function verboseGet() {

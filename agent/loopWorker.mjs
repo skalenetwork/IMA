@@ -198,7 +198,7 @@ class ObserverServer extends SocketServer {
                     owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                     joMessage.params.strLoopWorkType,
                     joMessage.params.nIndexS2S,
-                    joMessage.params.isStart ? true : false,
+                    ( !!( joMessage.params.isStart ) ),
                     owaspUtils.toInteger( joMessage.params.ts ),
                     joMessage.params.signature
                 );

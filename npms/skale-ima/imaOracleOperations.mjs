@@ -35,10 +35,10 @@ import * as imaTransferErrorHandling from "./imaTransferErrorHandling.mjs";
 let gFlagIsEnabledOracle = false;
 
 export function getEnabledOracle( isEnabled ) {
-    return gFlagIsEnabledOracle ? true : false;
+    return ( !!gFlagIsEnabledOracle );
 }
 export function setEnabledOracle( isEnabled ) {
-    gFlagIsEnabledOracle = isEnabled ? true : false;
+    gFlagIsEnabledOracle = ( !!isEnabled );
 }
 
 async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
