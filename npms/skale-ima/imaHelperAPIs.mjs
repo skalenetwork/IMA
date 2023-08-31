@@ -52,10 +52,10 @@ export function setSleepBetweenTransactionsOnSChainMilliseconds( val ) {
 }
 
 export function getWaitForNextBlockOnSChain() {
-    return gFlagWaitForNextBlockOnSChain ? true : false;
+    return ( !!gFlagWaitForNextBlockOnSChain );
 }
 export function setWaitForNextBlockOnSChain( val ) {
-    gFlagWaitForNextBlockOnSChain = val ? true : false;
+    gFlagWaitForNextBlockOnSChain = ( !!val );
 }
 
 export const sleep = ( milliseconds ) => {
@@ -202,17 +202,17 @@ export function getS2STransferModeDescriptionColorized() {
 }
 
 export function isForwardS2S() {
-    return gFlagIsForwardS2S ? true : false;
+    return ( !!gFlagIsForwardS2S );
 }
 
 export function isReverseS2S() {
-    return gFlagIsForwardS2S ? false : true;
+    return ( !!gFlagIsForwardS2S );
 }
 
 export function setForwardS2S( b ) {
     if( b == null || b == undefined )
         b = true;
-    gFlagIsForwardS2S = b ? true : false;
+    gFlagIsForwardS2S = ( !!b );
 }
 
 export function setReverseS2S( b ) {

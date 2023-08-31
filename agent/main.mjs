@@ -359,7 +359,7 @@ function initJsonRpcServer() {
                     owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                     joMessage.params.strLoopWorkType,
                     joMessage.params.nIndexS2S,
-                    joMessage.params.isStart ? true : false,
+                    ( !!( joMessage.params.isStart ) ),
                     owaspUtils.toInteger( joMessage.params.ts ),
                     joMessage.params.signature
                 ) )
@@ -384,7 +384,8 @@ function initJsonRpcServer() {
                             imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
                         "chain": imaState.chainProperties.sc,
                         "bParallelModeRefreshSNB":
-                            imaState.optsS2S.bParallelModeRefreshSNB ? true : false
+                            ( !!( imaState.optsS2S.bParallelModeRefreshSNB ) ),
+                        "isForceMultiAttemptsUntilSuccess": false
                     };
                     skaleObserver.refreshNowSNB( opts ); // async call, no await here
                     joAnswer.result = "Done";
