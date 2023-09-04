@@ -74,6 +74,8 @@ jobs:
       run: yarn slither
 
     - name: Test ABI generation
+      env:
+        VERSION: "0.0.0"
       run: npx hardhat run scripts/generateAbi.ts
 
     - name: Gas calculation test
