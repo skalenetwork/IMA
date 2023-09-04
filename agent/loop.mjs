@@ -408,6 +408,14 @@ async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
     return b3;
 }
 
+function printLoopPartSkippedWarning( strLoopPartName ) {
+    if( log.verboseGet() >= log.verboseReversed().warning ) {
+        log.write( strLogPrefix + cc.warning( "Skipped " ) + cc.notice( strLoopPartName ) +
+            cc.warning( " transfer loop part due to other single " +
+            "transfer loop is in progress right now" ) + "\n" );
+    }
+}
+
 export async function singleTransferLoop( optsLoop ) {
     const imaState = state.get();
     const strLogPrefix = cc.attention( "Single Loop in " ) +
@@ -415,32 +423,58 @@ export async function singleTransferLoop( optsLoop ) {
     try {
         if( log.verboseGet() >= log.verboseReversed().debug )
             log.write( strLogPrefix + cc.debug( imaHelperAPIs.longSeparator ) + "\n" );
-        if( ( optsLoop.enableStepOracle && imaState.loopState.oracle.isInProgress ) ||
-            ( optsLoop.enableStepM2S && imaState.loopState.m2s.isInProgress ) ||
-            ( optsLoop.enableStepS2M && imaState.loopState.s2m.isInProgress ) ||
-            ( optsLoop.enableStepS2S && imaState.loopState.s2s.isInProgress )
-        ) {
-            imaState.loopState.oracle.wasInProgress = false;
-            imaState.loopState.m2s.wasInProgress = false;
-            imaState.loopState.s2m.wasInProgress = false;
-            imaState.loopState.s2s.wasInProgress = false;
-            if( log.verboseGet() >= log.verboseReversed().warning ) {
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single " +
-                    "transfer loop is in progress right now" ) + "\n" );
-            }
-            return true;
-        }
-        const b0 = await singleTransferLoopPartOracle( optsLoop, strLogPrefix );
-        const b1 = await singleTransferLoopPartM2S( optsLoop, strLogPrefix );
-        const b2 = await singleTransferLoopPartS2M( optsLoop, strLogPrefix );
-        const b3 = await singleTransferLoopPartS2S( optsLoop, strLogPrefix );
+        let b0 = false, b1 = false, b2 = false, b3 = false;
+        // Oracle loop part:
+        if( optsLoop.enableStepOracle ) {
+            if( imaState.loopState.oracle.isInProgress ) {
+                imaState.loopState.oracle.wasInProgress = false;
+                printLoopPartSkippedWarning( "Oracle" );
+                b0 = true;
+            } else
+                b0 = await singleTransferLoopPartOracle( optsLoop, strLogPrefix );
+        } else
+            b0 = true;
+        // M2S loop part:
+        if( optsLoop.enableStepM2S ) {
+            if( imaState.loopState.m2s.isInProgress ) {
+                imaState.loopState.m2s.wasInProgress = false;
+                printLoopPartSkippedWarning( "M2S" );
+                b1 = true;
+            } else
+                b1 = await singleTransferLoopPartM2S( optsLoop, strLogPrefix );
+        } else
+            b1 = true;
+        // S2M loop part:
+        if( optsLoop.enableStepS2M ) {
+            if( imaState.loopState.s2m.isInProgress ) {
+                imaState.loopState.s2m.wasInProgress = false;
+                printLoopPartSkippedWarning( "S2M" );
+                b2 = true;
+            } else
+                b2 = await singleTransferLoopPartS2M( optsLoop, strLogPrefix );
+        } else
+            b2 = true;
+        // S2S loop part:
+        if( optsLoop.enableStepS2S ) {
+            if( imaState.loopState.s2s.isInProgress ) {
+                imaState.loopState.s2s.wasInProgress = false;
+                printLoopPartSkippedWarning( "S2S" );
+                b3 = true;
+            } else
+                b3 = await singleTransferLoopPartS2S( optsLoop, strLogPrefix );
+        } else
+            b3 = true;
+        // Final status check loop part:
         const bResult = b0 && b1 && b2 && b3;
-        if( log.verboseGet() >= log.verboseReversed().notice )
-            log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().notice ) {
+            log.write( strLogPrefix +
+                cc.debug( "Final completion status for all performed transfer loop parts is " ) +
+                cc.tf( bResult ) + "\n" );
+        }
         return bResult;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) +
+            log.write( strLogPrefix + cc.fatal( "Exception in transfer loop: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }

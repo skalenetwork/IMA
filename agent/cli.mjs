@@ -2586,7 +2586,7 @@ async function asyncCheckUrlAtStartup( u, name ) {
 
 function commonInitPrintSysInfo() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     if( isPrintGathered ) {
         log.write( cc.debug( "This process " ) + cc.sunny( "PID" ) +
             cc.debug( " is " ) + cc.bright( process.pid ) + "\n" );
@@ -2819,7 +2819,7 @@ function commonInitCheckContractPresences() {
 
 function commonInitPrintFoundContracts() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     // deposit_box_eth_address                    --> deposit_box_eth_abi
     // deposit_box_erc20_address                  --> deposit_box_erc20_abi
     // deposit_box_erc721_address                 --> deposit_box_erc721_abi
@@ -2922,7 +2922,7 @@ function commonInitPrintFoundContracts() {
 
 function commonInitCheckErc20() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     let n1 = 0;
     let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc20.length > 0 ) {
@@ -3122,7 +3122,7 @@ function commonInitCheckErc20() {
 
 function commonInitCheckErc721() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     let n1 = 0;
     let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 ) {
@@ -3319,7 +3319,7 @@ function commonInitCheckErc721() {
 
 function commonInitCheckErc1155() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     let n1 = 0;
     let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 ) {
@@ -3520,8 +3520,8 @@ function commonInitCheckErc1155() {
 
 function commonInitCheckGeneralArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
-    const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
+    const isPrintSecurityValues = ( !!( imaState.isPrintSecurityValues ) );
     if( isPrintGathered ) {
         printAbout( true );
         log.write(
@@ -3643,8 +3643,8 @@ function commonInitCheckGeneralArgs() {
 
 function commonInitCheckCredentialsArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
-    const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
+    const isPrintSecurityValues = ( !!( imaState.isPrintSecurityValues ) );
     try {
         ensureHaveCredentials(
             "Main Net",
@@ -3694,7 +3694,7 @@ function commonInitCheckCredentialsArgs() {
 
 function commonInitCheckTransferAmountArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     ensureHaveValue(
         "Amount of wei to transfer", imaState.nAmountOfWei,
         false, isPrintGathered, null, ( x ) => {
@@ -3704,7 +3704,7 @@ function commonInitCheckTransferAmountArgs() {
 
 function commonInitTransferringArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     ensureHaveValue(
         "M->S transfer block size", imaState.nTransferBlockSizeM2S,
         false, isPrintGathered, null, ( x ) => {
@@ -3812,7 +3812,7 @@ function commonInitTransferringArgs() {
 
 function commonInitCheckAccessArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     ensureHaveValue(
         "S-Chain node number(zero based)",
         imaState.nNodeNumber, false, isPrintGathered, null, ( x ) => {
@@ -3827,7 +3827,7 @@ function commonInitCheckAccessArgs() {
 
 function commonInitErcTokensArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
         ensureHaveValue(
             "Loaded Main-net ERC20 ABI ",
@@ -3956,7 +3956,7 @@ function commonInitErcTokensArgs() {
 
 function commonInitGasMultipliersAndTransactionArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     if( isPrintGathered ) {
         log.write(
             cc.info( "Main Net Gas Price Multiplier is" ) +
@@ -4082,7 +4082,7 @@ function commonInitGasMultipliersAndTransactionArgs() {
 
 function commonInitLoggingArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
     if( imaState.strLogFilePath.length > 0 ) {
         ensureHaveValue(
             "Log file path",
@@ -4107,8 +4107,8 @@ function commonInitLoggingArgs() {
 
 function commonInitAutomaticExitArgs() {
     const imaState = state.get();
-    const isPrintGathered = imaState.isPrintGathered ? true : false;
-    const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    const isPrintGathered = ( !!( imaState.isPrintGathered ) );
+    const isPrintSecurityValues = ( !!( imaState.isPrintSecurityValues ) );
     ensureHaveValue(
         "Automatic exit(seconds)",
         imaState.nAutoExitAfterSeconds, false,

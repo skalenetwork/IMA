@@ -86,22 +86,21 @@ jobs:
         echo ------------ lscpu
         lscpu || true
 
-    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps
+    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps, curl
       run: |
         sudo apt-get update
         sudo apt-get install libc6 net-tools btrfs-progs zip unzip
         sudo apt-get install bash
         sudo apt-get install procps
+        sudo apt-get install curl
 
-    - name: INIT - install docker with compose
+    - name: INIT - install docker
       run: |
-        echo " --------------------------- remove old packages ------------------------------------------------------------------------------------------------------ "
         sudo apt-get remove docker* containerd* || true
-        echo " --------------------------- install containerd.io ---------------------------------------------------------------------------------------------------- "
-        sudo apt-get install containerd.io
-        echo " --------------------------- install docker.io -------------------------------------------------------------------------------------------------------- "
-        echo " --------------------------- install docker-compose --------------------------------------------------------------------------------------------------- "
-        sudo apt-get install docker-compose
+        curl -fsSL https://get.docker.com -o install-docker.sh
+        sudo sh install-docker.sh
+        docker --version
+        docker-compose --version
 
     - name: INIT - reconfigure docker and restart its daemon
       run: |
@@ -133,7 +132,7 @@ jobs:
 
     - name: INIT - install Node JS
       run: |
-        curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
+        curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -
         sudo apt-get install -y nodejs
         sudo ln -s /usr/bin/node /usr/local/bin/node
         sudo npm install --global npm

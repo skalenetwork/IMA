@@ -167,7 +167,8 @@ class ObserverServer extends SocketServer {
                 self.periodicCachingStart(
                     socket,
                     joMessage.message.secondsToReDiscoverSkaleNetwork,
-                    joMessage.message.strChainNameConnectedTo
+                    joMessage.message.strChainNameConnectedTo,
+                    joMessage.message.isForceMultiAttemptsUntilSuccess
                 );
                 joAnswer.message = {
                     "method": "" + joMessage.method,
@@ -200,19 +201,34 @@ class ObserverServer extends SocketServer {
         super.dispose();
     }
     async periodicCachingDoNow(
-        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo
+        socket,
+        secondsToReDiscoverSkaleNetwork,
+        strChainNameConnectedTo,
+        isForceMultiAttemptsUntilSuccess
     ) {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
             return null;
         let strError = null;
         self.bIsPeriodicCachingStepInProgress = true;
-        for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            self.opts.details.write( threadInfo.threadDescription() +
+                cc.debug( " thread will invoke S-Chains caching in " ) +
+                ( isForceMultiAttemptsUntilSuccess
+                    ? cc.warning( "forced" )
+                    : cc.success( "normal" ) ) +
+                cc.debug( " mode..." ) + "\n" );
+        }
+        for( let idxAttempt = 0;
+            // eslint-disable-next-line no-unmodified-loop-condition
+            idxAttempt < 10 || isForceMultiAttemptsUntilSuccess;
+            ++ idxAttempt
+        ) {
             try {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     self.opts.details.write( threadInfo.threadDescription() +
-                        cc.debug( " thread will invoke S-Chains caching..." ) +
-                        "\n" );
+                        cc.debug( " thread will invoke S-Chains caching(attempt + " ) +
+                        cc.info( idxAttempt ) + cc.debug( ")..." ) + "\n" );
                 }
                 strError =
                     await skaleObserver.cacheSChains(
@@ -259,7 +275,12 @@ class ObserverServer extends SocketServer {
         }
         return null;
     }
-    async periodicCachingStart( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo ) {
+    async periodicCachingStart(
+        socket,
+        secondsToReDiscoverSkaleNetwork,
+        strChainNameConnectedTo,
+        isForceMultiAttemptsUntilSuccess
+    ) {
         const self = this;
         await self.periodicCachingStop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
@@ -272,8 +293,19 @@ class ObserverServer extends SocketServer {
                         cc.debug( " will do immediate periodic SNB refresh..." ) +
                         "\n" );
                 }
-                await self.periodicCachingDoNow(
-                    socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo );
+                while( true ) {
+                    const strError =
+                        await self.periodicCachingDoNow(
+                            socket,
+                            secondsToReDiscoverSkaleNetwork,
+                            strChainNameConnectedTo,
+                            ( !!isForceMultiAttemptsUntilSuccess )
+                        );
+                    if( strError && isForceMultiAttemptsUntilSuccess )
+                        continue;
+                    isForceMultiAttemptsUntilSuccess = false;
+                    break;
+                }
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
                     self.log( cc.error( "Periodic SNB caching(async) error in " ) +

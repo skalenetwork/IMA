@@ -38,7 +38,7 @@ export function getCurrentThreadID() {
 }
 
 export function isMainThread() {
-    return worker_threads.isMainThread ? true : false;
+    return ( !!( worker_threads.isMainThread ) );
 }
 
 export function threadDescription( isColorized ) {

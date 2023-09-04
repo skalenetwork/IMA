@@ -1261,7 +1261,11 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
                     parseInt( opts.secondsToReDiscoverSkaleNetwork ),
                 "secondsToWaitForSkaleNetworkDiscovered":
                     parseInt( opts.secondsToWaitForSkaleNetworkDiscovered ),
-                "strChainNameConnectedTo": strChainNameConnectedTo
+                "strChainNameConnectedTo": strChainNameConnectedTo,
+                "isForceMultiAttemptsUntilSuccess":
+                    ( "isForceMultiAttemptsUntilSuccess" in opts &&
+                    opts.isForceMultiAttemptsUntilSuccess )
+                        ? true : false
             }
         };
         gClient.send( jo );
