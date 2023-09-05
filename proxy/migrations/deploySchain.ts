@@ -194,38 +194,8 @@ async function main() {
     deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface } );
     console.log("Contract TokenManagerERC20 deployed to", tokenManagerERC20.address);
 
-    /*
-    In the moment of this code was written
-    ganache had a bug
-    that prevented proper execution
-    of estimateGas function
-    during deployment of smart contract
-    that exceed 24KB limit.
-
-    In addition to this problem
-    upgrade-hardhat library
-    did not supported
-    manual gas limit configuration.
-
-    TODO: in case of any one or both issues fixed
-    please remove this crazy workaround below
-    */
-    if (network.config.gas === "auto") {
-        throw Error("Can't use auto because of problems with gas estimations");
-    }
-    if (!process.env.PRIVATE_KEY_FOR_SCHAIN) {
-        throw Error("PRIVATE_KEY_FOR_SCHAIN is not set");
-    }
-    const key = process.env.PRIVATE_KEY_FOR_SCHAIN;
-    const signerWithFixedGasEstimation = new ethers.Wallet(key, ethers.provider);
-    signerWithFixedGasEstimation.estimateGas = async() => {
-        return ethers.BigNumber.from(network.config.gas as number);
-    }
-
-    // The end of TODO:
-
     console.log("Deploy TokenManagerERC721");
-    const tokenManagerERC721Factory = await ethers.getContractFactory("TokenManagerERC721", signerWithFixedGasEstimation);
+    const tokenManagerERC721Factory = await ethers.getContractFactory("TokenManagerERC721");
     const tokenManagerERC721 = await upgrades.deployProxy(tokenManagerERC721Factory, [
         schainName,
         messageProxy.address,
@@ -238,7 +208,7 @@ async function main() {
     console.log("Contract TokenManagerERC721 deployed to", tokenManagerERC721.address);
 
     console.log("Deploy TokenManagerERC1155");
-    const tokenManagerERC1155Factory = await ethers.getContractFactory("TokenManagerERC1155", signerWithFixedGasEstimation);
+    const tokenManagerERC1155Factory = await ethers.getContractFactory("TokenManagerERC1155");
     const tokenManagerERC1155 = await upgrades.deployProxy(tokenManagerERC1155Factory, [
         schainName,
         messageProxy.address,
@@ -251,7 +221,7 @@ async function main() {
     console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
 
     console.log("Deploy TokenManagerERC721WithMetadata");
-    const tokenManagerERC721WithMetadataFactory = await ethers.getContractFactory("TokenManagerERC721WithMetadata", signerWithFixedGasEstimation);
+    const tokenManagerERC721WithMetadataFactory = await ethers.getContractFactory("TokenManagerERC721WithMetadata");
     const tokenManagerERC721WithMetadata = await upgrades.deployProxy(tokenManagerERC721WithMetadataFactory, [
         schainName,
         messageProxy.address,
