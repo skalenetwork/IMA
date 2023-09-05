@@ -352,7 +352,7 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
-        npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
+        npx ganache --😈 --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
