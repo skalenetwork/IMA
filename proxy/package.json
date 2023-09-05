@@ -59,7 +59,6 @@
         "eslint": "^8.46.0",
         "ethereum-waffle": "^4.0.10",
         "ganache": "7.9.1",
-        "kill-port": "^1.6.1",
         "solhint": "3.3.6",
         "solidity-coverage": "^0.8.4",
         "ts-generator": "^0.1.1",
