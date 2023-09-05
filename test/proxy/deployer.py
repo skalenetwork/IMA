@@ -28,6 +28,9 @@ class Deployer:
     def deploy(self):
         chdir(self.config.proxy_root)
         self._prepare_env_file()
+        with open('.env', 'w') as dot_env:
+            for line in dot_env.readlines():
+                print(line)
         execute('yarn deploy-skale-manager-components')
         execute('yarn deploy-to-both-chains')
 
