@@ -350,9 +350,11 @@ jobs:
         yarn install
 
     - name: Start background ganache
+      working-directory: proxy
       run: |
-        cd proxy
-        npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
+        INSTANCE=$(npx ganache --😈 --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json)
+        echo "INSTANCE=$INSTANCE" >> "$GITHUB_ENV"
+
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
@@ -374,3 +376,11 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         yarn test
+
+    - name: Stop ganache
+      working-directory: proxy
+      env:
+        INSTANCE: ${{ env.INSTANCE }}
+      run: npx ganache instances stop $INSTANCE
+
+
