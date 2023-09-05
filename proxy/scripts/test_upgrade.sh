@@ -24,9 +24,8 @@ git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "
 ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
 npx ganache --miner.blockGasLimit 9000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.accountKeysPath "$ACCOUNTS_FILENAME" &
 
-cd "$DEPLOYED_DIR"
+cd "$DEPLOYED_DIR/proxy"
 yarn install
-cd proxy
 PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
 PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[9].value')
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
