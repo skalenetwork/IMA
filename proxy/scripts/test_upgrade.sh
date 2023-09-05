@@ -65,4 +65,4 @@ ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
 npx hardhat run migrations/upgradeSchain.ts --network localhost
 
-npx ganache instances stop $GANACHE_INSTANCE
+npx ganache instances stop "$GANACHE_INSTANCE"
