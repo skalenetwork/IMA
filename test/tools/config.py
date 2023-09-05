@@ -29,7 +29,7 @@ class Config:
     network_for_mainnet = 'mainnet'
     network_for_schain = 'schain'
     mainnet_key=''
-    mainnet_rpc_url='http://localhost:8545'
+    mainnet_rpc_url='http://127.0.0.1:8545'
     schain_key = ''
     schain_rpc_url = 'http://localhost:8545'
     schain_name = 'd2'

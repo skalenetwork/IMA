@@ -357,13 +357,13 @@ jobs:
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
       run: |
-        netstat -ltnp
         python3 ../scripts/config_from_accounts.py accounts.json config.json
         pip3 install -r requirements.txt
 
     - name: Run test (PY part)
       working-directory: ${{env.working-directory}}
       run: |
+        netstat -ltnp
         python3 test.py
 
     - name: Prepare test (JS part)
