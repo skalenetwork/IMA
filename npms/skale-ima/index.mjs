@@ -327,7 +327,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
     ) {
         const joFilter = optsTransfer.joMessageProxySrc.filters[strEventName](
             owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainIdDst ), // dstChainHash
-            nWalkMsgNumber
+            owaspUtils.toBN( nWalkMsgNumber )
         );
         const arrLogRecordReferencesWalk = await imaEventLogScan.safeGetPastEventsProgressive(
             optsTransfer.details, optsTransfer.strLogPrefixShort,
@@ -437,7 +437,7 @@ async function gatherMessages( optsTransfer ) {
             10, optsTransfer.joMessageProxySrc, strEventName, nBlockFrom, nBlockTo,
             optsTransfer.joMessageProxySrc.filters[strEventName](
                 owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ), // dstChainHash
-                optsTransfer.nIdxCurrentMsg // msgCounter
+                owaspUtils.toBN( optsTransfer.nIdxCurrentMsg )
             ) );
         const joValues = await analyzeGatheredRecords( optsTransfer, r );
         if( joValues == null )
@@ -923,7 +923,7 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                         joMessage.savedBlockNumberForOptimizations,
                         joMessageProxyNode.filters[strEventName](
                             owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ),
-                            idxImaMessage // msgCounter
+                            owaspUtils.toBN( idxImaMessage )
                         )
                     );
                     const cntEvents = node_r.length;
