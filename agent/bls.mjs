@@ -103,7 +103,36 @@ function discoverBlsParticipants( joSChainNetworkInfo ) {
     return -1;
 }
 
-function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo ) {
+function checkBlsThresholdAndBlsParticipants(
+    nThreshold, nParticipants, strOperation, details ) {
+    details = details || log;
+    if( nThreshold <= 0 ) {
+        details.write(
+            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Operation " ) + cc.bright( strOperation ) +
+            cc.error( " will fail because discovered BLS threshold " ) +
+            cc.info( nThreshold ) + cc.error( " is invalid number or bad value" ) + "\n" );
+        return false;
+    }
+    if( nParticipants <= 0 ) {
+        details.write(
+            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Operation " ) + cc.bright( strOperation ) +
+            cc.error( " will fail because discovered BLS number of participants " ) +
+            cc.info( nParticipants ) + cc.error( " is invalid number or bad value" ) + "\n" );
+        return false;
+    }
+    if( nThreshold > nParticipants ) {
+        details.write(
+            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Operation " ) + cc.bright( strOperation ) +
+            cc.error( " will fail because discovered BLS threshold " ) +
+            cc.info( nThreshold ) + cc.error( " is greater than BLS number of participants " ) +
+            cc.info( nParticipants ) + "\n" );
+        return false;
+    }
+    return true;
+}
+
+function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo, details, isThrowException ) {
+    details = details || log;
     const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     const jarrNodes = joSChainNetworkInfo.network;
@@ -129,10 +158,15 @@ function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo ) {
             BLSPublicKey3: joNode.imaInfo.BLSPublicKey3
         };
     }
+    details.write( cc.fatal( "CRITICAL ERROR:" ) +
+        cc.error( " BLS 1/16 public key discovery failed for node #" ) + cc.info( nNodeIndex ) +
+        cc.error( ", node data is: " ) + cc.j( joNode ) + "\n" );
+    if( isThrowException )
+        throw new Error( "BLS 1/16 public key discovery failed for node #" + nNodeIndex );
     return null;
 }
 
-function discoverCommonPublicKey( joSChainNetworkInfo ) {
+function discoverCommonPublicKey( joSChainNetworkInfo, isThrowException ) {
     const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     const jarrNodes = joSChainNetworkInfo.network;
@@ -160,6 +194,11 @@ function discoverCommonPublicKey( joSChainNetworkInfo ) {
             };
         }
     }
+    details.write( cc.fatal( "CRITICAL ERROR:" ) +
+        cc.error( " BLS common public key discovery failed, chain data is: " ) +
+        cc.j( joSChainNetworkInfo ) + "\n" );
+    if( isThrowException )
+        throw new Error( "BLS common public key discovery failed" );
     return null;
 }
 
@@ -311,6 +350,8 @@ function performBlsGlue(
         details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) +
             cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
     }
+    if( ! checkBlsThresholdAndBlsParticipants( nThreshold, nParticipants, "BLS glue", details ) )
+        return null;
     const strMessageHash =
         owaspUtils.removeStarting0x(
             keccak256Message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName )
@@ -445,6 +486,9 @@ function performBlsGlueU256( details, u256, arrSignResults ) {
         details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) +
             cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
     }
+    if( ! checkBlsThresholdAndBlsParticipants(
+        nThreshold, nParticipants, "BLS glue-256", details ) )
+        return null;
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         details.write( strLogPrefix + cc.debug( "Original long message is " ) +
             cc.info( keccak256U256( u256, false ) ) + "\n" );
@@ -582,6 +626,9 @@ function performBlsVerifyI(
         cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const nThreshold = discoverBlsThreshold( imaState.joSChainNetworkInfo );
     const nParticipants = discoverBlsParticipants( imaState.joSChainNetworkInfo );
+    if( ! checkBlsThresholdAndBlsParticipants(
+        nThreshold, nParticipants, "BLS verify-I", details ) )
+        return false;
     const strActionDir = allocBlsTmpActionDir();
     const fnShellRestore = function() {
         shell.rm( "-rf", strActionDir );
@@ -682,6 +729,9 @@ function performBlsVerifyIU256(
         cc.debug( ":" ) + " ";
     const nThreshold = discoverBlsThreshold( imaState.joSChainNetworkInfo );
     const nParticipants = discoverBlsParticipants( imaState.joSChainNetworkInfo );
+    if( ! checkBlsThresholdAndBlsParticipants(
+        nThreshold, nParticipants, "BLS verify-I-U256", details ) )
+        return false;
     const strActionDir = allocBlsTmpActionDir();
     const fnShellRestore = function() {
         shell.rm( "-rf", strActionDir );
@@ -760,6 +810,9 @@ function performBlsVerify(
     const imaState = state.get();
     const nThreshold = discoverBlsThreshold( imaState.joSChainNetworkInfo );
     const nParticipants = discoverBlsParticipants( imaState.joSChainNetworkInfo );
+    if( ! checkBlsThresholdAndBlsParticipants(
+        nThreshold, nParticipants, "BLS verify", details ) )
+        return false;
     const strActionDir = allocBlsTmpActionDir();
     const fnShellRestore = function() {
         shell.rm( "-rf", strActionDir );
@@ -849,6 +902,9 @@ function performBlsVerifyU256( details, joGlueResult, u256, joCommonPublicKey ) 
     const imaState = state.get();
     const nThreshold = discoverBlsThreshold( imaState.joSChainNetworkInfo );
     const nParticipants = discoverBlsParticipants( imaState.joSChainNetworkInfo );
+    if( ! checkBlsThresholdAndBlsParticipants(
+        nThreshold, nParticipants, "BLS verify-U256", details ) )
+        return false;
     const strActionDir = allocBlsTmpActionDir();
     const fnShellRestore = function() {
         shell.rm( "-rf", strActionDir );
@@ -1099,7 +1155,7 @@ async function prepareSignMessagesImpl( optsSignOperation ) {
             optsSignOperation.joExtraSignOpts
         );
         await optsSignOperation.fn( null, optsSignOperation.jarrMessages, null );
-        return;
+        return true;
     }
     await checkCorrectnessOfMessagesToSign(
         optsSignOperation.details, optsSignOperation.strLogPrefix,
@@ -1128,18 +1184,22 @@ async function prepareSignMessagesImpl( optsSignOperation ) {
             cc.debug( "Discovered number of BLS participants is " ) +
             cc.info( optsSignOperation.nParticipants ) + cc.debug( "." ) + "\n" );
     }
-    if( optsSignOperation.nThreshold <= 0 ) {
+    if( ! checkBlsThresholdAndBlsParticipants(
+        optsSignOperation.nThreshold,
+        optsSignOperation.nParticipants,
+        "prepare sign messages " + optsSignOperation.strDirection,
+        optsSignOperation.details ) ) {
         optsSignOperation.bHaveResultReportCalled = true;
         optsSignOperation.details.exposeDetailsTo(
             log, optsSignOperation.strGatheredDetailsName, false );
         optsSignOperation.details.close();
         await optsSignOperation.fn(
             "signature error(1), S-Chain information " +
-            "was not discovered properly and BLS threshold is unknown",
+            "was not discovered properly and BLS threshold/participants are unknown",
             optsSignOperation.jarrMessages,
             null
         );
-        return;
+        return false;
     }
     optsSignOperation.nCountOfBlsPartsToCollect = 0 + optsSignOperation.nThreshold;
     if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -1149,6 +1209,7 @@ async function prepareSignMessagesImpl( optsSignOperation ) {
             cc.debug( " nodes" ) + cc.debug( ", " ) + cc.notice( "sequence ID" ) +
             cc.debug( " is " ) + cc.attention( optsSignOperation.sequenceId ) + "\n" );
     }
+    return true;
 }
 
 async function gatherSigningStartImpl( optsSignOperation ) {
@@ -1184,10 +1245,15 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                             cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
                     }
                     if( optsSignOperation.imaState.strPathBlsVerify.length > 0 ) {
-                        const joCommonPublicKey =
-                            discoverCommonPublicKey(
-                                optsSignOperation.imaState.joSChainNetworkInfo );
-                        if( performBlsVerify(
+                        const joCommonPublicKey = discoverCommonPublicKey(
+                            optsSignOperation.imaState.joSChainNetworkInfo, false );
+                        if( ! joCommonPublicKey ) {
+                            strError = "No BLS common public key";
+                            if( log.verboseGet() >= log.verboseReversed().error ) {
+                                optsSignOperation.details.write( optsSignOperation.strLogPrefixB +
+                                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                            }
+                        } else if( performBlsVerify(
                             optsSignOperation.details, optsSignOperation.strDirection,
                             joGlueResult, optsSignOperation.jarrMessages,
                             optsSignOperation.nIdxCurrentMsgBlockStart,
@@ -1484,8 +1550,8 @@ async function doSignProcessHandleCall(
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage =
             optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-            cc.error( "(node #" ) + cc.info( i ) + cc.error( " via " ) +
+            cc.error( " JSON RPC call(doSignProcessHandleCall) to S-Chain node " ) +
+            strNodeDescColorized + cc.error( "(node #" ) + cc.info( i ) + cc.error( " via " ) +
             cc.notice( strNodeURL ) + cc.error( ") failed, RPC call reported error: " ) +
             cc.warning( owaspUtils.extractErrorMessage( err ) ) + cc.error( ", " ) +
             cc.notice( "sequence ID" ) + cc.error( " is " ) +
@@ -1583,10 +1649,9 @@ async function doSignProcessHandleCall(
                         cc.info( nZeroBasedNodeIndex ) + "\n" );
                 }
                 const joPublicKey =
-                    discoverPublicKeyByIndex(
-                        nZeroBasedNodeIndex,
-                        optsSignOperation.imaState.joSChainNetworkInfo
-                    );
+                    discoverPublicKeyByIndex( nZeroBasedNodeIndex,
+                        optsSignOperation.imaState.joSChainNetworkInfo, optsSignOperation.details,
+                        true );
                 if( performBlsVerifyI(
                     optsSignOperation.details, optsSignOperation.strDirection,
                     nZeroBasedNodeIndex, joResultFromNode,
@@ -1681,7 +1746,8 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
                 ++optsSignOperation.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
                 optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                cc.error( " JSON RPC call(doSignProcessOneImpl) to S-Chain node " ) +
+                strNodeDescColorized +
                 cc.error( " failed, RPC call was not created, error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", " ) + cc.notice( "sequence ID" ) +
@@ -1790,7 +1856,8 @@ async function doSignMessagesImpl(
         "-" + optsSignOperation.strFromChainName + "-msg#" +
         optsSignOperation.nIdxCurrentMsgBlockStart;
     try {
-        await prepareSignMessagesImpl( optsSignOperation );
+        if( ! ( await prepareSignMessagesImpl( optsSignOperation ) ) )
+            return;
         for( let i = 0; i < optsSignOperation.jarrNodes.length; ++i ) {
             optsSignOperation.cntSuccess =
                 optsSignOperation.joGatheringTracker.nCountReceived -
@@ -1929,14 +1996,18 @@ async function prepareSignU256( optsSignU256 ) {
             cc.debug( "Discovered number of BLS participants is " ) +
             cc.info( optsSignU256.nParticipants ) + cc.debug( "." ) + "\n" );
     }
-    if( optsSignU256.nThreshold <= 0 ) {
+    if( ! checkBlsThresholdAndBlsParticipants(
+        optsSignU256.nThreshold,
+        optsSignU256.nParticipants,
+        "prepare sign-U256",
+        optsSignU256.details ) ) {
         await optsSignU256.fn(
             "signature error(1, u256), S-Chain information " +
-            "was not discovered properly and BLS threshold is unknown",
+            "was not discovered properly and BLS threshold/participants are unknown",
             optsSignU256.u256,
             null
         );
-        return;
+        return false;
     }
     optsSignU256.nCountOfBlsPartsToCollect = 0 + optsSignU256.nThreshold;
     if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -1946,6 +2017,7 @@ async function prepareSignU256( optsSignU256 ) {
             cc.debug( " from " ) + cc.info( optsSignU256.jarrNodes.length ) +
             cc.debug( " nodes" ) + "\n" );
     }
+    return true;
 }
 
 async function doSignU256OneImpl( optsSignU256 ) {
@@ -1962,7 +2034,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
             ++optsSignU256.joGatheringTracker.nCountErrors;
             const strErrorMessage =
                 optsSignU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                cc.error( " JSON RPC call(doSignU256OneImpl) to S-Chain node " ) +
+                strNodeDescColorized +
                 cc.error( " failed, RPC call was not created, error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 "\n";
@@ -1991,8 +2064,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                 ++optsSignU256.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
                     optsSignU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-                    cc.error( " failed, RPC call reported error: " ) +
+                    cc.error( " JSON RPC call(doSignU256OneImpl) to S-Chain node " ) +
+                    strNodeDescColorized + cc.error( " failed, RPC call reported error: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
                 if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -2067,9 +2140,9 @@ async function doSignU256OneImpl( optsSignU256 ) {
                                 cc.info( "Will verify sign result for node " ) +
                                 cc.info( nZeroBasedNodeIndex ) + "\n" );
                         }
-                        const joPublicKey =
-                            discoverPublicKeyByIndex(
-                                nZeroBasedNodeIndex, optsSignU256.imaState.joSChainNetworkInfo );
+                        const joPublicKey = discoverPublicKeyByIndex( nZeroBasedNodeIndex,
+                            optsSignU256.imaState.joSChainNetworkInfo, optsSignU256.details,
+                            true );
                         if( performBlsVerifyIU256(
                             optsSignU256.details, nZeroBasedNodeIndex, joResultFromNode,
                             optsSignU256.u256, joPublicKey ) ) {
@@ -2163,10 +2236,15 @@ async function doSignU256Gathering( optsSignU256 ) {
                             "\n" );
                     }
                     if( optsSignU256.imaState.strPathBlsVerify.length > 0 ) {
-                        const joCommonPublicKey =
-                            discoverCommonPublicKey(
-                                optsSignU256.imaState.joSChainNetworkInfo );
-                        if( performBlsVerifyU256(
+                        const joCommonPublicKey = discoverCommonPublicKey(
+                            optsSignU256.imaState.joSChainNetworkInfo, false );
+                        if( ! joCommonPublicKey ) {
+                            strError = "No BLS common public key";
+                            if( log.verboseGet() >= log.verboseReversed().error ) {
+                                optsSignOperation.details.write( optsSignOperation.strLogPrefixB +
+                                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                            }
+                        } else if( performBlsVerifyU256(
                             optsSignU256.details,
                             joGlueResult,
                             optsSignU256.u256,
@@ -2340,10 +2418,10 @@ export async function doSignU256( u256, details, fn ) {
         await optsSignU256.fn( "BLS u256 signing is unavailable", optsSignU256.u256, null );
         return;
     }
-    await prepareSignU256( optsSignU256 );
+    if( ! ( await prepareSignU256( optsSignU256 ) ) )
+        return;
     for( let i = 0; i < optsSignU256.jarrNodes.length; ++i )
         await doSignU256OneImpl( optsSignU256 );
-
     await doSignU256Gathering( optsSignU256 );
     if( log.verboseGet() >= log.verboseReversed().trace )
         optsSignU256.details.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
@@ -2400,8 +2478,6 @@ export async function doVerifyReadyHash(
         cc.debug( ":" ) + " ";
     const details = log.createMemoryStream();
     let isSuccess = false;
-    const joPublicKey =
-        discoverPublicKeyByIndex( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo );
     const arrTmp = signature.signatureShare.split( ":" );
     const joResultFromNode = {
         index: "" + nZeroBasedNodeIndex,
@@ -2412,12 +2488,17 @@ export async function doVerifyReadyHash(
     };
     const nThreshold = discoverBlsThreshold( imaState.joSChainNetworkInfo );
     const nParticipants = discoverBlsParticipants( imaState.joSChainNetworkInfo );
+    if( ! checkBlsThresholdAndBlsParticipants(
+        nThreshold, nParticipants, "verify ready hash", details ) )
+        return false;
     const strActionDir = allocBlsTmpActionDir();
     const fnShellRestore = function() {
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
+        const joPublicKey = discoverPublicKeyByIndex(
+            nZeroBasedNodeIndex, imaState.joSChainNetworkInfo, details, true );
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) +
                 cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) +
@@ -2506,6 +2587,9 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
             details.write( strLogPrefix + cc.debug( "hash value to sign is " ) +
                 cc.info( strMessageHash ) + "\n" );
         }
+        if( ! checkBlsThresholdAndBlsParticipants(
+            nThreshold, nParticipants, "sign ready hash", details ) )
+            return false;
         let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
             joAccount = imaState.chainProperties.mn.joAccount;
@@ -2534,7 +2618,7 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
             if( err ) {
                 const strErrorMessage =
                     strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call to SGX failed, " +
+                    cc.error( " JSON RPC call(doSignReadyHash) to SGX failed, " +
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
@@ -2546,7 +2630,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                 if( joCall )
                     await joCall.disconnect();
                 throw new Error(
-                    "JSON RPC call to SGX failed, RPC call was not created, error is: " +
+                    "JSON RPC call to SGX failed, " +
+                    "RPC call(doSignReadyHash) was not created, error is: " +
                     owaspUtils.extractErrorMessage( err )
                 );
             }
@@ -2569,12 +2654,13 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
                     const jsErrorObject = new Error(
-                        "JSON RPC call to SGX failed, RPC call reported error: " +
+                        "JSON RPC call(doSignReadyHash) to SGX failed, RPC call reported error: " +
                         owaspUtils.extractErrorMessage( err )
                     );
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) +
+                        cc.error( " JSON RPC call(doSignReadyHash) " +
+                            "to SGX failed, RPC call reported error: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
                         "\n";
@@ -2692,6 +2778,12 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
             cc.debug( " verification algorithm discovered number of BLS participants is " ) +
             cc.info( optsHandleVerifyAndSign.nParticipants ) + cc.debug( "." ) + "\n" );
     }
+    if( ! checkBlsThresholdAndBlsParticipants(
+        optsHandleVerifyAndSign.nThreshold,
+        optsHandleVerifyAndSign.nParticipants,
+        "prepare handling of skale_imaVerifyAndSign",
+        optsHandleVerifyAndSign.details ) )
+        return false;
     optsHandleVerifyAndSign.strMessageHash =
         owaspUtils.removeStarting0x(
             keccak256Message(
@@ -2707,6 +2799,7 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
             cc.info( optsHandleVerifyAndSign.strMessageHash ) +
             "\n" );
     }
+    return true;
 }
 
 async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
@@ -2782,7 +2875,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
         nParticipants: 1
     };
     try {
-        await prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign );
+        if( ! ( await prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) ) )
+            return null;
         optsHandleVerifyAndSign.joExtraSignOpts = null;
         if( optsHandleVerifyAndSign.strDirection == "S2S" )
             await prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign );
@@ -2825,7 +2919,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
             if( err ) {
                 const strErrorMessage = optsHandleVerifyAndSign.strLogPrefix +
                     cc.bright( optsHandleVerifyAndSign.strDirection ) + " " +
-                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to SGX failed, " +
+                    cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, " +
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
                 if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -2836,7 +2931,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                 if( joCall )
                     await joCall.disconnect();
                 throw new Error(
-                    "JSON RPC call to SGX failed, RPC call was not created, error is: " +
+                    "JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, " +
+                    "RPC call was not created, error is: " +
                     owaspUtils.extractErrorMessage( err )
                 );
             }
@@ -2861,12 +2957,14 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
                     const strError =
-                        "JSON RPC call to SGX failed, RPC call reported error: " +
+                        "JSON RPC call(handleSkaleImaVerifyAndSign) " +
+                        "to SGX failed, RPC call reported error: " +
                         owaspUtils.extractErrorMessage( err );
                     optsHandleVerifyAndSign.joRetVal.error = strError;
                     const jsErrorObject = new Error( strError );
                     const strErrorMessage = optsHandleVerifyAndSign.strLogPrefix +
-                        cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to SGX failed, " +
+                        cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, " +
                             "RPC call reported error: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) + "\n";
@@ -2958,6 +3056,12 @@ async function handleSkaleImaBSU256Prepare( optsBSU256 ) {
             cc.debug( "Discovered number of BLS participants is " ) +
             cc.info( optsBSU256.nParticipants ) + cc.debug( "." ) + "\n" );
     }
+    if( ! checkBlsThresholdAndBlsParticipants(
+        optsHandleVerifyAndSign.nThreshold,
+        optsHandleVerifyAndSign.nParticipants,
+        "handle BSU256Prepare",
+        optsBSU256.details ) )
+        return false;
     optsBSU256.u256 = optsBSU256.joCallData.params.valueToSign;
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsBSU256.details.write( optsBSU256.strLogPrefix +
@@ -2979,6 +3083,7 @@ async function handleSkaleImaBSU256Prepare( optsBSU256 ) {
         if( ! optsBSU256.joAccount.strBlsKeyName )
             throw new Error( "BLS keys name is unknown, cannot sign U256" );
     }
+    return true;
 }
 
 export async function handleSkaleImaBSU256( joCallData ) {
@@ -2996,7 +3101,8 @@ export async function handleSkaleImaBSU256( joCallData ) {
         joAccount: null
     };
     try {
-        await handleSkaleImaBSU256Prepare( optsBSU256 );
+        if( ! ( await handleSkaleImaBSU256Prepare( optsBSU256 ) ) )
+            return null;
         let rpcCallOpts = null;
         if( "strPathSslKey" in optsBSU256.joAccount &&
             typeof optsBSU256.joAccount.strPathSslKey == "string" &&
@@ -3021,7 +3127,7 @@ export async function handleSkaleImaBSU256( joCallData ) {
                 if( err ) {
                     const strErrorMessage =
                         optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, " +
+                        cc.error( " JSON RPC call(handleSkaleImaBSU256) to SGX failed, " +
                             "RPC call was not created, error is: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -3031,7 +3137,7 @@ export async function handleSkaleImaBSU256( joCallData ) {
                     }
                     if( joCall )
                         await joCall.disconnect();
-                    throw new Error( "JSON RPC call to SGX failed, " +
+                    throw new Error( "JSON RPC call(handleSkaleImaBSU256) to SGX failed, " +
                         "RPC call was not created, error is: " +
                         owaspUtils.extractErrorMessage( err ) );
                 }
@@ -3055,11 +3161,12 @@ export async function handleSkaleImaBSU256( joCallData ) {
                 await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                     if( err ) {
                         const jsErrorObject = new Error(
-                            "JSON RPC call to SGX failed, RPC call reported error: " +
+                            "JSON RPC call(handleSkaleImaBSU256) to SGX failed, " +
+                            "RPC call reported error: " +
                             owaspUtils.extractErrorMessage( err ) );
                         const strErrorMessage =
                             optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                cc.error( " JSON RPC call to SGX failed, " +
+                                cc.error( " JSON RPC call(handleSkaleImaBSU256) to SGX failed, " +
                                     "RPC call reported error: " ) +
                                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                                 cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
