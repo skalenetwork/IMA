@@ -640,7 +640,8 @@ export async function discoverSChainNetwork(
             if( ! optsDiscover.isSilent ) {
                 const strError = owaspUtils.extractErrorMessage( err );
                 log.write( optsDiscover.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call to S-Chain was not created: " ) +
+                    cc.error( " JSON RPC call(discoverSChainNetwork) " +
+                        "to S-Chain was not created: " ) +
                     cc.warning( strError ) + cc.error( ", stack is: " ) + "\n" +
                     cc.stack( err.stack ) + "\n" );
             }

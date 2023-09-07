@@ -746,7 +746,8 @@ export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) 
             }
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    opts.details.write( cc.debug( "Querying connected status between S-Chain " ) +
+                    opts.details.write(
+                        cc.debug( "Querying(1) connected status between S-Chain " ) +
                         cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
                         cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
                 }
@@ -791,7 +792,7 @@ export async function checkConnectedSChains( strChainNameConnectedTo, arrSChains
             const url = pickRandomSChainUrl( joSChain );
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    opts.details.write( cc.debug( "Querying via URL " ) + cc.u( url ) +
+                    opts.details.write( cc.debug( "Querying(2) via URL " ) + cc.u( url ) +
                         cc.debug( " to S-Chain " ) + cc.info( joSChain.data.name ) +
                         cc.debug( " whether it's connected to S-Chain " ) +
                         cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
