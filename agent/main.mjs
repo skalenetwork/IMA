@@ -486,6 +486,9 @@ async function main() {
     parseCommandLine();
     initMonitoringServer();
     initJsonRpcServer();
+    const isSilentReDiscovery = imaState.isPrintSecurityValues
+        ? false
+        : imaState.joSChainDiscovery.isSilentReDiscovery;
     if( imaState.bSignMessages ) {
         if( imaState.strPathBlsGlue.length == 0 ) {
             if( log.verboseGet() >= log.verboseReversed().fatal ) {
@@ -501,9 +504,6 @@ async function main() {
             }
             process.exit( 165 );
         }
-        const isSilentReDiscovery = imaState.isPrintSecurityValues
-            ? false
-            : imaState.joSChainDiscovery.isSilentReDiscovery;
         if( log.verboseGet() >= log.verboseReversed().information ) {
             log.write( cc.debug( "S-Chain network was discovery uses " ) +
                 ( isSilentReDiscovery
