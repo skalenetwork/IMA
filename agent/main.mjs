@@ -489,6 +489,9 @@ async function main() {
     const isSilentReDiscovery = imaState.isPrintSecurityValues
         ? false
         : imaState.joSChainDiscovery.isSilentReDiscovery;
+    const fnOnPeriodicDiscoveryResultAvailable = function( isFinal ) {
+        loop.spreadUpdatedSChainNetwork( isFinal );
+    };
     if( imaState.bSignMessages ) {
         if( imaState.strPathBlsGlue.length == 0 ) {
             if( log.verboseGet() >= log.verboseReversed().fatal ) {
@@ -511,9 +514,6 @@ async function main() {
                     : cc.success( "exposed details" ) ) +
                     cc.debug( " mode" ) + "\n" );
         }
-        const fnOnPeriodicDiscoveryResultAvailable = function( isFinal ) {
-            loop.spreadUpdatedSChainNetwork( isFinal );
-        };
         if( ! imaState.bNoWaitSChainStarted ) {
             discoveryTools.waitUntilSChainStarted().then( function() {
                 // uses call to discoveryTools.discoverSChainNetwork()
