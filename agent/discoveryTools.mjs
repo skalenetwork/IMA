@@ -162,13 +162,14 @@ export async function waitUntilSChainStarted() {
     }
     let bSuccess = false;
     let idxWaitAttempt = 0;
+    const isSilentReDiscovery = true; // it must be silent during S-Chain sanity check
     for( ; !bSuccess; ) {
         try {
             const joSChainNetworkInfo = await discoverSChainNetwork(
                 function( err, joSChainNetworkInfo ) {
                     if( ! err )
                         bSuccess = true;
-                }, true, null, -1 ).catch( ( err ) => {
+                }, isSilentReDiscovery, null, -1 ).catch( ( err ) => {
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
                     const strError = owaspUtils.extractErrorMessage( err );
                     log.write( cc.fatal( "CRITICAL ERROR:" ) +
@@ -428,7 +429,7 @@ async function discoverSChainWait( optsDiscover ) {
         }
     }
     let nWaitAttempt = 0;
-    const nWaitStepMilliseconds = 30 * 1000;
+    const nWaitStepMilliseconds = 1 * 1000; // step can be small here
     let cntWaitAttempts = Math.floor(
         optsDiscover.imaState.joSChainDiscovery.repeatIntervalMilliseconds /
         nWaitStepMilliseconds ) - 3;
