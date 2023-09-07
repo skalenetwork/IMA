@@ -4043,7 +4043,7 @@ function commonInitGasMultipliersAndTransactionArgs() {
             "\n" );
         log.write(
             cc.info( "SKALE network max discovery wait time is" ) +
-            cc.debug( "..............." ) +
+            cc.debug( "............." ) +
             ( imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered
                 ? cc.info( imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered.toString() )
                 : cc.error( "disabled" ) ) +

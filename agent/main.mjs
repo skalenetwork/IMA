@@ -502,7 +502,16 @@ async function main() {
             process.exit( 165 );
         }
         if( ! imaState.bNoWaitSChainStarted ) {
-            const isSilent = imaState.joSChainDiscovery.isSilentReDiscovery;
+            const isSilentReDiscovery = imaState.isPrintSecurityValues
+                ? false
+                : imaState.joSChainDiscovery.isSilentReDiscovery;
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                log.write( cc.success( "S-Chain network was discovery will be done " ) +
+                    ( isSilentReDiscovery
+                        ? cc.warning( "silent" )
+                        : cc.success( "with exposing details" ) ) +
+                    "\n" );
+            }
             discoveryTools.waitUntilSChainStarted().then( function() {
                 // uses call to discoveryTools.discoverSChainNetwork()
                 discoveryTools.discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
@@ -515,10 +524,14 @@ async function main() {
                             cc.j( joSChainNetworkInfo ) + "\n" );
                     }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
-                    discoveryTools.continueSChainDiscoveryInBackgroundIfNeeded( isSilent );
-                    doTheJob();
-                    return 0; // FINISH
-                }, isSilent, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
+                    discoveryTools.continueSChainDiscoveryInBackgroundIfNeeded(
+                        isSilentReDiscovery, function() {
+                            doTheJob();
+                        } );
+                    // Finish of IMA Agent startup,
+                    // everything else is in async calls executed later
+                    return 0;
+                }, isSilentReDiscovery, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strError = owaspUtils.extractErrorMessage( err );
                         log.write( cc.fatal( "CRITICAL ERROR:" ) +
@@ -530,7 +543,10 @@ async function main() {
         }
     } else
         doTheJob();
-        // FINISH!!! (skip exit here to avoid early termination while tasks ase still running)
+        // Finish of IMA Agent startup,
+        // everything else is in async calls executed later,
+        // skip exit here to avoid early termination while tasks ase still running
+
 }
 
 main();
