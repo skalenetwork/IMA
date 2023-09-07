@@ -501,17 +501,20 @@ async function main() {
             }
             process.exit( 165 );
         }
+        const isSilentReDiscovery = imaState.isPrintSecurityValues
+            ? false
+            : imaState.joSChainDiscovery.isSilentReDiscovery;
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            log.write( cc.debug( "S-Chain network was discovery uses " ) +
+                ( isSilentReDiscovery
+                    ? cc.warning( "silent" )
+                    : cc.success( "exposed details" ) ) +
+                    cc.debug( " mode" ) + "\n" );
+        }
+        const fnOnPeriodicDiscoveryResultAvailable = function( isFinal ) {
+            loop.spreadUpdatedSChainNetwork( isFinal );
+        };
         if( ! imaState.bNoWaitSChainStarted ) {
-            const isSilentReDiscovery = imaState.isPrintSecurityValues
-                ? false
-                : imaState.joSChainDiscovery.isSilentReDiscovery;
-            if( log.verboseGet() >= log.verboseReversed().information ) {
-                log.write( cc.success( "S-Chain network was discovery will be done " ) +
-                    ( isSilentReDiscovery
-                        ? cc.warning( "silent" )
-                        : cc.success( "with exposing details" ) ) +
-                    "\n" );
-            }
             discoveryTools.waitUntilSChainStarted().then( function() {
                 // uses call to discoveryTools.discoverSChainNetwork()
                 discoveryTools.discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
@@ -526,6 +529,8 @@ async function main() {
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                     discoveryTools.continueSChainDiscoveryInBackgroundIfNeeded(
                         isSilentReDiscovery, function() {
+                            discoveryTools.doPeriodicSChainNetworkDiscoveryIfNeeded(
+                                isSilentReDiscovery, fnOnPeriodicDiscoveryResultAvailable );
                             doTheJob();
                         } );
                     // Finish of IMA Agent startup,
@@ -541,11 +546,14 @@ async function main() {
                 } );
             } );
         }
-    } else
+    } else {
+        discoveryTools.doPeriodicSChainNetworkDiscoveryIfNeeded(
+            isSilentReDiscovery, fnOnPeriodicDiscoveryResultAvailable );
         doTheJob();
         // Finish of IMA Agent startup,
         // everything else is in async calls executed later,
         // skip exit here to avoid early termination while tasks ase still running
+    }
 
 }
 

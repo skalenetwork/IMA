@@ -657,3 +657,77 @@ export async function discoverSChainNetwork(
     }
     return optsDiscover.joSChainNetworkInfo;
 }
+
+let gIntervalPeriodicDiscovery = null;
+
+function checkPeriodicDiscoveryNoLongerNeeded( joSChainNetworkInfo, isSilentReDiscovery ) {
+    if( ! joSChainNetworkInfo )
+        return false;
+    const imaState = state.get();
+    const cntNodesOnChain = getSChainNodesCount( imaState.joSChainNetworkInfo );
+    const cntAlreadyDiscovered = getSChainDiscoveredNodesCount( joSChainNetworkInfo );
+    if( ! isSilentReDiscovery ) {
+        log.write(
+            cc.debug( "Periodic S-Chain re-discovery already have " ) +
+            cc.info( cntAlreadyDiscovered ) + cc.debug( " of " ) +
+            cc.info( cntNodesOnChain ) + cc.debug( " node(s) discovered" ) +
+            "\n" );
+    }
+    if( cntAlreadyDiscovered >= cntNodesOnChain ) {
+        if( gIntervalPeriodicDiscovery ) {
+            clearInterval( gIntervalPeriodicDiscovery );
+            gIntervalPeriodicDiscovery = null;
+        }
+        return true;
+    }
+    return false;
+}
+
+export async function doPeriodicSChainNetworkDiscoveryIfNeeded(
+    isSilentReDiscovery, fnAfterRediscover
+) {
+    if( gIntervalPeriodicDiscovery )
+        return; // already started
+    const imaState = state.get();
+    let joPrevSChainNetworkInfo = imaState.joSChainNetworkInfo;
+    if( checkPeriodicDiscoveryNoLongerNeeded(
+        joPrevSChainNetworkInfo, isSilentReDiscovery ) ) {
+        if( ! isSilentReDiscovery ) {
+            log.write(
+                cc.debug( "Periodic S-Chain re-discovery is not needed right from startup" ) +
+                "\n" );
+        }
+        return; // not needed right from very beginning
+    }
+    const cntNodesOnChain = getSChainNodesCount( imaState.joSChainNetworkInfo );
+    let periodicDiscoveryInterval = imaState.joSChainDiscovery.periodicDiscoveryInterval;
+    if( periodicDiscoveryInterval <= 0 )
+        periodicDiscoveryInterval = 5 * 60 * 1000;
+    fnAfterRediscover = fnAfterRediscover || function() { };
+    gIntervalPeriodicDiscovery = setInterval( async function() {
+        await discoverSChainNetwork(
+            null, isSilentReDiscovery, joPrevSChainNetworkInfo, cntNodesOnChain );
+        joPrevSChainNetworkInfo = imaState.joSChainNetworkInfo;
+        if( checkPeriodicDiscoveryNoLongerNeeded(
+            joPrevSChainNetworkInfo, isSilentReDiscovery ) ) {
+            if( ! isSilentReDiscovery ) {
+                log.write(
+                    cc.debug( "Final periodic S-Chain re-discovery done" ) +
+                    "\n" );
+            }
+            fnAfterRediscover( true );
+            return; // not needed anymore, all nodes completely discovered
+        }
+        if( ! isSilentReDiscovery ) {
+            log.write(
+                cc.debug( "Partial periodic S-Chain re-discovery done" ) +
+                "\n" );
+        }
+        fnAfterRediscover( false );
+    }, periodicDiscoveryInterval );
+    if( ! isSilentReDiscovery ) {
+        log.write(
+            cc.debug( "Periodic S-Chain re-discovery was started with interval" ) +
+            cc.info( periodicDiscoveryInterval ) + cc.debug( " millisecond(s)" ) + "\n" );
+    }
+}

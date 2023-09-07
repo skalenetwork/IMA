@@ -1190,7 +1190,9 @@ export async function ensureHaveWorker( opts ) {
                         "isSilentReDiscovery":
                             opts.imaState.joSChainDiscovery.isSilentReDiscovery,
                         "repeatIntervalMilliseconds":
-                            opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds
+                            opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds,
+                        "periodicDiscoveryInterval":
+                            opts.imaState.joSChainDiscovery.periodicDiscoveryInterval
                     }
                 }
             },

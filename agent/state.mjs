@@ -267,7 +267,8 @@ export function get() {
         "joSChainDiscovery": {
             "isSilentReDiscovery": false,
             // zero to disable (for debugging only)
-            "repeatIntervalMilliseconds": 5 * 1000
+            "repeatIntervalMilliseconds": 5 * 1000,
+            "periodicDiscoveryInterval": 5 * 60 * 1000
         },
 
         // S-Chain to S-Chain transfer options
