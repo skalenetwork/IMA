@@ -486,6 +486,12 @@ async function main() {
     parseCommandLine();
     initMonitoringServer();
     initJsonRpcServer();
+    const isSilentReDiscovery = imaState.isPrintSecurityValues
+        ? false
+        : imaState.joSChainDiscovery.isSilentReDiscovery;
+    const fnOnPeriodicDiscoveryResultAvailable = function( isFinal ) {
+        loop.spreadUpdatedSChainNetwork( isFinal );
+    };
     if( imaState.bSignMessages ) {
         if( imaState.strPathBlsGlue.length == 0 ) {
             if( log.verboseGet() >= log.verboseReversed().fatal ) {
@@ -501,8 +507,14 @@ async function main() {
             }
             process.exit( 165 );
         }
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            log.write( cc.debug( "S-Chain network was discovery uses " ) +
+                ( isSilentReDiscovery
+                    ? cc.warning( "silent" )
+                    : cc.success( "exposed details" ) ) +
+                    cc.debug( " mode" ) + "\n" );
+        }
         if( ! imaState.bNoWaitSChainStarted ) {
-            const isSilent = imaState.joSChainDiscovery.isSilentReDiscovery;
             discoveryTools.waitUntilSChainStarted().then( function() {
                 // uses call to discoveryTools.discoverSChainNetwork()
                 discoveryTools.discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
@@ -515,10 +527,16 @@ async function main() {
                             cc.j( joSChainNetworkInfo ) + "\n" );
                     }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
-                    discoveryTools.continueSChainDiscoveryInBackgroundIfNeeded( isSilent );
-                    doTheJob();
-                    return 0; // FINISH
-                }, isSilent, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
+                    discoveryTools.continueSChainDiscoveryInBackgroundIfNeeded(
+                        isSilentReDiscovery, function() {
+                            discoveryTools.doPeriodicSChainNetworkDiscoveryIfNeeded(
+                                isSilentReDiscovery, fnOnPeriodicDiscoveryResultAvailable );
+                            doTheJob();
+                        } );
+                    // Finish of IMA Agent startup,
+                    // everything else is in async calls executed later
+                    return 0;
+                }, isSilentReDiscovery, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strError = owaspUtils.extractErrorMessage( err );
                         log.write( cc.fatal( "CRITICAL ERROR:" ) +
@@ -528,9 +546,15 @@ async function main() {
                 } );
             } );
         }
-    } else
+    } else {
+        discoveryTools.doPeriodicSChainNetworkDiscoveryIfNeeded(
+            isSilentReDiscovery, fnOnPeriodicDiscoveryResultAvailable );
         doTheJob();
-        // FINISH!!! (skip exit here to avoid early termination while tasks ase still running)
+        // Finish of IMA Agent startup,
+        // everything else is in async calls executed later,
+        // skip exit here to avoid early termination while tasks ase still running
+    }
+
 }
 
 main();
