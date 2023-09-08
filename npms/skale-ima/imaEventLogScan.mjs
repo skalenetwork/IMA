@@ -396,12 +396,12 @@ export async function safeGetPastEvents(
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
+    const nLatestBlockNumber = owaspUtils.toBN(
+        await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
     let idxAttempt = 1;
     const strErrorTextAboutNotExistingEvent =
         "Event \"" + strEventName + "\" doesn't exist in this contract";
     if( nBlockTo == "latest" ) {
-        const nLatestBlockNumber = owaspUtils.toBN(
-            await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
         const nLatestBlockNumberPlus1 = nLatestBlockNumber.add( owaspUtils.toBN( 1 ) );
         nBlockTo = nLatestBlockNumberPlus1;
     } else
@@ -412,7 +412,9 @@ export async function safeGetPastEvents(
             details.write( strLogPrefix + cc.debug( "First time, will query filter " ) +
                 cc.j( joFilter ) + cc.debug( " on contract " ) + cc.info( joContract.address ) +
                 cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
-                cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
+                cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
+                cc.debug( " while current latest block number on chain is " ) +
+                cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
         }
         ret =
             await joContract.queryFilter(

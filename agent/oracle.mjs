@@ -152,7 +152,7 @@ export function oracleGetGasPrice( oracleOpts, details ) {
                         if( err ) {
                             if( isVerboseTraceDetails ) {
                                 details.write( cc.fatal( "CRITICAL ORACLE ERROR:" ) +
-                                    cc.error( " JSON RPC call " ) +
+                                    cc.error( " JSON RPC call(oracle_submitRequest) " ) +
                                     cc.attention( "oracle_submitRequest" ) +
                                     cc.error( " failed, error: " ) +
                                     cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );

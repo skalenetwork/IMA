@@ -181,6 +181,20 @@ class ObserverServer extends SocketServer {
             }
             return joAnswer;
         };
+        self.mapApiHandlers.spreadUpdatedSChainNetwork =
+            function( joMessage, joAnswer, eventData, socket ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    self.log( cc.debug( "New own S-Chains network information is arrived to " ) +
+                        cc.notice( workerData.url ) + cc.debug( " loop worker in " ) +
+                        threadInfo.threadDescription() + cc.debug( ": " ) +
+                        cc.j( joMessage.joSChainNetworkInfo ) +
+                        cc.debug( ", this own S-Chain update is " ) +
+                        ( joMessage.isFinal
+                            ? cc.success( "final" ) : cc.warning( "partial" ) ) +
+                        "\n" );
+                }
+                imaState.joSChainNetworkInfo = joMessage.joSChainNetworkInfo;
+            };
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
             if( log.verboseGet() >= log.verboseReversed().debug ) {
                 self.log( cc.debug( "S-Chains cache did arrived to " ) +
