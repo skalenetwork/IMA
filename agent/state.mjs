@@ -265,9 +265,10 @@ export function get() {
         "nReimbursementRange": -1, // < 0 - do not change anything
 
         "joSChainDiscovery": {
-            "isSilentReDiscovery": true,
+            "isSilentReDiscovery": false,
             // zero to disable (for debugging only)
-            "repeatIntervalMilliseconds": 10 * 1000
+            "repeatIntervalMilliseconds": 5 * 1000,
+            "periodicDiscoveryInterval": 5 * 60 * 1000
         },
 
         // S-Chain to S-Chain transfer options

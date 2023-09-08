@@ -807,7 +807,9 @@ export async function ensureHaveWorkers( opts ) {
                             "isSilentReDiscovery":
                                 opts.imaState.joSChainDiscovery.isSilentReDiscovery,
                             "repeatIntervalMilliseconds":
-                                opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds
+                                opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds,
+                            "periodicDiscoveryInterval":
+                                opts.imaState.joSChainDiscovery.periodicDiscoveryInterval
                         },
 
                         "optsS2S": { // S-Chain to S-Chain transfer options
@@ -872,4 +874,16 @@ export async function spreadArrivedStateOfPendingWorkAnalysis( joMessage ) {
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
         gArrClients[idxWorker].send( joMessage );
 
+}
+
+export async function spreadUpdatedSChainNetwork( isFinal ) {
+    const imaState = state.get();
+    const joMessage = {
+        "method": "spreadUpdatedSChainNetwork",
+        "isFinal": ( !!isFinal ),
+        "joSChainNetworkInfo": imaState.joSChainNetworkInfo
+    };
+    const cntWorkers = gArrWorkers.length;
+    for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
+        gArrClients[idxWorker].send( joMessage );
 }
