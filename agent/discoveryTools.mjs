@@ -256,17 +256,17 @@ export async function continueSChainDiscoveryInBackgroundIfNeeded( isSilentReDis
             }
             await discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
-                    const cntDiscoveredNew =
+                    const cntDiscoveredNow =
                         getSChainDiscoveredNodesCount( joSChainNetworkInfo );
                     if( log.verboseGet() >= log.verboseReversed().information ) {
                         const strDiscoveryStatus =
-                            cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
+                            cc.info( cntDiscoveredNow ) + cc.success( " nodes known" );
                         let strMessage =
                             cc.success( "S-Chain network was re-discovered, " ) +
-                            cc.info( cntDiscoveredNew ) +
+                            cc.info( cntDiscoveredNow ) +
                             cc.success( " of " ) + cc.info( nCountToWait ) +
                             cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
-                        const cntStillUnknown = nCountToWait - cntDiscoveredNew;
+                        const cntStillUnknown = cntNodesOnChain - cntDiscoveredNow;
                         if( cntStillUnknown > 0 ) {
                             strMessage += cc.success( ", " ) +
                                 cc.info( cntStillUnknown ) +
