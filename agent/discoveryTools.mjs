@@ -213,38 +213,104 @@ let gTimerSChainDiscovery = null;
 let gFlagIsInSChainDiscovery = false;
 
 export async function continueSChainDiscoveryInBackgroundIfNeeded( isSilentReDiscovery, fnAfter ) {
+    if( gTimerSChainDiscovery != null )
+        return;
     fnAfter = fnAfter || function() {};
     const imaState = state.get();
+    if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 ) {
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            if( ! isSilentReDiscovery )
+                log.write( cc.warning( "This S-Chain re-discovery will not be preformed" ) + "\n" );
+
+        }
+        fnAfter();
+        return; // no S-Chain re-discovery, special mode
+    }
     const cntNodesOnChain = getSChainNodesCount( imaState.joSChainNetworkInfo );
     let nCountToWait = ( cntNodesOnChain > 2 )
         ? Math.ceil( cntNodesOnChain * 2 / 3 + 1 )
         : cntNodesOnChain;
     if( nCountToWait > cntNodesOnChain )
         nCountToWait = cntNodesOnChain;
-    const cntDiscovered = getSChainDiscoveredNodesCount( imaState.joSChainNetworkInfo );
-    if( cntDiscovered >= nCountToWait ) {
+    let cntDiscovered = getSChainDiscoveredNodesCount( imaState.joSChainNetworkInfo );
+    if( cntDiscovered >= cntNodesOnChain ) {
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            if( ! isSilentReDiscovery ) {
+                log.write( cc.attention( "Everything is discovered about this S-Chain. " +
+                    "No re-discovery is needed" ) + "\n" );
+            }
+        }
         if( gTimerSChainDiscovery != null ) {
             clearInterval( gTimerSChainDiscovery );
             gTimerSChainDiscovery = null;
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                if( ! isSilentReDiscovery )
+                    log.write( cc.notice( "This S-Chain re-discovery stopped" ) + "\n" );
+
+            }
         }
         fnAfter();
         return;
     }
-    if( gTimerSChainDiscovery != null )
-        return;
-    if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 ) {
-        fnAfter();
-        return; // no S-Chain re-discovery, special mode
+    if( cntDiscovered < cntNodesOnChain ) {
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            if( ! isSilentReDiscovery ) {
+                const cntUnDiscoveredYet = cntNodesOnChain - cntDiscovered;
+                log.write( cc.warning( "Have " ) + cc.info( cntUnDiscoveredYet ) +
+                    cc.warning( " of " ) + cc.info( cntNodesOnChain ) +
+                    cc.warning( " nodes of this S-Chain not discovered yet " +
+                        "before continuing re-discovery." ) + "\n" );
+            }
+        }
     }
     const fnAsyncHandler = async function() {
         if( gFlagIsInSChainDiscovery ) {
             isInsideAsyncHandler = false;
-            if( log.verboseGet() >= log.verboseReversed().information )
-                log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                log.write( cc.warning( "Notice: " +
+                    "long this S-Chain re-discovery is in progress now..." ) + "\n" );
+            }
             return;
         }
         gFlagIsInSChainDiscovery = true;
         try {
+            nCountToWait = ( cntNodesOnChain > 2 )
+                ? Math.ceil( cntNodesOnChain * 2 / 3 + 1 )
+                : cntNodesOnChain;
+            if( nCountToWait > cntNodesOnChain )
+                nCountToWait = cntNodesOnChain;
+            cntDiscovered = getSChainDiscoveredNodesCount( imaState.joSChainNetworkInfo );
+            if( cntDiscovered >= cntNodesOnChain ) {
+                if( log.verboseGet() >= log.verboseReversed().information ) {
+                    if( ! isSilentReDiscovery ) {
+                        log.write( cc.attention( "Everything is discovered about this S-Chain. " +
+                            "No re-discovery is needed" ) + "\n" );
+                    }
+                }
+                if( gTimerSChainDiscovery != null ) {
+                    clearInterval( gTimerSChainDiscovery );
+                    gTimerSChainDiscovery = null;
+                    if( log.verboseGet() >= log.verboseReversed().information ) {
+                        if( ! isSilentReDiscovery )
+                            log.write( cc.notice( "This S-Chain re-discovery stopped" ) + "\n" );
+
+                    }
+                }
+                // fnAfter() will be called here inside async call at beginning
+                gFlagIsInSChainDiscovery = false;
+                return;
+            }
+            if( cntDiscovered < cntNodesOnChain ) {
+                if( log.verboseGet() >= log.verboseReversed().information ) {
+                    if( ! isSilentReDiscovery ) {
+                        const cntUnDiscoveredYet = cntNodesOnChain - cntDiscovered;
+                        log.write( cc.warning( "Have " ) + cc.info( cntUnDiscoveredYet ) +
+                            cc.warning( " of " ) + cc.info( cntNodesOnChain ) +
+                            cc.warning( " nodes of this S-Chain not discovered yet " +
+                                "on re-discovery step." ) + "\n" );
+                    }
+                }
+            }
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 if( ! isSilentReDiscovery ) {
                     log.write( cc.attention( "This S-Chain discovery will be done for " ) +
@@ -309,8 +375,8 @@ export async function continueSChainDiscoveryInBackgroundIfNeeded( isSilentReDis
                     }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                 }
-                // fnAfter() will be called here inside async call at beginning
-                continueSChainDiscoveryInBackgroundIfNeeded( isSilentReDiscovery, fnAfter );
+                fnAfter();
+                continueSChainDiscoveryInBackgroundIfNeeded( isSilentReDiscovery, null );
             }, isSilentReDiscovery, imaState.joSChainNetworkInfo, nCountToWait ).catch( ( err ) => {
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
                     const strError = owaspUtils.extractErrorMessage( err );
@@ -732,7 +798,7 @@ export async function doPeriodicSChainNetworkDiscoveryIfNeeded(
         joPrevSChainNetworkInfo, isSilentReDiscovery ) ) {
         if( ! isSilentReDiscovery ) {
             log.write(
-                cc.debug( "Periodic S-Chain re-discovery is not needed right from startup" ) +
+                cc.success( "Periodic S-Chain re-discovery is not needed right from startup" ) +
                 "\n" );
         }
         return; // not needed right from very beginning
@@ -741,6 +807,12 @@ export async function doPeriodicSChainNetworkDiscoveryIfNeeded(
     let periodicDiscoveryInterval = imaState.joSChainDiscovery.periodicDiscoveryInterval;
     if( periodicDiscoveryInterval <= 0 )
         periodicDiscoveryInterval = 5 * 60 * 1000;
+    if( log.verboseGet() >= log.verboseReversed().information ) {
+        if( ! isSilentReDiscovery ) {
+            log.write( cc.debug( "Periodic S-Chain re-discovery will be done with " ) +
+                cc.info( periodicDiscoveryInterval ) + cc.debug( " interval..." ) + "\n" );
+        }
+    }
     fnAfterRediscover = fnAfterRediscover || function() { };
     gIntervalPeriodicDiscovery = setInterval( async function() {
         let nCountToWait = ( cntNodesOnChain > 2 )
@@ -749,8 +821,8 @@ export async function doPeriodicSChainNetworkDiscoveryIfNeeded(
         if( nCountToWait > cntNodesOnChain )
             nCountToWait = cntNodesOnChain;
         if( log.verboseGet() >= log.verboseReversed().information ) {
-            if( !optsDiscover.isSilentReDiscovery ) {
-                log.write( optsDiscover.strLogPrefix +
+            if( !isSilentReDiscovery ) {
+                log.write(
                     cc.attention( "This S-Chain discovery will be done for " ) +
                     cc.bright( "periodic discovery update" ) + "\n" );
             }
