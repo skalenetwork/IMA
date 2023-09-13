@@ -517,6 +517,13 @@ async function main() {
         if( ! imaState.bNoWaitSChainStarted ) {
             discoveryTools.waitUntilSChainStarted().then( function() {
                 // uses call to discoveryTools.discoverSChainNetwork()
+                if( log.verboseGet() >= log.verboseReversed().information ) {
+                    if( ! isSilentReDiscovery ) {
+                        log.write( cc.attention( "This S-Chain discovery will be done for " ) +
+                            cc.bright( "command line task handler" ) + "\n" );
+                    }
+                }
+                const nCountToWait = -1;
                 discoveryTools.discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
                     if( err ) {
                         // error information is printed by discoveryTools.discoverSChainNetwork()
@@ -531,12 +538,13 @@ async function main() {
                         isSilentReDiscovery, function() {
                             discoveryTools.doPeriodicSChainNetworkDiscoveryIfNeeded(
                                 isSilentReDiscovery, fnOnPeriodicDiscoveryResultAvailable );
-                            doTheJob();
                         } );
+                    doTheJob();
                     // Finish of IMA Agent startup,
                     // everything else is in async calls executed later
                     return 0;
-                }, isSilentReDiscovery, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
+                }, isSilentReDiscovery, imaState.joSChainNetworkInfo, nCountToWait
+                ).catch( ( err ) => {
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strError = owaspUtils.extractErrorMessage( err );
                         log.write( cc.fatal( "CRITICAL ERROR:" ) +

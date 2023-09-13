@@ -159,10 +159,8 @@ class ObserverServer extends SocketServer {
         self.mapApiHandlers.periodicCachingStart =
             function( joMessage, joAnswer, eventData, socket ) {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
-                    self.opts.details.write(
-                        threadInfo.threadDescription() +
-                        cc.debug( " will to start periodic SNB refresh ..." ) +
-                        "\n" );
+                    self.opts.details.write( threadInfo.threadDescription() +
+                        cc.debug( " will start periodic SNB refresh ..." ) + "\n" );
                 }
                 self.periodicCachingStart(
                     socket,
@@ -285,13 +283,21 @@ class ObserverServer extends SocketServer {
         await self.periodicCachingStop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
             return false;
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            self.opts.details.write(
+                cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
+                cc.debug( " will do pre-configured periodic SNB refresh each " ) +
+                cc.info( secondsToReDiscoverSkaleNetwork ) + cc.debug( " second(s)..." ) +
+                "\n" );
+        }
         const fnAsyncHandler = async function() {
             try {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     self.opts.details.write(
                         cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
-                        cc.debug( " will do immediate periodic SNB refresh..." ) +
-                        "\n" );
+                        cc.debug( " will do immediate periodic SNB refresh" ) +
+                        cc.normal( "(one of each " ) + cc.info( secondsToReDiscoverSkaleNetwork ) +
+                        cc.normal( " second(s))" ) + cc.debug( "..." ) + "\n" );
                 }
                 while( true ) {
                     const strError =
@@ -339,8 +345,7 @@ class ObserverServer extends SocketServer {
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             self.opts.details.write(
                 cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
-                cc.debug( " will to start periodic SNB refresh..." ) +
-                "\n" );
+                cc.debug( " will start periodic SNB refresh..." ) + "\n" );
         }
         self.intervalPeriodicSchainsCaching = setInterval(
             fnPeriodicCaching, secondsToReDiscoverSkaleNetwork * 1000 );
