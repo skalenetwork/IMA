@@ -1255,7 +1255,9 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
         await ensureHaveWorker( opts );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( threadInfo.threadDescription() +
-                cc.debug( " will inform worker thread to start periodic SNB refresh..." ) + "\n" );
+                cc.debug( " will inform worker thread to start periodic SNB refresh each " ) +
+                cc.info( opts.secondsToReDiscoverSkaleNetwork ) + cc.debug( " seconds..." ) +
+                "\n" );
         }
         const jo = {
             "method": "periodicCachingStart",
@@ -1274,7 +1276,8 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
         gClient.send( jo );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( threadInfo.threadDescription() +
-                cc.debug( " did informed worker thread to start periodic SNB refresh" ) + "\n" );
+                cc.debug( " did informed worker thread to start periodic SNB refresh each " ) +
+                cc.info( opts.secondsToReDiscoverSkaleNetwork ) + cc.debug( " second(s)" ) + "\n" );
         }
         return true;
     } catch ( err ) {
@@ -1308,6 +1311,11 @@ export async function periodicCachingStart( strChainNameConnectedTo, opts ) {
 export async function periodicCachingStop() {
     if( gWorker && gClient ) {
         try {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write( threadInfo.threadDescription() +
+                    cc.debug( " will inform worker thread to stop periodic SNB refresh..." ) +
+                    "\n" );
+            }
             const jo = {
                 "method": "periodicCachingStop",
                 "message": { }
@@ -1331,6 +1339,10 @@ export async function periodicCachingStop() {
     }
     if( gIntervalPeriodicCaching ) {
         try {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write( threadInfo.threadDescription() +
+                    cc.debug( " will stop periodic SNB refresh..." ) + "\n" );
+            }
             clearInterval( gIntervalPeriodicCaching );
             gIntervalPeriodicCaching = null;
         } catch ( err ) {

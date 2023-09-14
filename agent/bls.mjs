@@ -136,6 +136,7 @@ function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo, details, isT
     const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     const jarrNodes = joSChainNetworkInfo.network;
+    const cntNodes = jarrNodes.length;
     const joNode = jarrNodes[nNodeIndex];
     if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
         "BLSPublicKey0" in joNode.imaInfo &&
@@ -159,10 +160,12 @@ function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo, details, isT
         };
     }
     details.write( cc.fatal( "CRITICAL ERROR:" ) +
-        cc.error( " BLS 1/16 public key discovery failed for node #" ) + cc.info( nNodeIndex ) +
-        cc.error( ", node data is: " ) + cc.j( joNode ) + "\n" );
-    if( isThrowException )
-        throw new Error( "BLS 1/16 public key discovery failed for node #" + nNodeIndex );
+        cc.error( " BLS 1/" + cntNodes + " public key discovery failed for node #" ) +
+        cc.info( nNodeIndex ) + cc.error( ", node data is: " ) + cc.j( joNode ) + "\n" );
+    if( isThrowException ) {
+        throw new Error(
+            "BLS 1/" + cntNodes + " public key discovery failed for node #" + nNodeIndex );
+    }
     return null;
 }
 
