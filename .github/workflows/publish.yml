@@ -12,6 +12,10 @@ on:
     tags:
       - 'custom-release-*'
 
+env:
+  NODE_VERSION: 18
+  PYTHON_VERSION: 3.8
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,9 +23,11 @@ jobs:
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      PROXY_DIR: "proxy"
+    defaults:
+      run:
+        working-directory: proxy
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
           submodules: recursive
 
@@ -47,12 +53,12 @@ jobs:
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: '18'
+        node-version: ${{ env.NODE_VERSION }}
 
-    - name: Install Python 3.8
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: ${{ env.PYTHON_VERSION }}    
 
     - name: Prepare for pip package building
       run: |
@@ -60,9 +66,7 @@ jobs:
         python3 -m pip install --user --upgrade twine
 
     - name: Install project
-      working-directory: ${{env.PROXY_DIR}}
-      run: |
-        yarn install
+      run: yarn install
 
     - name: Calculate version
       run: |
@@ -75,30 +79,28 @@ jobs:
         echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
 
     - name: Generate Manifest
-      working-directory: ${{env.PROXY_DIR}}
-      run: |
-        npx hardhat run migrations/generateManifest.ts
+      run: npx hardhat run migrations/generateManifest.ts
 
     - name: Install python testing staff
-      working-directory: ${{env.PROXY_DIR}}
       run: pip3 install -r predeployed/test/requirements.txt
 
     - name: Build predeployed pip package
-      working-directory: ${{env.PROXY_DIR}}
       env:
         VERSION: ${{ env.VERSION }}
-      run: |
-        ./predeployed/scripts/build_package.sh
+      run: ./predeployed/scripts/build_package.sh
 
     - name: Publish predeployed pip package
-      working-directory: ${{env.PROXY_DIR}}
       env:
         PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        ./predeployed/scripts/publish_package.sh
+      run: ./predeployed/scripts/publish_package.sh
 
-    - name: Generate ABIs
-      working-directory: ${{env.PROXY_DIR}}/predeployed
+    - name: Generate mainnet ABIs
+      env:
+        VERSION: ${{ env.VERSION }}
+      run: npx hardhat run scripts/generateAbi.ts
+
+    - name: Generate predeployed ABIs
+      working-directory: proxy/predeployed
       env:
         VERSION: ${{ env.VERSION }}
       run: |
@@ -126,7 +128,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: proxy/predeployed/dist/
+        assets_path: predeployed/dist/
 
     - name: Upload Release Assets
       id: upload-static-data
@@ -135,7 +137,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: proxy/predeployed/data/
+        assets_path: predeployed/data/
 
     - name: Upload Release Assets
       id: upload-manifest-data
@@ -144,7 +146,15 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: proxy/data/ima-schain-*-manifest.json
+        assets_path: data/ima-schain-*-manifest.json
+
+    - name: Upload Release Assets
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: data/*-abi.json
 
     - name: Build and publish image
       env:
