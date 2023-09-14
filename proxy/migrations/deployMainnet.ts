@@ -219,13 +219,6 @@ async function main() {
                     try {
                         await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);
                         await contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);
-                        for (const contractName of contractsToDeploy) {
-                            const contractAddress = deployed.get(contractName);
-                            if (contractAddress === undefined) {
-                                throw new Error(`${contractName} was not found`);
-                            }
-                            await contractManagerInst.setContractsAddress( contractName, contractAddress);
-                        }
                         console.log( "Successfully registered MessageProxy in ContractManager" );
                     } catch ( error ) {
                         console.log( "Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error );

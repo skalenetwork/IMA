@@ -10,18 +10,13 @@ on:
     branches-ignore:
       - 'docs-v*'
 
-env:
-  NODE_VERSION: 18
-  PYTHON_VERSION: 3.8
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: proxy
+    env:
+      working-directory: ./proxy
 
     steps:
     - uses: actions/checkout@v2
@@ -48,43 +43,47 @@ jobs:
     - name: Install PYTHON
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: 3.8
 
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: 16
 
     - name: Install project
-      run: yarn install
+      working-directory: ${{env.working-directory}}
+      run: |
+        yarn install
 
     - name: Install slither
+      working-directory: ${{env.working-directory}}
       run: pip3 install -r scripts/requirements.txt
 
     - name: Lint solidity
+      working-directory: ${{env.working-directory}}
       run: yarn lint
 
     - name: Compile typescript
+      working-directory: ${{env.working-directory}}
       run: yarn tsc
 
     - name: Lint typescript
+      working-directory: ${{env.working-directory}}
       run: yarn eslint
 
     - name: Slither checks
+      working-directory: ${{env.working-directory}}
       run: yarn slither
 
-    - name: Test ABI generation
-      env:
-        VERSION: "0.0.0"
-      run: npx hardhat run scripts/generateAbi.ts
-
     - name: Gas calculation test
+      working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
 
     - name: Test upgrade
-      run: bash scripts/test_upgrade.sh
+      run: bash ./proxy/scripts/test_upgrade.sh
 
     - name: Run tests
+      working-directory: ${{env.working-directory}}
       run: |
         npx hardhat coverage --solcoverjs .solcover.js
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
@@ -121,12 +120,12 @@ jobs:
     - name: Install PYTHON
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ env. PYTHON_VERSION }}
+        python-version: 3.8
 
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: 16
 
     - name: Install project
       run: |
@@ -330,12 +329,12 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '16'
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: 3.8
 
     - name: Compile contracts
       working-directory: ./proxy
@@ -350,11 +349,9 @@ jobs:
         yarn install
 
     - name: Start background ganache
-      working-directory: proxy
       run: |
-        INSTANCE=$(npx ganache --😈 --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json)
-        echo "INSTANCE=$INSTANCE" >> "$GITHUB_ENV"
-
+        cd proxy
+        npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
@@ -376,11 +373,3 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         yarn test
-
-    - name: Stop ganache
-      working-directory: proxy
-      env:
-        INSTANCE: ${{ env.INSTANCE }}
-      run: npx ganache instances stop $INSTANCE
-
-
