@@ -345,7 +345,7 @@ class ObserverServer extends SocketServer {
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             self.opts.details.write(
                 cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
-                cc.debug( " will start periodic SNB refresh..." ) + "\n" );
+                cc.debug( " did invoked periodic SNB refresh" ) + "\n" );
         }
         self.intervalPeriodicSchainsCaching = setInterval(
             fnPeriodicCaching, secondsToReDiscoverSkaleNetwork * 1000 );

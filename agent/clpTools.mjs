@@ -1652,7 +1652,8 @@ export function commandLineTaskBrowseSkaleNetwork() {
             const opts = {
                 imaState: imaState,
                 "details": log,
-                "bStopNeeded": false
+                "bStopNeeded": false,
+                "isLoadConnectedOnly": false
             };
             const arrSChains = await skaleObserver.loadSChains( opts );
             const cnt = arrSChains.length;
@@ -1685,7 +1686,8 @@ export function commandLineTaskBrowseConnectedSChains() {
             const opts = {
                 "imaState": imaState,
                 "details": log,
-                "bStopNeeded": false
+                "bStopNeeded": false,
+                "isLoadConnectedOnly": true
             };
             const arrSChainsCached = await skaleObserver.loadSChainsConnectedOnly(
                 imaState.chainProperties.sc.strChainName, opts );
