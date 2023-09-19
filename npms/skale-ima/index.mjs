@@ -846,32 +846,55 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
 }
 
 async function handleAllMessagesSigning( optsTransfer ) {
-    await optsTransfer.fnSignMessages(
-        optsTransfer.nTransferLoopCounter,
-        optsTransfer.jarrMessages, optsTransfer.nIdxCurrentMsgBlockStart,
-        optsTransfer.chainNameSrc,
-        optsTransfer.joExtraSignOpts,
-        async function( err, jarrMessages, joGlueResult ) {
-            await callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueResult );
-        } ).catch( ( err ) => {
-        // callback fn as argument of optsTransfer.fnSignMessages
-        optsTransfer.bErrorInSigningMessages = true;
+    try {
+        const promiseComplete = new Promise( function( resolve, reject ) {
+            const doHandlingWorkForAllMessagesSigning = async function() {
+                await optsTransfer.fnSignMessages(
+                    optsTransfer.nTransferLoopCounter,
+                    optsTransfer.jarrMessages, optsTransfer.nIdxCurrentMsgBlockStart,
+                    optsTransfer.chainNameSrc,
+                    optsTransfer.joExtraSignOpts,
+                    async function( err, jarrMessages, joGlueResult ) {
+                        await callbackAllMessagesSign(
+                            optsTransfer, err, jarrMessages, joGlueResult );
+                        resolve( true );
+                    } ).catch( ( err ) => {
+                    // callback fn as argument of optsTransfer.fnSignMessages
+                    optsTransfer.bErrorInSigningMessages = true;
+                    if( log.verboseGet() >= log.verboseReversed().error ) {
+                        const strError = owaspUtils.extractErrorMessage( err );
+                        const strErrorMessage = optsTransfer.strLogPrefix +
+                            cc.error( "Problem in transfer handler(in signer): " ) +
+                            cc.warning( strError );
+                        optsTransfer.details.write( strErrorMessage + "\n" );
+                        if( log.id != optsTransfer.details.id )
+                            log.write( strErrorMessage + "\n" );
+                        imaTransferErrorHandling.saveTransferError(
+                            optsTransfer.strTransferErrorCategoryName,
+                            optsTransfer.details.toString() );
+                    }
+                    reject( err );
+                } );
+            };
+            doHandlingWorkForAllMessagesSigning();
+        } );
+        await Promise.all( [ promiseComplete ] );
+        return true;
+    } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            if( log.verboseGet() >= log.verboseReversed().error ) {
-                const strError = owaspUtils.extractErrorMessage( err );
-                const strErrorMessage = optsTransfer.strLogPrefix +
-                    cc.error( "Problem in transfer handler: " ) +
-                    cc.warning( strError );
-                optsTransfer.details.write( strErrorMessage + "\n" );
-                if( log.id != optsTransfer.details.id )
-                    log.write( strErrorMessage + "\n" );
-            }
+            const strError = owaspUtils.extractErrorMessage( err );
+            const strErrorMessage = optsTransfer.strLogPrefix +
+                cc.error( "Problem in transfer handler(general): " ) +
+                cc.warning( strError );
+            optsTransfer.details.write( strErrorMessage + "\n" );
+            if( log.id != optsTransfer.details.id )
+                log.write( strErrorMessage + "\n" );
             imaTransferErrorHandling.saveTransferError(
                 optsTransfer.strTransferErrorCategoryName,
                 optsTransfer.details.toString() );
         }
-    } );
-    return true;
+        return false;
+    }
 }
 
 async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
@@ -1249,29 +1272,18 @@ async function doMainTransferLoopActions( optsTransfer ) {
     return true;
 }
 
+let gIsOneTransferInProgressInThisThread = false;
+
 export async function doTransfer(
-    strDirection,
-    joRuntimeOpts,
-    ethersProviderSrc,
-    joMessageProxySrc,
-    joAccountSrc,
-    ethersProviderDst,
-    joMessageProxyDst,
-    joAccountDst,
-    chainNameSrc,
-    chainNameDst,
-    chainIdSrc,
-    chainIdDst,
+    strDirection, joRuntimeOpts,
+    ethersProviderSrc, joMessageProxySrc, joAccountSrc,
+    ethersProviderDst, joMessageProxyDst, joAccountDst,
+    chainNameSrc, chainNameDst, chainIdSrc, chainIdDst,
     joDepositBoxMainNet, // for logs validation on mainnet
     joTokenManagerSChain, // for logs validation on s-chain
     nTransactionsCountInBlock,
-    nTransferSteps,
-    nMaxTransactionsCount,
-    nBlockAwaitDepth,
-    nBlockAge,
-    fnSignMessages,
-    joExtraSignOpts,
-    transactionCustomizerDst
+    nTransferSteps, nMaxTransactionsCount, nBlockAwaitDepth, nBlockAge,
+    fnSignMessages, joExtraSignOpts, transactionCustomizerDst
 ) {
     const optsTransfer = {
         strDirection: strDirection,
@@ -1319,15 +1331,14 @@ export async function doTransfer(
         arrLogRecordReferences: []
     };
     ++ gTransferLoopCounter;
-    optsTransfer.strGatheredDetailsName =
-        optsTransfer.strDirection + "/#" + optsTransfer.nTransferLoopCounter +
-        "-" + "doTransfer-A" + "-" +
+    optsTransfer.strGatheredDetailsName = optsTransfer.strDirection + "/#" +
+        optsTransfer.nTransferLoopCounter + "-" + "doTransfer-A" + "-" +
         optsTransfer.chainNameSrc + "-->" + optsTransfer.chainNameDst;
-    optsTransfer.strGatheredDetailsName_colored =
-        cc.bright( optsTransfer.strDirection ) + cc.debug( "/" ) + cc.attention( "#" ) +
-        cc.sunny( optsTransfer.nTransferLoopCounter ) + cc.debug( "-" ) +
-        cc.info( "doTransfer-A-" ) + cc.debug( "-" ) + cc.notice( optsTransfer.chainNameSrc ) +
-        cc.debug( "-->" ) + cc.notice( optsTransfer.chainNameDst );
+    optsTransfer.strGatheredDetailsName_colored = cc.bright( optsTransfer.strDirection ) +
+        cc.debug( "/" ) + cc.attention( "#" ) + cc.sunny( optsTransfer.nTransferLoopCounter ) +
+        cc.debug( "-" ) + cc.info( "doTransfer-A-" ) + cc.debug( "-" ) +
+        cc.notice( optsTransfer.chainNameSrc ) + cc.debug( "-->" ) +
+        cc.notice( optsTransfer.chainNameDst );
     optsTransfer.details = optsTransfer.imaState.isDynamicLogInDoTransfer
         ? log : log.createMemoryStream( true );
     optsTransfer.strLogPrefixShort = cc.bright( optsTransfer.strDirection ) + cc.debug( "/" ) +
@@ -1335,85 +1346,123 @@ export async function doTransfer(
     optsTransfer.strLogPrefix = optsTransfer.strLogPrefixShort + cc.info( "transfer loop from " ) +
         cc.notice( optsTransfer.chainNameSrc ) + cc.info( " to " ) +
         cc.notice( optsTransfer.chainNameDst ) + cc.info( ":" ) + " ";
-    if( log.verboseGet() >= log.verboseReversed().debug ) {
-        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing is " ) +
-            cc.onOff( optsTransfer.imaState.bSignMessages ) + "\n" );
-    }
-    if( optsTransfer.fnSignMessages == null ||
-        optsTransfer.fnSignMessages == undefined ||
-        ( ! optsTransfer.imaState.bSignMessages )
-    ) {
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
+    if( gIsOneTransferInProgressInThisThread ) {
+        if( log.verboseGet() >= log.verboseReversed().warning ) {
             optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Using internal signing stub function" ) + "\n" );
+                cc.debug( "Transfer loop step is skipped because " +
+                    "previous one is still in progress" ) + "\n" );
         }
-        optsTransfer.fnSignMessages = async function(
-            nTransferLoopCounter, jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
-            joExtraSignOpts, fnAfter
-        ) {
-            if( log.verboseGet() >= log.verboseReversed().debug ) {
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
-                    cc.debug( " to IMA, first real message index is:" ) +
-                    cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
-                    cc.info( optsTransfer.jarrMessages.length ) +
-                    cc.debug( " message(s) to process " ) +
-                    cc.j( optsTransfer.jarrMessages ) + "\n" );
-            }
-            await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
-        };
-    } else {
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Using externally provided signing function" ) + "\n" );
-        }
-    }
-    optsTransfer.nTransactionsCountInBlock = optsTransfer.nTransactionsCountInBlock || 5;
-    optsTransfer.nTransferSteps = optsTransfer.nTransferSteps || Number.MAX_SAFE_INTEGER;
-    optsTransfer.nMaxTransactionsCount =
-        optsTransfer.nMaxTransactionsCount || Number.MAX_SAFE_INTEGER;
-    if( optsTransfer.nTransactionsCountInBlock < 1 )
-        optsTransfer.nTransactionsCountInBlock = 1;
-    if( optsTransfer.nBlockAwaitDepth < 0 )
-        optsTransfer.nBlockAwaitDepth = 0;
-    if( optsTransfer.nBlockAge < 0 )
-        optsTransfer.nBlockAge = 0;
-    try {
-        if( ! ( await doQueryOutgoingMessageCounter( optsTransfer ) ) )
-            return false;
-        if( ! ( await doMainTransferLoopActions( optsTransfer ) ) )
-            return false;
-    } catch ( err ) {
-        if( log.verboseGet() >= log.verboseReversed().critical ) {
-            const strError = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " Error in " ) + optsTransfer.strGatheredDetailsName_colored +
-                cc.error( " during " + optsTransfer.strActionName + ": " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n";
-            optsTransfer.details.write( strError );
-            if( log.id != optsTransfer.details.id )
-                log.write( strError );
-        }
-        optsTransfer.details.exposeDetailsTo( log, optsTransfer.strGatheredDetailsName, false );
-        imaTransferErrorHandling.saveTransferError(
-            optsTransfer.strTransferErrorCategoryName, optsTransfer.details.toString() );
-        optsTransfer.details.close();
-        return false;
-    }
-    imaGasUsage.printGasUsageReportFromArray(
-        "TRANSFER " + optsTransfer.chainNameSrc + " -> " +
-            optsTransfer.chainNameDst, optsTransfer.jarrReceipts, optsTransfer.details );
-    if( optsTransfer.details ) {
         if( log.exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
             optsTransfer.details.exposeDetailsTo(
                 log, optsTransfer.strGatheredDetailsName, true );
         }
         optsTransfer.details.close();
+        return false;
     }
-    if( ! optsTransfer.bErrorInSigningMessages )
-        imaTransferErrorHandling.saveTransferSuccess( optsTransfer.strTransferErrorCategoryName );
-    return true;
+    try {
+        gIsOneTransferInProgressInThisThread = true;
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Message signing is " ) +
+                cc.onOff( optsTransfer.imaState.bSignMessages ) + "\n" );
+        }
+        if( optsTransfer.fnSignMessages == null || optsTransfer.fnSignMessages == undefined ||
+            ( ! optsTransfer.imaState.bSignMessages )
+        ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.debug( "Using internal signing stub function" ) + "\n" );
+            }
+            optsTransfer.fnSignMessages = async function(
+                nTransferLoopCounter, jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
+                joExtraSignOpts, fnAfter
+            ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
+                        cc.debug( " to IMA, first real message index is:" ) +
+                        cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
+                        cc.info( optsTransfer.jarrMessages.length ) +
+                        cc.debug( " message(s) to process " ) +
+                        cc.j( optsTransfer.jarrMessages ) + "\n" );
+                }
+                await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
+            };
+        } else {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.debug( "Using externally provided signing function" ) + "\n" );
+            }
+        }
+        optsTransfer.nTransactionsCountInBlock = optsTransfer.nTransactionsCountInBlock || 5;
+        optsTransfer.nTransferSteps = optsTransfer.nTransferSteps || Number.MAX_SAFE_INTEGER;
+        optsTransfer.nMaxTransactionsCount =
+            optsTransfer.nMaxTransactionsCount || Number.MAX_SAFE_INTEGER;
+        if( optsTransfer.nTransactionsCountInBlock < 1 )
+            optsTransfer.nTransactionsCountInBlock = 1;
+        if( optsTransfer.nBlockAwaitDepth < 0 )
+            optsTransfer.nBlockAwaitDepth = 0;
+        if( optsTransfer.nBlockAge < 0 )
+            optsTransfer.nBlockAge = 0;
+        try {
+            if( ! ( await doQueryOutgoingMessageCounter( optsTransfer ) ) ) {
+                gIsOneTransferInProgressInThisThread = false;
+                return false;
+            }
+            if( ! ( await doMainTransferLoopActions( optsTransfer ) ) ) {
+                gIsOneTransferInProgressInThisThread = false;
+                return false;
+            }
+        } catch ( err ) {
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strError = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Error in " ) + optsTransfer.strGatheredDetailsName_colored +
+                    cc.error( " during " + optsTransfer.strActionName + ": " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+                optsTransfer.details.write( strError );
+                if( log.id != optsTransfer.details.id )
+                    log.write( strError );
+            }
+            optsTransfer.details.exposeDetailsTo( log,
+                optsTransfer.strGatheredDetailsName, false );
+            imaTransferErrorHandling.saveTransferError(
+                optsTransfer.strTransferErrorCategoryName, optsTransfer.details.toString() );
+            optsTransfer.details.close();
+            gIsOneTransferInProgressInThisThread = false;
+            return false;
+        }
+        imaGasUsage.printGasUsageReportFromArray( "TRANSFER " + optsTransfer.chainNameSrc +
+            " -> " + optsTransfer.chainNameDst, optsTransfer.jarrReceipts, optsTransfer.details );
+        if( optsTransfer.details ) {
+            if( log.exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
+                optsTransfer.details.exposeDetailsTo(
+                    log, optsTransfer.strGatheredDetailsName, true );
+            }
+            optsTransfer.details.close();
+        }
+        if( ! optsTransfer.bErrorInSigningMessages ) {
+            imaTransferErrorHandling.saveTransferSuccess(
+                optsTransfer.strTransferErrorCategoryName );
+        }
+        gIsOneTransferInProgressInThisThread = false;
+        return true;
+    } catch ( err ) {
+        gIsOneTransferInProgressInThisThread = false;
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            optsTransfer.details.write( optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Transfer loop step failed with error: " ) + cc.warning( strError ) +
+                cc.error( " in " ) + threadInfo.threadDescription() +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
+        if( log.exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
+            optsTransfer.details.exposeDetailsTo(
+                log, optsTransfer.strGatheredDetailsName, true );
+        }
+        optsTransfer.details.close();
+        return false;
+    }
 }
 
 export async function doAllS2S( // s-chain --> s-chain
