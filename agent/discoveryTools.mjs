@@ -617,7 +617,6 @@ async function discoverSChainWait( optsDiscover ) {
             }
         }
     }, nWaitStepMilliseconds );
-    await joCall.disconnect();
 }
 
 export async function discoverSChainNetwork(
