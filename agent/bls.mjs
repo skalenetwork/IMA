@@ -1316,7 +1316,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     cc.debug( ", glue result is " ) + cc.j( joGlueResult ) + "\n";
                 if( log.verboseGet() >= log.verboseReversed().trace )
                     optsSignOperation.details.write( strCallbackCallDescription );
-                optsSignOperation.fn( // NOTICE: no await here, executed async
+                optsSignOperation.fn(
                     strError, optsSignOperation.jarrMessages, joGlueResult )
                     .catch( ( err ) => {
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
@@ -1344,7 +1344,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
             if( optsSignOperation.joGatheringTracker.nCountReceived >=
                     optsSignOperation.jarrNodes.length ) {
                 clearInterval( iv );
-                optsSignOperation.fn( // NOTICE: no await here, executed async
+                optsSignOperation.fn(
                     "signature error(2), got " +
                     optsSignOperation.joGatheringTracker.nCountErrors +
                     " errors(s) for " + optsSignOperation.jarrNodes.length +
@@ -1379,7 +1379,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     optsSignOperation.joGatheringTracker.nWaitIntervalMaxSteps
             ) {
                 clearInterval( iv );
-                optsSignOperation.fn( // NOTICE: no await here, executed async
+                optsSignOperation.fn(
                     "signature error(3), got " +
                         optsSignOperation.joGatheringTracker.nCountErrors +
                         " errors(s) for " + optsSignOperation.jarrNodes.length + " node(s)",
@@ -1567,7 +1567,7 @@ async function doSignProcessHandleCall(
     joNode, joParams,
     joIn, joOut, err, strNodeURL, i
 ) {
-    ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
+    ++optsSignOperation.joGatheringTracker.nCountReceived;
     if( err ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage =
@@ -1761,10 +1761,10 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
         cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) +
         cc.attention( optsSignOperation.sequenceId );
     const rpcCallOpts = null;
-    rpcCall.create( // NOTICE: no await here, executed async
+    rpcCall.create(
         strNodeURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
-                ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
+                ++optsSignOperation.joGatheringTracker.nCountReceived;
                 ++optsSignOperation.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
                 optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -1864,7 +1864,7 @@ async function doSignMessagesImpl(
         cc.info( ":" ) + " ";
     optsSignOperation.joGatheringTracker = {
         nCountReceivedPrevious: 0,
-        nCountReceived: 0, // including errors
+        nCountReceived: 0,
         nCountErrors: 0,
         nCountSkipped: 0,
         nWaitIntervalStepMilliseconds: 100,
@@ -1897,7 +1897,7 @@ async function doSignMessagesImpl(
                 }
                 break;
             }
-            doSignProcessOneImpl( i, optsSignOperation ); // NOTICE: no await here
+            doSignProcessOneImpl( i, optsSignOperation );
         }
         await gatherSigningStartImpl( optsSignOperation );
         await gatherSigningFinishImpl( optsSignOperation );
@@ -2052,7 +2052,7 @@ async function doSignU256OneImpl( optsSignU256 ) {
         cc.debug( ", ID " ) + cc.info( joNode.nodeID ) + cc.debug( ")" );
     const rpcCallOpts = null;
     await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
-        ++optsSignU256.joGatheringTracker.nCountReceived; // including errors
+        ++optsSignU256.joGatheringTracker.nCountReceived;
         if( err ) {
             ++optsSignU256.joGatheringTracker.nCountErrors;
             const strErrorMessage =
@@ -2082,7 +2082,7 @@ async function doSignU256OneImpl( optsSignU256 ) {
                 "valueToSign": optsSignU256.u256 // must be 0x string, came from outside 0x string
             }
         }, async function( joIn, joOut, err ) {
-            ++optsSignU256.joGatheringTracker.nCountReceived; // including errors
+            ++optsSignU256.joGatheringTracker.nCountReceived;
             if( err ) {
                 ++optsSignU256.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
@@ -2328,7 +2328,7 @@ async function doSignU256Gathering( optsSignU256 ) {
                     cc.debug( ", glue result is " ) + cc.j( joGlueResult ) + "\n";
                 if( log.verboseGet() >= log.verboseReversed().trace )
                     optsSignU256.details.write( strCallbackCallDescription );
-                optsSignU256.fn( // NOTICE: no await here, executed async
+                optsSignU256.fn(
                     strError, optsSignU256.u256, joGlueResult )
                     .catch( ( err ) => {
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
@@ -2355,7 +2355,7 @@ async function doSignU256Gathering( optsSignU256 ) {
             if( optsSignU256.joGatheringTracker.nCountReceived >=
                     optsSignU256.jarrNodes.length ) {
                 clearInterval( iv );
-                optsSignU256.fn( // NOTICE: no await here, executed async
+                optsSignU256.fn(
                     "signature error(2, u256), got " +
                     optsSignU256.joGatheringTracker.nCountErrors +
                     " errors(s) for " + optsSignU256.jarrNodes.length + " node(s)",
@@ -2387,7 +2387,7 @@ async function doSignU256Gathering( optsSignU256 ) {
                 optsSignU256.joGatheringTracker.nWaitIntervalMaxSteps
             ) {
                 clearInterval( iv );
-                optsSignU256.fn( // NOTICE: no await here, executed async
+                optsSignU256.fn(
                     "signature error(3, u256), got " +
                     optsSignU256.joGatheringTracker.nCountErrors +
                     " errors(s) for " + optsSignU256.jarrNodes.length + " node(s)",
@@ -2427,7 +2427,7 @@ export async function doSignU256( u256, details, fn ) {
         strLogPrefix: cc.info( "Sign u256:" ) + " ",
         joGatheringTracker: {
             nCountReceivedPrevious: 0,
-            nCountReceived: 0, // including errors
+            nCountReceived: 0,
             nCountErrors: 0,
             nCountSkipped: 0,
             nWaitIntervalStepMilliseconds: 100,
