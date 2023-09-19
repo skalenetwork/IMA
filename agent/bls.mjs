@@ -33,6 +33,7 @@ import * as shellModule from "shelljs";
 import * as imaUtils from "./utils.mjs";
 import * as sha3Module from "sha3";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
+import * as discoveryTools from "./discoveryTools.mjs";
 
 import * as state from "./state.mjs";
 import { randomCallID } from "../npms/skale-cool-socket/socketUtils.mjs";
@@ -75,10 +76,7 @@ function discoverBlsThreshold( joSChainNetworkInfo ) {
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" &&
-            joNode.imaInfo.t > 0
-        )
+        if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) )
             return joNode.imaInfo.t;
     }
     return -1;
@@ -92,12 +90,7 @@ function discoverBlsParticipants( joSChainNetworkInfo ) {
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( joNode && "imaInfo" in joNode &&
-            typeof joNode.imaInfo === "object" &&
-            "n" in joNode.imaInfo &&
-            typeof joNode.imaInfo.n === "number" &&
-            joNode.imaInfo.n > 0
-        )
+        if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) )
             return joNode.imaInfo.n;
     }
     return -1;
@@ -138,20 +131,7 @@ function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo, details, isT
     const jarrNodes = joSChainNetworkInfo.network;
     const cntNodes = jarrNodes.length;
     const joNode = jarrNodes[nNodeIndex];
-    if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-        "BLSPublicKey0" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey0 === "string" &&
-        joNode.imaInfo.BLSPublicKey0.length > 0 &&
-        "BLSPublicKey1" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey1 === "string" &&
-        joNode.imaInfo.BLSPublicKey1.length > 0 &&
-        "BLSPublicKey2" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey2 === "string" &&
-        joNode.imaInfo.BLSPublicKey2.length > 0 &&
-        "BLSPublicKey3" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey3 === "string" &&
-        joNode.imaInfo.BLSPublicKey3.length > 0
-    ) {
+    if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) ) {
         return {
             BLSPublicKey0: joNode.imaInfo.BLSPublicKey0,
             BLSPublicKey1: joNode.imaInfo.BLSPublicKey1,
@@ -175,20 +155,7 @@ function discoverCommonPublicKey( joSChainNetworkInfo, isThrowException ) {
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-            "commonBLSPublicKey0" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey0 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey0.length > 0 &&
-            "commonBLSPublicKey1" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey1 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey1.length > 0 &&
-            "commonBLSPublicKey2" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey2 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey2.length > 0 &&
-            "commonBLSPublicKey3" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey3 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey3.length > 0
-        ) {
+        if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) ) {
             return {
                 commonBLSPublicKey0: joNode.imaInfo.commonBLSPublicKey0,
                 commonBLSPublicKey1: joNode.imaInfo.commonBLSPublicKey1,
