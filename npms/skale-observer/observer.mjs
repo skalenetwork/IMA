@@ -392,7 +392,7 @@ export async function loadSChain( idxSChain, hash, joData, cntSChains, opts ) {
 }
 
 export async function loadSChainsDefault( opts ) {
-    // return await loadSChains( opts );
+    // Please notice, we used this long time: return await loadSChains( opts );
     return await loadCachedSChainsSimplified( opts );
 }
 
