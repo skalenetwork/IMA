@@ -60,14 +60,6 @@ export CID_MAIN_NET=${CID_MAIN_NET:--4}
 export CID_SCHAIN=${CID_SCHAIN:--4}
 
 echo "$(date) - Starting IMA agent..."
-echo "Params provided to the run.sh:"
-echo "MAINNET_PROXY_PATH: $MAINNET_PROXY_PATH"
-echo "SCHAIN_PROXY_PATH: $SCHAIN_PROXY_PATH"
-echo "SCHAIN_NAME: $SCHAIN_NAME"
-echo "SCHAIN_RPC_URL: $SCHAIN_RPC_URL"
-echo "MAINNET_RPC_URL: $MAINNET_RPC_URL"
-echo "NODE_NUMBER: $NODE_NUMBER"
-echo "NODES_COUNT: $NODES_COUNT"
 
 BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --gas-multiplier=$GAS_MULTIPLIER \

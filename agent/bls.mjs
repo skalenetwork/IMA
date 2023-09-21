@@ -33,6 +33,7 @@ import * as shellModule from "shelljs";
 import * as imaUtils from "./utils.mjs";
 import * as sha3Module from "sha3";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
+import * as discoveryTools from "./discoveryTools.mjs";
 
 import * as state from "./state.mjs";
 import { randomCallID } from "../npms/skale-cool-socket/socketUtils.mjs";
@@ -75,10 +76,7 @@ function discoverBlsThreshold( joSChainNetworkInfo ) {
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" &&
-            joNode.imaInfo.t > 0
-        )
+        if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) )
             return joNode.imaInfo.t;
     }
     return -1;
@@ -92,12 +90,7 @@ function discoverBlsParticipants( joSChainNetworkInfo ) {
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( joNode && "imaInfo" in joNode &&
-            typeof joNode.imaInfo === "object" &&
-            "n" in joNode.imaInfo &&
-            typeof joNode.imaInfo.n === "number" &&
-            joNode.imaInfo.n > 0
-        )
+        if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) )
             return joNode.imaInfo.n;
     }
     return -1;
@@ -138,20 +131,7 @@ function discoverPublicKeyByIndex( nNodeIndex, joSChainNetworkInfo, details, isT
     const jarrNodes = joSChainNetworkInfo.network;
     const cntNodes = jarrNodes.length;
     const joNode = jarrNodes[nNodeIndex];
-    if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-        "BLSPublicKey0" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey0 === "string" &&
-        joNode.imaInfo.BLSPublicKey0.length > 0 &&
-        "BLSPublicKey1" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey1 === "string" &&
-        joNode.imaInfo.BLSPublicKey1.length > 0 &&
-        "BLSPublicKey2" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey2 === "string" &&
-        joNode.imaInfo.BLSPublicKey2.length > 0 &&
-        "BLSPublicKey3" in joNode.imaInfo &&
-        typeof joNode.imaInfo.BLSPublicKey3 === "string" &&
-        joNode.imaInfo.BLSPublicKey3.length > 0
-    ) {
+    if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) ) {
         return {
             BLSPublicKey0: joNode.imaInfo.BLSPublicKey0,
             BLSPublicKey1: joNode.imaInfo.BLSPublicKey1,
@@ -175,20 +155,7 @@ function discoverCommonPublicKey( joSChainNetworkInfo, isThrowException ) {
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-            "commonBLSPublicKey0" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey0 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey0.length > 0 &&
-            "commonBLSPublicKey1" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey1 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey1.length > 0 &&
-            "commonBLSPublicKey2" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey2 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey2.length > 0 &&
-            "commonBLSPublicKey3" in joNode.imaInfo &&
-            typeof joNode.imaInfo.commonBLSPublicKey3 === "string" &&
-            joNode.imaInfo.commonBLSPublicKey3.length > 0
-        ) {
+        if( discoveryTools.isSChainNodeFullyDiscovered( joNode ) ) {
             return {
                 commonBLSPublicKey0: joNode.imaInfo.commonBLSPublicKey0,
                 commonBLSPublicKey1: joNode.imaInfo.commonBLSPublicKey1,
@@ -1207,7 +1174,8 @@ async function prepareSignMessagesImpl( optsSignOperation ) {
     optsSignOperation.nCountOfBlsPartsToCollect = 0 + optsSignOperation.nThreshold;
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsSignOperation.details.write( optsSignOperation.strLogPrefix +
-            cc.debug( "Will collect " ) + cc.info( optsSignOperation.nCountOfBlsPartsToCollect ) +
+            cc.debug( "Will BLS-collect " ) +
+            cc.info( optsSignOperation.nCountOfBlsPartsToCollect ) +
             cc.debug( " from " ) + cc.info( optsSignOperation.jarrNodes.length ) +
             cc.debug( " nodes" ) + cc.debug( ", " ) + cc.notice( "sequence ID" ) +
             cc.debug( " is " ) + cc.attention( optsSignOperation.sequenceId ) + "\n" );
@@ -1223,6 +1191,24 @@ async function gatherSigningStartImpl( optsSignOperation ) {
     optsSignOperation.errGathering = null;
     optsSignOperation.promiseCompleteGathering = new Promise( ( resolve, reject ) => {
         const iv = setInterval( function() {
+            if( optsSignOperation.joGatheringTracker.nCountReceivedPrevious !=
+                optsSignOperation.joGatheringTracker.nCountReceived ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsSignOperation.details.write(
+                        cc.bright( optsSignOperation.strDirection ) + cc.debug( "/" ) +
+                        cc.attention( "#" ) + cc.sunny( optsSignOperation.nTransferLoopCounter ) +
+                        cc.debug( " BLS signature gathering progress updated, now have " ) +
+                        cc.info( optsSignOperation.joGatheringTracker.nCountReceived ) +
+                        cc.debug( " BLS parts of " ) +
+                        cc.info( optsSignOperation.nCountOfBlsPartsToCollect ) +
+                        cc.debug( " arrived, have " ) + cc.info( optsSignOperation.cntSuccess ) +
+                        cc.debug( " success(es) and " ) +
+                        cc.info( optsSignOperation.joGatheringTracker.nCountErrors ) +
+                        cc.debug( " error(s)" ) + "\n" );
+                }
+                optsSignOperation.joGatheringTracker.nCountReceivedPrevious =
+                    0 + optsSignOperation.joGatheringTracker.nCountReceived;
+            }
             ++ optsSignOperation.joGatheringTracker.nWaitIntervalStepsDone;
             optsSignOperation.cntSuccess =
                 optsSignOperation.joGatheringTracker.nCountReceived -
@@ -1297,7 +1283,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     cc.debug( ", glue result is " ) + cc.j( joGlueResult ) + "\n";
                 if( log.verboseGet() >= log.verboseReversed().trace )
                     optsSignOperation.details.write( strCallbackCallDescription );
-                optsSignOperation.fn( // NOTICE: no await here, executed async
+                optsSignOperation.fn(
                     strError, optsSignOperation.jarrMessages, joGlueResult )
                     .catch( ( err ) => {
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
@@ -1325,7 +1311,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
             if( optsSignOperation.joGatheringTracker.nCountReceived >=
                     optsSignOperation.jarrNodes.length ) {
                 clearInterval( iv );
-                optsSignOperation.fn( // NOTICE: no await here, executed async
+                optsSignOperation.fn(
                     "signature error(2), got " +
                     optsSignOperation.joGatheringTracker.nCountErrors +
                     " errors(s) for " + optsSignOperation.jarrNodes.length +
@@ -1360,7 +1346,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     optsSignOperation.joGatheringTracker.nWaitIntervalMaxSteps
             ) {
                 clearInterval( iv );
-                optsSignOperation.fn( // NOTICE: no await here, executed async
+                optsSignOperation.fn(
                     "signature error(3), got " +
                         optsSignOperation.joGatheringTracker.nCountErrors +
                         " errors(s) for " + optsSignOperation.jarrNodes.length + " node(s)",
@@ -1548,7 +1534,7 @@ async function doSignProcessHandleCall(
     joNode, joParams,
     joIn, joOut, err, strNodeURL, i
 ) {
-    ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
+    ++optsSignOperation.joGatheringTracker.nCountReceived;
     if( err ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage =
@@ -1742,10 +1728,10 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
         cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) +
         cc.attention( optsSignOperation.sequenceId );
     const rpcCallOpts = null;
-    rpcCall.create( // NOTICE: no await here, executed async
+    rpcCall.create(
         strNodeURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
-                ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
+                ++optsSignOperation.joGatheringTracker.nCountReceived;
                 ++optsSignOperation.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
                 optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -1844,7 +1830,8 @@ async function doSignMessagesImpl(
         cc.attention( optsSignOperation.imaState.isCrossImaBlsMode ? "IMA agent" : "skaled" ) +
         cc.info( ":" ) + " ";
     optsSignOperation.joGatheringTracker = {
-        nCountReceived: 0, // including errors
+        nCountReceivedPrevious: 0,
+        nCountReceived: 0,
         nCountErrors: 0,
         nCountSkipped: 0,
         nWaitIntervalStepMilliseconds: 100,
@@ -1877,7 +1864,7 @@ async function doSignMessagesImpl(
                 }
                 break;
             }
-            await doSignProcessOneImpl( i, optsSignOperation );
+            doSignProcessOneImpl( i, optsSignOperation );
         }
         await gatherSigningStartImpl( optsSignOperation );
         await gatherSigningFinishImpl( optsSignOperation );
@@ -2032,8 +2019,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
         cc.debug( ", ID " ) + cc.info( joNode.nodeID ) + cc.debug( ")" );
     const rpcCallOpts = null;
     await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+        ++optsSignU256.joGatheringTracker.nCountReceived;
         if( err ) {
-            ++optsSignU256.joGatheringTracker.nCountReceived; // including errors
             ++optsSignU256.joGatheringTracker.nCountErrors;
             const strErrorMessage =
                 optsSignU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -2062,7 +2049,7 @@ async function doSignU256OneImpl( optsSignU256 ) {
                 "valueToSign": optsSignU256.u256 // must be 0x string, came from outside 0x string
             }
         }, async function( joIn, joOut, err ) {
-            ++optsSignU256.joGatheringTracker.nCountReceived; // including errors
+            ++optsSignU256.joGatheringTracker.nCountReceived;
             if( err ) {
                 ++optsSignU256.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
@@ -2220,6 +2207,23 @@ async function doSignU256Gathering( optsSignU256 ) {
     optsSignU256.errGathering = null;
     optsSignU256.promiseCompleteGathering = new Promise( ( resolve, reject ) => {
         const iv = setInterval( function() {
+            if( optsSignU256.joGatheringTracker.nCountReceivedPrevious !=
+                optsSignU256.joGatheringTracker.nCountReceived ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsSignU256.details.write(
+                        cc.info( "BLS u256" ) +
+                        cc.debug( " BLS signature gathering progress updated, now have " ) +
+                        cc.info( optsSignU256.joGatheringTracker.nCountReceived ) +
+                        cc.debug( " BLS parts of " ) +
+                        cc.info( optsSignU256.nCountOfBlsPartsToCollect ) +
+                        cc.debug( " arrived, have " ) + cc.info( optsSignU256.cntSuccess ) +
+                        cc.debug( " success(es) and " ) +
+                        cc.info( optsSignU256.joGatheringTracker.nCountErrors ) +
+                        cc.debug( " error(s)" ) + "\n" );
+                }
+                optsSignU256.joGatheringTracker.nCountReceivedPrevious =
+                    0 + optsSignU256.joGatheringTracker.nCountReceived;
+            }
             ++ optsSignU256.joGatheringTracker.nWaitIntervalStepsDone;
             const cntSuccess =
                 optsSignU256.joGatheringTracker.nCountReceived -
@@ -2291,7 +2295,7 @@ async function doSignU256Gathering( optsSignU256 ) {
                     cc.debug( ", glue result is " ) + cc.j( joGlueResult ) + "\n";
                 if( log.verboseGet() >= log.verboseReversed().trace )
                     optsSignU256.details.write( strCallbackCallDescription );
-                optsSignU256.fn( // NOTICE: no await here, executed async
+                optsSignU256.fn(
                     strError, optsSignU256.u256, joGlueResult )
                     .catch( ( err ) => {
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
@@ -2318,7 +2322,7 @@ async function doSignU256Gathering( optsSignU256 ) {
             if( optsSignU256.joGatheringTracker.nCountReceived >=
                     optsSignU256.jarrNodes.length ) {
                 clearInterval( iv );
-                optsSignU256.fn( // NOTICE: no await here, executed async
+                optsSignU256.fn(
                     "signature error(2, u256), got " +
                     optsSignU256.joGatheringTracker.nCountErrors +
                     " errors(s) for " + optsSignU256.jarrNodes.length + " node(s)",
@@ -2350,7 +2354,7 @@ async function doSignU256Gathering( optsSignU256 ) {
                 optsSignU256.joGatheringTracker.nWaitIntervalMaxSteps
             ) {
                 clearInterval( iv );
-                optsSignU256.fn( // NOTICE: no await here, executed async
+                optsSignU256.fn(
                     "signature error(3, u256), got " +
                     optsSignU256.joGatheringTracker.nCountErrors +
                     " errors(s) for " + optsSignU256.jarrNodes.length + " node(s)",
@@ -2389,7 +2393,8 @@ export async function doSignU256( u256, details, fn ) {
         imaState: state.get(),
         strLogPrefix: cc.info( "Sign u256:" ) + " ",
         joGatheringTracker: {
-            nCountReceived: 0, // including errors
+            nCountReceivedPrevious: 0,
+            nCountReceived: 0,
             nCountErrors: 0,
             nCountSkipped: 0,
             nWaitIntervalStepMilliseconds: 100,
