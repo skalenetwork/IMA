@@ -550,12 +550,12 @@ export async function loadSChainsWithEMC( opts ) {
         if( opts && opts.bStopNeeded )
             return null;
     }
-    const joMessageProxySChain =
-        new owaspUtils.ethersMod.ethers.Contract(
+    const joMessageProxySChain = isLoadConnectedOnly
+        ? new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
-        );
+        ) : null;
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
@@ -602,12 +602,12 @@ export async function loadSChainsOptimal( opts ) {
                 threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
-    const joMessageProxySChain =
-        new owaspUtils.ethersMod.ethers.Contract(
+    const joMessageProxySChain = isLoadConnectedOnly
+        ? new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
-        );
+        ) : null;
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
@@ -659,12 +659,12 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
                 cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
         }
     }
-    const joMessageProxySChain =
-        new owaspUtils.ethersMod.ethers.Contract(
+    const joMessageProxySChain = isLoadConnectedOnly
+        ? new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
-        );
+        ) : null;
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
