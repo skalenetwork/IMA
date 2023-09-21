@@ -710,7 +710,7 @@ export async function getAllSchainNames( arrSChainHashes, opts ) {
     return arrSChainNames;
 }
 
-export async function loadCachedSChainsSimplified( addressFrom, opts ) {
+export async function loadCachedSChainsSimplified( opts ) {
     if( ! opts.imaState ) {
         throw new Error( "Cannot simplified-load S-Chains in observer, " +
             "no imaState is provided in " + threadInfo.threadDescription( false ) );
