@@ -896,7 +896,7 @@ export async function doPeriodicSChainNetworkDiscoveryIfNeeded(
     }, periodicDiscoveryInterval );
     if( ! isSilentReDiscovery ) {
         log.write(
-            cc.debug( "Periodic S-Chain re-discovery was started with interval" ) +
+            cc.debug( "Periodic S-Chain re-discovery was started with interval " ) +
             cc.info( periodicDiscoveryInterval ) + cc.debug( " millisecond(s)" ) + "\n" );
     }
 }
