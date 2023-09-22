@@ -193,7 +193,7 @@ class ObserverServer extends SocketServer {
         const self = this;
         self.isDisposing = true;
         if( self.intervalPeriodicSchainsCaching ) {
-            clearInterval( self.intervalPeriodicSchainsCaching );
+            owaspUtils.clearInterval2( self.intervalPeriodicSchainsCaching );
             self.intervalPeriodicSchainsCaching = null;
         }
         super.dispose();
@@ -347,7 +347,7 @@ class ObserverServer extends SocketServer {
                 cc.debug( "SKALE Observer in " ) + threadInfo.threadDescription() +
                 cc.debug( " did invoked periodic SNB refresh" ) + "\n" );
         }
-        self.intervalPeriodicSchainsCaching = setInterval(
+        self.intervalPeriodicSchainsCaching = owaspUtils.setInterval2(
             fnPeriodicCaching, secondsToReDiscoverSkaleNetwork * 1000 );
         fnAsyncHandler(); // initial async call
         return true;
@@ -356,7 +356,7 @@ class ObserverServer extends SocketServer {
         const self = this;
         if( ! self.intervalPeriodicSchainsCaching )
             return false;
-        clearInterval( self.intervalPeriodicSchainsCaching );
+        owaspUtils.clearInterval2( self.intervalPeriodicSchainsCaching );
         self.intervalPeriodicSchainsCaching = null;
         self.bIsPeriodicCachingStepInProgress = false;
         return true;
