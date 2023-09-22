@@ -823,3 +823,31 @@ export function toHexStringSafe( val ) {
         return val.toString();
     return "" + val;
 }
+
+export function setInterval2( fn, t, stepMilliSeconds ) {
+    const iv = {
+        real_iv: null,
+        stepMilliSeconds: stepMilliSeconds ? parseInt( stepMilliSeconds ) : 1000,
+        maxMilliSeconds: parseInt( t ),
+        accumulatedMilliSeconds: 0
+    };
+    iv.real_iv = setInterval( () => {
+        iv.accumulatedMilliSeconds += iv.stepMilliSeconds;
+        if( iv.accumulatedMilliSeconds >= iv.maxMilliSeconds ) {
+            iv.accumulatedMilliSeconds = 0;
+            fn();
+        }
+    }, iv.stepMilliSeconds );
+    return iv;
+}
+
+export function clearInterval2( iv ) {
+    if( ! iv )
+        return;
+    if( ! ( "real_iv" in iv ) )
+        return;
+    if( ! iv.real_iv )
+        return;
+    clearInterval( iv.real_iv );
+    iv.real_iv = null;
+}
