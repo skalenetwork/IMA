@@ -1655,7 +1655,7 @@ export function commandLineTaskBrowseSkaleNetwork() {
                 "bStopNeeded": false,
                 "isLoadConnectedOnly": false
             };
-            const arrSChains = await skaleObserver.loadSChains( opts );
+            const arrSChains = await skaleObserver.loadSChainsDefault( opts );
             const cnt = arrSChains.length;
             log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) +
                 cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) +

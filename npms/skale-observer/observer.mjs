@@ -391,6 +391,11 @@ export async function loadSChain( idxSChain, hash, joData, cntSChains, opts ) {
     return joSChain;
 }
 
+export async function loadSChainsDefault( opts ) {
+    // Please notice, we used this long time: return await loadSChains( opts );
+    return await loadCachedSChainsSimplified( opts );
+}
+
 export async function loadSChains( opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState ) {
@@ -550,12 +555,12 @@ export async function loadSChainsWithEMC( opts ) {
         if( opts && opts.bStopNeeded )
             return null;
     }
-    const joMessageProxySChain =
-        new owaspUtils.ethersMod.ethers.Contract(
+    const joMessageProxySChain = isLoadConnectedOnly
+        ? new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
-        );
+        ) : null;
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
@@ -602,12 +607,12 @@ export async function loadSChainsOptimal( opts ) {
                 threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
         }
     }
-    const joMessageProxySChain =
-        new owaspUtils.ethersMod.ethers.Contract(
+    const joMessageProxySChain = isLoadConnectedOnly
+        ? new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
-        );
+        ) : null;
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
@@ -637,7 +642,75 @@ export async function loadSChainsOptimal( opts ) {
     return arrSChains;
 }
 
-export async function loadCachedSChainsSimplified( addressFrom, opts ) {
+export async function getAllSchainNames( arrSChainHashes, opts ) {
+    const arrSChainNames = [];
+    const cntSChains = arrSChainHashes.length;
+    let isEMC = false;
+    if( opts.imaState.isEnabledMultiCall )
+        isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
+    if( isEMC ) {
+        const multicall = new EMC.Multicall( {
+            ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
+            tryAggregate: true
+        } );
+        const strRef3 = "SchainsInternal-getSchainName";
+        const contractCallContext = [ {
+            reference: strRef3,
+            contractAddress: opts.imaState.joSChainsInternal.address,
+            abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
+            calls: [ ]
+        } ];
+        for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                break;
+            const strSChainHash = arrSChainHashes[idxSChain];
+            contractCallContext[0].calls.push( {
+                reference: strRef3,
+                methodName: "getSchainName",
+                methodParameters: [ strSChainHash ]
+            } );
+        }
+        const rawResults = await multicall.call( contractCallContext );
+        let idxResult = 0;
+        for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                break;
+            const strSChainName =
+                rawResults.results[strRef3].callsReturnContext[idxResult].returnValues[0];
+            arrSChainNames.push( strSChainName );
+            ++ idxResult;
+            if( opts && opts.details ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
+                        cc.debug( " hash " ) + cc.notice( strSChainHash ) +
+                        cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) +
+                        cc.debug( " (fetched via EMC)" ) + "\n" );
+                }
+            }
+        }
+    } else {
+        for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                break;
+            const strSChainHash = arrSChainHashes[idxSChain];
+            const strSChainName =
+                await opts.imaState.joSChainsInternal.callStatic.getSchainName( strSChainHash );
+            if( opts && opts.details ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
+                        cc.debug( " hash " ) + cc.notice( strSChainHash ) +
+                        cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) +
+                        cc.debug( " (fetched via single call)" ) + "\n" );
+                }
+            }
+            arrSChainNames.push( strSChainName );
+        }
+
+    }
+    return arrSChainNames;
+}
+
+export async function loadCachedSChainsSimplified( opts ) {
     if( ! opts.imaState ) {
         throw new Error( "Cannot simplified-load S-Chains in observer, " +
             "no imaState is provided in " + threadInfo.threadDescription( false ) );
@@ -659,27 +732,18 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
                 cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
         }
     }
-    const joMessageProxySChain =
-        new owaspUtils.ethersMod.ethers.Contract(
+    const joMessageProxySChain = isLoadConnectedOnly
+        ? new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
-        );
-    const arrSChains = [];
+        ) : null;
+    const arrSChains = [], arrSChainNames = await getAllSchainNames( arrSChainHashes, opts );
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
         const strSChainHash = arrSChainHashes[idxSChain];
-        const strSChainName =
-            await opts.imaState.joSChainsInternal.callStatic.getSchainName( strSChainHash );
-        if( opts && opts.details ) {
-            if( log.verboseGet() >= log.verboseReversed().trace ) {
-                opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
-                    cc.debug( " hash " ) + cc.notice( strSChainHash ) +
-                    cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) +
-                    "\n" );
-            }
-        }
+        const strSChainName = arrSChainNames[idxSChain];
         if( opts && opts.bStopNeeded )
             break;
         let isConnected = true;
@@ -777,24 +841,13 @@ export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) 
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
         );
-    const arrSChains = [];
+    const arrSChains = [], arrSChainNames = await getAllSchainNames( arrSChainHashes, opts );
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         try {
             if( opts && opts.bStopNeeded )
                 break;
             const strSChainHash = arrSChainHashes[idxSChain];
-            const strSChainName =
-                await opts.imaState.joSChainsInternal.callStatic.getSchainName( strSChainHash );
-            if( opts && opts.details ) {
-                if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
-                        cc.debug( " hash " ) + cc.notice( strSChainHash ) +
-                        cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) +
-                        "\n" );
-                }
-            }
-            if( opts && opts.bStopNeeded )
-                break;
+            const strSChainName = arrSChainNames[idxSChain];
             if( strChainNameConnectedTo == strSChainName ) {
                 if( opts && opts.details ) {
                     if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -1007,7 +1060,7 @@ export async function cacheSChains( strChainNameConnectedTo, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     let strError = null;
     try {
-        const arrSChains = await loadSChains( opts );
+        const arrSChains = await loadSChainsDefault( opts );
         if( strChainNameConnectedTo &&
             ( typeof strChainNameConnectedTo == "string" ) &&
             strChainNameConnectedTo.length > 0
