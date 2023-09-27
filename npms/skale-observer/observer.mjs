@@ -1352,6 +1352,7 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
             ? opts.secondsToWaitForSkaleNetworkDiscovered : ( 2 * 60 );
         owaspUtils.ensureObserverOptionsInitialized( opts );
         await ensureHaveWorker( opts );
+        await threadInfo.sleep( 5 * 1000 );
         let iv = null;
         iv = setTimeout( function() {
             if( iv ) {
