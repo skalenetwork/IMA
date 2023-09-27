@@ -1350,6 +1350,8 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
     try {
         const nSecondsToWaitParallel = ( opts.secondsToWaitForSkaleNetworkDiscovered > 0 )
             ? opts.secondsToWaitForSkaleNetworkDiscovered : ( 2 * 60 );
+        owaspUtils.ensureObserverOptionsInitialized( opts );
+        await ensureHaveWorker( opts );
         let iv = null;
         iv = setTimeout( function() {
             if( iv ) {
@@ -1368,8 +1370,6 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, opts ) {
             periodicCachingStop();
             inThreadPeriodicCachingStart( strChainNameConnectedTo, opts );
         }, nSecondsToWaitParallel * 1000 );
-        owaspUtils.ensureObserverOptionsInitialized( opts );
-        await ensureHaveWorker( opts );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( threadInfo.threadDescription() +
                 cc.debug( " will inform worker thread to start periodic SNB refresh each " ) +
