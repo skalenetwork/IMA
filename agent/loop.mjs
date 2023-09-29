@@ -696,13 +696,9 @@ export async function ensureHaveWorkers( opts ) {
         gArrClients.push( aClient );
         aClient.logicalInitComplete = false;
         aClient.errorLogicalInit = null;
-        aClient.sanityPongCounter = 0;
         aClient.on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             switch ( joMessage.method ) {
-            case "sanityPong":
-                ++ aClient.sanityPongCounter;
-                break;
             case "init":
                 if( ! joMessage.error ) {
                     aClient.logicalInitComplete = true;
@@ -729,8 +725,6 @@ export async function ensureHaveWorkers( opts ) {
                 break;
             } // switch ( joMessage.method )
         } );
-        await threadInfo.waitForClientOfWorkerThreadMessageChannelSanity(
-            "loop thread " + idxWorker, aClient, log );
         const jo = {
             "method": "init",
             "message": {
