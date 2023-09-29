@@ -52,6 +52,10 @@ export function initialSkaleNetworkScanForS2S() {
                 log.write( strLogPrefix +
                     cc.debug( "Downloading SKALE network information..." ) + "\n" );
             }
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                log.write( strLogPrefix +
+                    cc.notice( "Will init periodic S-Chains caching now..." ) + "\n" );
+            }
             const opts = {
                 imaState: imaState,
                 "details": log,
@@ -64,18 +68,23 @@ export function initialSkaleNetworkScanForS2S() {
                 "bParallelModeRefreshSNB": ( !!( imaState.optsS2S.bParallelModeRefreshSNB ) ),
                 "isForceMultiAttemptsUntilSuccess": true
             };
-            if( log.verboseGet() >= log.verboseReversed().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
-            }
-            await skaleObserver.periodicCachingStart(
+            skaleObserver.periodicCachingStart(
                 imaState.chainProperties.sc.strChainName,
                 opts
-            );
-            if( log.verboseGet() >= log.verboseReversed().information ) {
-                log.write( strLogPrefix +
-                    cc.success( "Done, did started periodic S-Chains caching." ) + "\n" );
-            }
+            ).then( function() {
+                if( log.verboseGet() >= log.verboseReversed().information ) {
+                    log.write( strLogPrefix +
+                        cc.success( "Done, did started periodic S-Chains caching." ) +
+                        "\n" );
+                }
+            } ).catch( function( err ) {
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
+                    log.write( cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " failed to start periodic S-Chains caching" ) +
+                        cc.warning( strError ) + "\n" );
+                }
+            } );
             return true;
         }
     } );
