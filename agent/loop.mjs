@@ -655,6 +655,20 @@ function constructChainProperties( opts ) {
     };
 }
 
+function getDefaultOptsLoop( idxWorker ) {
+    const optsLoop = {
+        joRuntimeOpts: {
+            isInsideWorker: true, idxChainKnownForS2S: 0, cntChainsKnownForS2S: 0
+        },
+        isDelayFirstRun: false,
+        enableStepOracle: ( idxWorker == 0 ) ? true : false,
+        enableStepM2S: ( idxWorker == 0 ) ? true : false,
+        enableStepS2M: ( idxWorker == 1 ) ? true : false,
+        enableStepS2S: ( idxWorker == 0 ) ? true : false
+    };
+    return optsLoop;
+}
+
 export async function ensureHaveWorkers( opts ) {
     if( gArrWorkers.length > 0 )
         return gArrWorkers;
@@ -668,21 +682,35 @@ export async function ensureHaveWorkers( opts ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker, cc: { isEnabled: cc.isEnabled() }
         };
-        gArrWorkers.push(
-            new threadInfo.Worker(
-                path.join( __dirname, "loopWorker.mjs" ),
-                { "type": "module", "workerData": workerData }
-            )
-        );
+        gArrWorkers.push( new threadInfo.Worker(
+            path.join( __dirname, "loopWorker.mjs" ),
+            { "type": "module", "workerData": workerData }
+        ) );
         gArrWorkers[idxWorker].on( "message", jo => {
             if( networkLayer.outOfWorkerAPIs.onMessage( gArrWorkers[idxWorker], jo ) )
                 return;
         } );
-        gArrClients.push( new networkLayer.OutOfWorkerSocketClientPipe(
-            workerData.url, gArrWorkers[idxWorker] ) );
-        gArrClients[idxWorker].on( "message", async function( eventData ) {
+        const aClient = new networkLayer.OutOfWorkerSocketClientPipe(
+            workerData.url, gArrWorkers[idxWorker] );
+        gArrClients.push( aClient );
+        aClient.logicalInitComplete = false;
+        aClient.errorLogicalInit = null;
+        aClient.on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             switch ( joMessage.method ) {
+            case "init":
+                if( ! joMessage.error ) {
+                    aClient.logicalInitComplete = true;
+                    break;
+                }
+                aClient.errorLogicalInit = joMessage.error;
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    opts.details.write( cc.fatal( "CRITICAL ERROR:" ) + " " +
+                        cc.debug( "Loop worker thread " ) + cc.info( idxWorker ) +
+                        cc.debug( " reported/returned init error:" ) + " " +
+                        cc.warning( owaspUtils.extractErrorMessage( joMessage.error ) ) + "\n" );
+                }
+                break;
             case "log":
                 log.write( cc.attention( "LOOP WORKER" ) +
                     " " + cc.notice( workerData.url ) + " " + joMessage.message + "\n" );
@@ -699,22 +727,12 @@ export async function ensureHaveWorkers( opts ) {
             } // switch ( joMessage.method )
         } );
         await threadInfo.sleep( 3 * 1000 );
-        const optsLoop = {
-            joRuntimeOpts: {
-                isInsideWorker: true, idxChainKnownForS2S: 0, cntChainsKnownForS2S: 0
-            },
-            isDelayFirstRun: false,
-            enableStepOracle: ( idxWorker == 0 ) ? true : false,
-            enableStepM2S: ( idxWorker == 0 ) ? true : false,
-            enableStepS2M: ( idxWorker == 1 ) ? true : false,
-            enableStepS2S: ( idxWorker == 0 ) ? true : false
-        };
         const jo = {
             "method": "init",
             "message": {
                 "opts": {
                     "imaState": {
-                        "optsLoop": optsLoop,
+                        "optsLoop": getDefaultOptsLoop( idxWorker ),
                         "verbose_": log.verboseGet(),
                         "expose_details_": log.exposeDetailsGet(),
                         "arrSChainsCached": skaleObserver.getLastCachedSChains(),
@@ -829,7 +847,9 @@ export async function ensureHaveWorkers( opts ) {
                 "cc": { "isEnabled": cc.isEnabled() }
             }
         };
-        gArrClients[idxWorker].send( jo );
+        aClient.send( jo );
+        await threadInfo.waitForClientOfWorkerThreadLogicalInitComplete(
+            "loop thread " + idxWorker, aClient, log );
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
         log.write( cc.debug( "Loop module did created its " ) +
