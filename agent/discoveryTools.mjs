@@ -68,7 +68,7 @@ export function initialSkaleNetworkScanForS2S() {
                 "bParallelModeRefreshSNB": ( !!( imaState.optsS2S.bParallelModeRefreshSNB ) ),
                 "isForceMultiAttemptsUntilSuccess": true
             };
-            skaleObserver.periodicCachingStart(
+            await skaleObserver.periodicCachingStart(
                 imaState.chainProperties.sc.strChainName,
                 opts
             ).then( function() {
