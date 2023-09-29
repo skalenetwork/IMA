@@ -112,7 +112,7 @@ export async function waitForClientOfWorkerThreadMessageChannelSanity(
     initialSleepStepMilliseconds = initialSleepStepMilliseconds
         ? parseInt( initialSleepStepMilliseconds ) : 0;
     if( initialSleepStepMilliseconds <= 0 )
-        initialSleepStepMilliseconds = 3 * 1000;
+        initialSleepStepMilliseconds = 1000;
     await sleep( initialSleepStepMilliseconds );
     const initialSanityPongCounter = 0 + aClient.sanityPongCounter;
     for( let idxStep = 0; idxStep < maxSteps; ++ idxStep ) {
