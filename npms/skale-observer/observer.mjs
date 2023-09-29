@@ -1332,9 +1332,13 @@ export async function ensureHaveWorker( opts ) {
             }
         }
     };
-    gClient.send( jo );
-    await threadInfo.waitForClientOfWorkerThreadLogicalInitComplete(
-        "SNB worker", gClient, opts.details );
+    while ( ! gClient.logicalInitComplete ) {
+        if( log.verboseGet() >= log.verboseReversed().info ) {
+            log.write( "SNB server is not inited yet..." );
+        }
+        await threadInfo.sleep(  1000 );
+        gClient.send( jo );
+    }
 }
 
 async function inThreadPeriodicCachingStart( strChainNameConnectedTo, opts ) {
