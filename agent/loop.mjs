@@ -686,7 +686,6 @@ export async function ensureHaveWorkers( opts ) {
             path.join( __dirname, "loopWorker.mjs" ),
             { "type": "module", "workerData": workerData }
         ) );
-        await threadInfo.sleep( 3 * 1000 );
         gArrWorkers[idxWorker].on( "message", jo => {
             if( networkLayer.outOfWorkerAPIs.onMessage( gArrWorkers[idxWorker], jo ) )
                 return;
@@ -725,6 +724,7 @@ export async function ensureHaveWorkers( opts ) {
                 break;
             } // switch ( joMessage.method )
         } );
+        await threadInfo.sleep( 3 * 1000 );
         const jo = {
             "method": "init",
             "message": {

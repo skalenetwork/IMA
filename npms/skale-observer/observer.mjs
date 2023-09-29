@@ -1192,7 +1192,6 @@ export async function ensureHaveWorker( opts ) {
             path.join( __dirname, "observerWorker.mjs" ),
             { "type": "module" }
         );
-    await threadInfo.sleep( 3 * 1000 );
     gWorker.on( "message", jo => {
         if( networkLayer.outOfWorkerAPIs.onMessage( gWorker, jo ) )
             return;
@@ -1237,6 +1236,7 @@ export async function ensureHaveWorker( opts ) {
             break;
         } // switch ( joMessage.method )
     } );
+    await threadInfo.sleep( 3 * 1000 );
     const jo = {
         "method": "init",
         "message": {
