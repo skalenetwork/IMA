@@ -1332,11 +1332,11 @@ export async function ensureHaveWorker( opts ) {
             }
         }
     };
-    while ( ! gClient.logicalInitComplete ) {
-        if( log.verboseGet() >= log.verboseReversed().info ) {
+    while( ! gClient.logicalInitComplete ) {
+        if( log.verboseGet() >= log.verboseReversed().info )
             log.write( "SNB server is not inited yet..." );
-        }
-        await threadInfo.sleep(  1000 );
+
+        await threadInfo.sleep( 1000 );
         gClient.send( jo );
     }
 }
