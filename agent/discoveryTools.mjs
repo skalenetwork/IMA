@@ -52,49 +52,39 @@ export function initialSkaleNetworkScanForS2S() {
                 log.write( strLogPrefix +
                     cc.debug( "Downloading SKALE network information..." ) + "\n" );
             }
-            const delayCachingSeconds = 5;
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write( strLogPrefix +
-                    cc.notice( "Will init delayed periodic S-Chains caching in " ) +
-                    cc.info( delayCachingSeconds ) + cc.notice( " seconds." ) + "\n" );
+                    cc.notice( "Will init periodic S-Chains caching now..." ) + "\n" );
             }
-            const iv = setTimeout( function() {
-                clearTimeout( iv );
+            const opts = {
+                imaState: imaState,
+                "details": log,
+                "bStopNeeded": false,
+                "secondsToReDiscoverSkaleNetwork":
+                    imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
+                "secondsToWaitForSkaleNetworkDiscovered":
+                    imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
+                "chain": imaState.chainProperties.sc,
+                "bParallelModeRefreshSNB": ( !!( imaState.optsS2S.bParallelModeRefreshSNB ) ),
+                "isForceMultiAttemptsUntilSuccess": true
+            };
+            skaleObserver.periodicCachingStart(
+                imaState.chainProperties.sc.strChainName,
+                opts
+            ).then( function() {
                 if( log.verboseGet() >= log.verboseReversed().information ) {
                     log.write( strLogPrefix +
-                        cc.notice( "Will init delayed periodic S-Chains caching after waiting " ) +
-                        cc.info( delayCachingSeconds ) + cc.notice( " seconds." ) + "\n" );
+                        cc.success( "Done, did started periodic S-Chains caching." ) +
+                        "\n" );
                 }
-                const opts = {
-                    imaState: imaState,
-                    "details": log,
-                    "bStopNeeded": false,
-                    "secondsToReDiscoverSkaleNetwork":
-                        imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
-                    "secondsToWaitForSkaleNetworkDiscovered":
-                        imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered,
-                    "chain": imaState.chainProperties.sc,
-                    "bParallelModeRefreshSNB": ( !!( imaState.optsS2S.bParallelModeRefreshSNB ) ),
-                    "isForceMultiAttemptsUntilSuccess": true
-                };
-                skaleObserver.periodicCachingStart(
-                    imaState.chainProperties.sc.strChainName,
-                    opts
-                ).then( function() {
-                    if( log.verboseGet() >= log.verboseReversed().information ) {
-                        log.write( strLogPrefix +
-                            cc.success( "Done, did started delayed periodic S-Chains caching." ) +
-                            "\n" );
-                    }
-                } ).catch( function( err ) {
-                    if( log.verboseGet() >= log.verboseReversed().error ) {
-                        const strError = owaspUtils.extractErrorMessage( err );
-                        log.write( cc.fatal( "CRITICAL ERROR:" ) +
-                            cc.error( " failed to start delayed periodic S-Chains caching" ) +
-                            cc.warning( strError ) + "\n" );
-                    }
-                } );
-            }, delayCachingSeconds * 1000 );
+            } ).catch( function( err ) {
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
+                    log.write( cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " failed to start periodic S-Chains caching" ) +
+                        cc.warning( strError ) + "\n" );
+                }
+            } );
             return true;
         }
     } );

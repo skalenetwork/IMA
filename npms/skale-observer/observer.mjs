@@ -1197,9 +1197,23 @@ export async function ensureHaveWorker( opts ) {
             return;
     } );
     gClient = new networkLayer.OutOfWorkerSocketClientPipe( url, gWorker );
+    gClient.logicalInitComplete = false;
+    gClient.errorLogicalInit = null;
     gClient.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
+        case "init":
+            if( ! joMessage.error ) {
+                gClient.logicalInitComplete = true;
+                break;
+            }
+            gClient.errorLogicalInit = joMessage.error;
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                opts.details.write( cc.fatal( "CRITICAL ERROR:" ) + " " +
+                    cc.debug( "SNB worker thread reported/returned init error:" ) + " " +
+                    cc.warning( owaspUtils.extractErrorMessage( joMessage.error ) ) + "\n" );
+            }
+            break;
         case "periodicCachingDoNow":
             if( log.verboseGet() >= log.verboseReversed().debug ) {
                 opts.details.write(
@@ -1319,6 +1333,8 @@ export async function ensureHaveWorker( opts ) {
         }
     };
     gClient.send( jo );
+    await threadInfo.waitForClientOfWorkerThreadLogicalInitComplete(
+        "SNB worker", gClient, opts.details );
 }
 
 async function inThreadPeriodicCachingStart( strChainNameConnectedTo, opts ) {
