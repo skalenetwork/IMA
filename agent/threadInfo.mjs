@@ -98,3 +98,49 @@ export async function waitForClientOfWorkerThreadLogicalInitComplete(
     }
     return false;
 }
+
+export async function waitForClientOfWorkerThreadMessageChannelSanity(
+    strName, aClient, details, maxSteps, sleepStepMilliseconds, initialSleepStepMilliseconds
+) {
+    details = details || log;
+    sleepStepMilliseconds = sleepStepMilliseconds ? parseInt( sleepStepMilliseconds ) : 0;
+    if( sleepStepMilliseconds <= 0 )
+        sleepStepMilliseconds = 1000;
+    maxSteps = maxSteps ? parseInt( maxSteps ) : 0;
+    if( maxSteps <= 0 )
+        maxSteps = 120;
+    initialSleepStepMilliseconds = initialSleepStepMilliseconds
+        ? parseInt( initialSleepStepMilliseconds ) : 0;
+    if( initialSleepStepMilliseconds <= 0 )
+        initialSleepStepMilliseconds = 3 * 1000;
+    await sleep( initialSleepStepMilliseconds );
+    const initialSanityPongCounter = 0 + aClient.sanityPongCounter;
+    for( let idxStep = 0; idxStep < maxSteps; ++ idxStep ) {
+        const currentSanityPongCounter = 0 + aClient.sanityPongCounter;
+        if( currentSanityPongCounter != initialSanityPongCounter ) {
+            if( log.verboseGet() >= log.verboseReversed().info ) {
+                details.write(
+                    cc.success( "Done, " ) + cc.sunny( strName ) +
+                    cc.success( " message channel is accessible and sane, this thread is " ) +
+                    threadDescription() + "\n" );
+            }
+            return true;
+        }
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            details.write(
+                cc.debug( "Waiting step " ) + cc.info( idxStep + 1 ) + cc.debug( " of " ) +
+                cc.info( maxSteps ) + cc.debug( " for " ) + cc.sunny( strName ) +
+                cc.debug( " message channel sanity, this thread is " ) +
+                threadDescription() + "\n" );
+        }
+        aClient.send( { "method": "sanityPing", "message": { } } );
+        await sleep( sleepStepMilliseconds );
+    }
+    if( log.verboseGet() >= log.verboseReversed().critical ) {
+        details.write( cc.fatal( "CRITICAL ERROR:" ) + " " +
+            cc.error( "Wait timeout for " ) + cc.sunny( strName ) +
+            cc.error( " message channel sanity, this thread is " ) +
+            threadDescription() + "\n" );
+    }
+    return false;
+}

@@ -67,6 +67,12 @@ class ObserverServer extends SocketServer {
         self.opts = null;
         self.intervalPeriodicSchainsCaching = null;
         self.bIsPeriodicCachingStepInProgress = false;
+        self.mapApiHandlers.sanityPing = function( joMessage, joAnswer, eventData, socket ) {
+            joAnswer.message = {
+                "method": "sanityPong"
+            };
+            return joAnswer;
+        };
         self.mapApiHandlers.init = function( joMessage, joAnswer, eventData, socket ) {
             self.log = function() {
                 const args = Array.prototype.slice.call( arguments );

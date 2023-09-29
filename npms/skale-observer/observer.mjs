@@ -1192,7 +1192,6 @@ export async function ensureHaveWorker( opts ) {
             path.join( __dirname, "observerWorker.mjs" ),
             { "type": "module" }
         );
-    await threadInfo.sleep( 3 * 1000 );
     gWorker.on( "message", jo => {
         if( networkLayer.outOfWorkerAPIs.onMessage( gWorker, jo ) )
             return;
@@ -1200,9 +1199,13 @@ export async function ensureHaveWorker( opts ) {
     gClient = new networkLayer.OutOfWorkerSocketClientPipe( url, gWorker );
     gClient.logicalInitComplete = false;
     gClient.errorLogicalInit = null;
+    gClient.sanityPongCounter = 0;
     gClient.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
+        case "sanityPong":
+            ++ gClient.sanityPongCounter;
+            break;
         case "init":
             if( ! joMessage.error ) {
                 gClient.logicalInitComplete = true;
@@ -1237,7 +1240,8 @@ export async function ensureHaveWorker( opts ) {
             break;
         } // switch ( joMessage.method )
     } );
-    await threadInfo.sleep( 1000 );
+    await threadInfo.waitForClientOfWorkerThreadMessageChannelSanity(
+        "SNB worker", gClient, opts.details );
     const jo = {
         "method": "init",
         "message": {
