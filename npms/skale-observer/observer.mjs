@@ -1236,7 +1236,6 @@ export async function ensureHaveWorker( opts ) {
             break;
         } // switch ( joMessage.method )
     } );
-    await threadInfo.sleep( 3 * 1000 );
     const jo = {
         "method": "init",
         "message": {
@@ -1334,7 +1333,7 @@ export async function ensureHaveWorker( opts ) {
     };
     while( ! gClient.logicalInitComplete ) {
         if( log.verboseGet() >= log.verboseReversed().info )
-            log.write( "SNB server is not inited yet..." );
+            log.write( "SNB server is not inited yet...\n" );
 
         await threadInfo.sleep( 1000 );
         gClient.send( jo );

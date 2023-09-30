@@ -724,7 +724,6 @@ export async function ensureHaveWorkers( opts ) {
                 break;
             } // switch ( joMessage.method )
         } );
-        await threadInfo.sleep( 3 * 1000 );
         const jo = {
             "method": "init",
             "message": {
@@ -839,9 +838,13 @@ export async function ensureHaveWorkers( opts ) {
                 "cc": { "isEnabled": cc.isEnabled() }
             }
         };
-        aClient.send( jo );
-        await threadInfo.waitForClientOfWorkerThreadLogicalInitComplete(
-            "loop thread " + idxWorker, aClient, log );
+        while( ! aClient.logicalInitComplete ) {
+            if( log.verboseGet() >= log.verboseReversed().info )
+                log.write( "LOOP server is not inited yet...\n" );
+
+            await threadInfo.sleep( 1000 );
+            aClient.send( jo );
+        }
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
         log.write( cc.debug( "Loop module did created its " ) +

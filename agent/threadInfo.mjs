@@ -25,7 +25,6 @@
 
 import * as worker_threads from "worker_threads";
 import * as cc from "../npms/skale-cc/cc.mjs";
-import * as log from "../npms/skale-log/log.mjs";
 
 const Worker = worker_threads.Worker;
 export { Worker };
@@ -50,51 +49,4 @@ export function threadDescription( isColorized ) {
     return isColorized
         ? ( cc.sunny( st ) + cc.bright( " thread " ) + cc.info( tid ) )
         : ( st + " thread " + tid );
-}
-
-export async function waitForClientOfWorkerThreadLogicalInitComplete(
-    strName, aClient, details, maxSteps, sleepStepMilliseconds
-) {
-    details = details || log;
-    sleepStepMilliseconds = sleepStepMilliseconds ? parseInt( sleepStepMilliseconds ) : 0;
-    if( sleepStepMilliseconds <= 0 )
-        sleepStepMilliseconds = 1000;
-    maxSteps = maxSteps ? parseInt( maxSteps ) : 0;
-    if( maxSteps <= 0 )
-        maxSteps = 120;
-    for( let idxStep = 0; idxStep < maxSteps; ++ idxStep ) {
-        if( aClient.logicalInitComplete ) {
-            if( log.verboseGet() >= log.verboseReversed().info ) {
-                details.write(
-                    cc.success( "Done, " ) + cc.sunny( strName ) +
-                    cc.success( " init complete, this thread is " ) +
-                    threadDescription() + "\n" );
-            }
-            return true;
-        }
-        if( aClient.errorLogicalInit ) {
-            if( log.verboseGet() >= log.verboseReversed().critical ) {
-                details.write( cc.fatal( "CRITICAL ERROR:" ) + " " +
-                    cc.error( "Wait error for " ) + cc.sunny( strName ) +
-                    cc.error( " init complete, this thread is " ) +
-                    threadDescription() + "\n" );
-            }
-            return false;
-        }
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
-            details.write(
-                cc.debug( "Waiting step " ) + cc.info( idxStep + 1 ) + cc.debug( " of " ) +
-                cc.info( maxSteps ) + cc.debug( " for " ) + cc.sunny( strName ) +
-                cc.debug( " init complete, this thread is " ) +
-                threadDescription() + "\n" );
-        }
-        await sleep( sleepStepMilliseconds );
-    }
-    if( log.verboseGet() >= log.verboseReversed().critical ) {
-        details.write( cc.fatal( "CRITICAL ERROR:" ) + " " +
-            cc.error( "Wait timeout for " ) + cc.sunny( strName ) +
-            cc.error( " init complete, this thread is " ) +
-            threadDescription() + "\n" );
-    }
-    return false;
 }
