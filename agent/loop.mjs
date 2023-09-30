@@ -655,6 +655,20 @@ function constructChainProperties( opts ) {
     };
 }
 
+function getDefaultOptsLoop( idxWorker ) {
+    const optsLoop = {
+        joRuntimeOpts: {
+            isInsideWorker: true, idxChainKnownForS2S: 0, cntChainsKnownForS2S: 0
+        },
+        isDelayFirstRun: false,
+        enableStepOracle: ( idxWorker == 0 ) ? true : false,
+        enableStepM2S: ( idxWorker == 0 ) ? true : false,
+        enableStepS2M: ( idxWorker == 1 ) ? true : false,
+        enableStepS2S: ( idxWorker == 0 ) ? true : false
+    };
+    return optsLoop;
+}
+
 export async function ensureHaveWorkers( opts ) {
     if( gArrWorkers.length > 0 )
         return gArrWorkers;
@@ -668,53 +682,54 @@ export async function ensureHaveWorkers( opts ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker, cc: { isEnabled: cc.isEnabled() }
         };
-        gArrWorkers.push(
-            new threadInfo.Worker(
-                path.join( __dirname, "loopWorker.mjs" ),
-                { "type": "module", "workerData": workerData }
-            )
-        );
+        gArrWorkers.push( new threadInfo.Worker(
+            path.join( __dirname, "loopWorker.mjs" ),
+            { "type": "module", "workerData": workerData }
+        ) );
         gArrWorkers[idxWorker].on( "message", jo => {
             if( networkLayer.outOfWorkerAPIs.onMessage( gArrWorkers[idxWorker], jo ) )
                 return;
         } );
-        gArrClients.push( new networkLayer.OutOfWorkerSocketClientPipe(
-            workerData.url, gArrWorkers[idxWorker] ) );
-        gArrClients[idxWorker].on( "message", async function( eventData ) {
+        const aClient = new networkLayer.OutOfWorkerSocketClientPipe(
+            workerData.url, gArrWorkers[idxWorker] );
+        gArrClients.push( aClient );
+        aClient.logicalInitComplete = false;
+        aClient.errorLogicalInit = null;
+        aClient.on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             switch ( joMessage.method ) {
+            case "init":
+                if( ! joMessage.error ) {
+                    aClient.logicalInitComplete = true;
+                    break;
+                }
+                aClient.errorLogicalInit = joMessage.error;
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    opts.details.write( cc.fatal( "CRITICAL ERROR:" ) + " " +
+                        cc.debug( "Loop worker thread " ) + cc.info( idxWorker ) +
+                        cc.debug( " reported/returned init error:" ) + " " +
+                        cc.warning( owaspUtils.extractErrorMessage( joMessage.error ) ) + "\n" );
+                }
+                break;
             case "log":
                 log.write( cc.attention( "LOOP WORKER" ) +
                     " " + cc.notice( workerData.url ) + " " + joMessage.message + "\n" );
                 break;
             case "saveTransferError":
                 imaTransferErrorHandling.saveTransferError(
-                    joMessage.message.category,
-                    joMessage.message.textLog,
-                    joMessage.message.ts );
+                    joMessage.message.category, joMessage.message.textLog, joMessage.message.ts );
                 break;
             case "saveTransferSuccess":
                 imaTransferErrorHandling.saveTransferSuccess( joMessage.message.category );
                 break;
             } // switch ( joMessage.method )
         } );
-        await threadInfo.sleep( 3 * 1000 );
-        const optsLoop = {
-            joRuntimeOpts: {
-                isInsideWorker: true, idxChainKnownForS2S: 0, cntChainsKnownForS2S: 0
-            },
-            isDelayFirstRun: false,
-            enableStepOracle: ( idxWorker == 0 ) ? true : false,
-            enableStepM2S: ( idxWorker == 0 ) ? true : false,
-            enableStepS2M: ( idxWorker == 1 ) ? true : false,
-            enableStepS2S: ( idxWorker == 0 ) ? true : false
-        };
         const jo = {
             "method": "init",
             "message": {
                 "opts": {
                     "imaState": {
-                        "optsLoop": optsLoop,
+                        "optsLoop": getDefaultOptsLoop( idxWorker ),
                         "verbose_": log.verboseGet(),
                         "expose_details_": log.exposeDetailsGet(),
                         "arrSChainsCached": skaleObserver.getLastCachedSChains(),
@@ -791,18 +806,14 @@ export async function ensureHaveWorkers( opts ) {
                         "chainProperties": constructChainProperties( opts ),
                         "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                         "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
-
                         "strChainNameOriginChain": opts.imaState.strChainNameOriginChain,
-
                         "isPWA": opts.imaState.isPWA,
                         "nTimeoutSecondsPWA": opts.imaState.nTimeoutSecondsPWA,
-
                         "strReimbursementChain": opts.imaState.strReimbursementChain,
                         "isShowReimbursementBalance": opts.imaState.isShowReimbursementBalance,
                         "nReimbursementRecharge": opts.imaState.nReimbursementRecharge,
                         "nReimbursementWithdraw": opts.imaState.nReimbursementWithdraw,
                         "nReimbursementRange": opts.imaState.nReimbursementRange,
-
                         "joSChainDiscovery": {
                             "isSilentReDiscovery":
                                 opts.imaState.joSChainDiscovery.isSilentReDiscovery,
@@ -811,7 +822,6 @@ export async function ensureHaveWorkers( opts ) {
                             "periodicDiscoveryInterval":
                                 opts.imaState.joSChainDiscovery.periodicDiscoveryInterval
                         },
-
                         "optsS2S": { // S-Chain to S-Chain transfer options
                             "isEnabled": true,
                             "bParallelModeRefreshSNB":
@@ -821,7 +831,6 @@ export async function ensureHaveWorkers( opts ) {
                             "secondsToWaitForSkaleNetworkDiscovered":
                                 opts.imaState.optsS2S.secondsToWaitForSkaleNetworkDiscovered
                         },
-
                         "nJsonRpcPort": opts.imaState.nJsonRpcPort,
                         "isCrossImaBlsMode": opts.imaState.isCrossImaBlsMode
                     }
@@ -829,7 +838,13 @@ export async function ensureHaveWorkers( opts ) {
                 "cc": { "isEnabled": cc.isEnabled() }
             }
         };
-        gArrClients[idxWorker].send( jo );
+        while( ! aClient.logicalInitComplete ) {
+            if( log.verboseGet() >= log.verboseReversed().info )
+                log.write( "LOOP server is not inited yet...\n" );
+
+            await threadInfo.sleep( 1000 );
+            aClient.send( jo );
+        }
     }
     if( log.verboseGet() >= log.verboseReversed().debug ) {
         log.write( cc.debug( "Loop module did created its " ) +
