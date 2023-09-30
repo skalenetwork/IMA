@@ -62,10 +62,17 @@ class ObserverServer extends SocketServer {
     constructor( acceptor ) {
         super( acceptor );
         const self = this;
+        self.initComplete = false;
         self.opts = null;
         self.intervalPeriodicSchainsCaching = null;
         self.bIsPeriodicCachingStepInProgress = false;
         self.mapApiHandlers.init = function( joMessage, joAnswer, eventData, socket ) {
+            joAnswer.message = {
+                "method": "" + joMessage.method,
+                "error": null
+            };
+            if( self.initComplete )
+                return joAnswer;
             self.log = function() {
                 const args = Array.prototype.slice.call( arguments );
                 const jo = {
@@ -83,10 +90,6 @@ class ObserverServer extends SocketServer {
             cc.enable( joMessage.message.cc.isEnabled );
             log.verboseSet( self.opts.imaState.verbose_ );
             log.exposeDetailsSet( self.opts.imaState.expose_details_ );
-            joAnswer.message = {
-                "method": "" + joMessage.method,
-                "error": null
-            };
             self.opts.imaState.chainProperties.mn.joAccount.address =
                 owaspUtils.fnAddressImpl_;
             self.opts.imaState.chainProperties.sc.joAccount.address =
@@ -149,6 +152,7 @@ class ObserverServer extends SocketServer {
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     self.opts.imaState.chainProperties.sc.ethersProvider
                 );
+            self.initComplete = true;
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 self.log( cc.debug( "Full init compete for in-worker SNB server in " ) +
                     threadInfo.threadDescription() + " " +
