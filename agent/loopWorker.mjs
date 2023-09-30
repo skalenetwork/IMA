@@ -63,11 +63,18 @@ class ObserverServer extends SocketServer {
     constructor( acceptor ) {
         super( acceptor );
         const self = this;
+        self.initComplete = false;
         cc.enable( workerData.cc.isEnabled );
         self.opts = null;
         self.intervalPeriodicSchainsCaching = null;
         self.bIsPeriodicCachingStepInProgress = false;
         self.mapApiHandlers.init = function( joMessage, joAnswer, eventData, socket ) {
+            joAnswer.message = {
+                "method": "" + joMessage.method,
+                "error": null
+            };
+            if( self.initComplete )
+                return joAnswer;
             self.log = function() {
                 const args = Array.prototype.slice.call( arguments );
                 const jo = {
@@ -107,10 +114,6 @@ class ObserverServer extends SocketServer {
                     cc.debug( " will save cached S-Chains..." ) + "\n" );
             }
             skaleObserver.setLastCachedSChains( self.opts.imaState.arrSChainsCached );
-            joAnswer.message = {
-                "method": "" + joMessage.method,
-                "error": null
-            };
             self.opts.imaState.chainProperties.mn.joAccount.address = owaspUtils.fnAddressImpl_;
             self.opts.imaState.chainProperties.sc.joAccount.address = owaspUtils.fnAddressImpl_;
             if( self.opts.imaState.chainProperties.mn.strURL &&
@@ -160,6 +163,7 @@ class ObserverServer extends SocketServer {
                 imaTx.getTransactionCustomizerForSChainTarget();
             state.set( imaState );
             imaCLI.initContracts();
+            self.initComplete = true;
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 self.log( cc.debug( "IMA loop worker" ) + " " + cc.notice( workerData.url ) +
                     cc.debug( " will do the following work:" ) + "\n" + "    " +
