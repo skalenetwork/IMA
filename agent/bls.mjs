@@ -2012,7 +2012,7 @@ async function prepareSignU256( optsSignU256 ) {
     return true;
 }
 
-async function doSignU256OneImpl( optsSignU256 ) {
+async function doSignU256OneImpl( i, optsSignU256 ) {
     const imaState = state.get();
     const isThisNode = ( i == imaState.nNodeNumber ) ? true : false;
     const joNode = optsSignU256.jarrNodes[i];
@@ -2434,7 +2434,7 @@ export async function doSignU256( u256, details, fn ) {
     if( ! ( await prepareSignU256( optsSignU256 ) ) )
         return;
     for( let i = 0; i < optsSignU256.jarrNodes.length; ++i )
-        await doSignU256OneImpl( optsSignU256 );
+        await doSignU256OneImpl( i, optsSignU256 );
     await doSignU256Gathering( optsSignU256 );
     if( log.verboseGet() >= log.verboseReversed().trace )
         optsSignU256.details.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
