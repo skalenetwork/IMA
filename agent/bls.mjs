@@ -1717,9 +1717,11 @@ async function doSignProcessHandleCall(
 }
 
 async function doSignProcessOneImpl( i, optsSignOperation ) {
+    const imaState = state.get();
+    const isThisNode = ( i == imaState.nNodeNumber ) ? true : false;
     const joNode = optsSignOperation.jarrNodes[i];
     const strNodeURL = optsSignOperation.imaState.isCrossImaBlsMode
-        ? imaUtils.composeImaAgentNodeUrl( joNode )
+        ? imaUtils.composeImaAgentNodeUrl( joNode, isThisNode )
         : imaUtils.composeSChainNodeUrl( joNode );
     const strNodeDescColorized = cc.u( strNodeURL ) + " " +
         cc.debug( "(" ) + cc.bright( i ) + cc.debug( "/" ) +
@@ -2011,9 +2013,12 @@ async function prepareSignU256( optsSignU256 ) {
 }
 
 async function doSignU256OneImpl( optsSignU256 ) {
+    const imaState = state.get();
+    const isThisNode = ( i == imaState.nNodeNumber ) ? true : false;
     const joNode = optsSignU256.jarrNodes[i];
     const strNodeURL = optsSignU256.imaState.isCrossImaBlsMode
-        ? imaUtils.composeImaAgentNodeUrl( joNode ) : imaUtils.composeSChainNodeUrl( joNode );
+        ? imaUtils.composeImaAgentNodeUrl( joNode, isThisNode )
+        : imaUtils.composeSChainNodeUrl( joNode );
     const strNodeDescColorized = cc.u( strNodeURL ) + " " + cc.debug( "(" ) + cc.bright( i ) +
         cc.debug( "/" ) + cc.bright( optsSignU256.jarrNodes.length ) +
         cc.debug( ", ID " ) + cc.info( joNode.nodeID ) + cc.debug( ")" );
