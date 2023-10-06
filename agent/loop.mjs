@@ -746,10 +746,8 @@ export async function ensureHaveWorkers( opts ) {
                         "strPathHashG1": opts.imaState.strPathHashG1,
                         "strPathBlsVerify": opts.imaState.strPathBlsVerify,
                         "isEnabledMultiCall": opts.imaState.isEnabledMultiCall,
-
                         "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                         "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
-
                         "nTransferBlockSizeM2S": opts.imaState.nTransferBlockSizeM2S,
                         "nTransferBlockSizeS2M": opts.imaState.nTransferBlockSizeS2M,
                         "nTransferBlockSizeS2S": opts.imaState.nTransferBlockSizeS2S,
@@ -768,7 +766,6 @@ export async function ensureHaveWorkers( opts ) {
                         "nBlockAgeS2S": opts.imaState.nBlockAgeS2S,
 
                         "nLoopPeriodSeconds": opts.imaState.nLoopPeriodSeconds,
-
                         "nNodeNumber": opts.imaState.nNodeNumber,
                         "nNodesCount": opts.imaState.nNodesCount,
                         "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds,
@@ -781,7 +778,6 @@ export async function ensureHaveWorkers( opts ) {
                         "joDepositBoxERC1155": null,
                         "joDepositBoxERC721WithMetadata": null,
                         "joLinker": null,
-
                         "isWithMetadata721": false,
 
                         "joTokenManagerETH": null,
@@ -841,7 +837,6 @@ export async function ensureHaveWorkers( opts ) {
         while( ! aClient.logicalInitComplete ) {
             if( log.verboseGet() >= log.verboseReversed().info )
                 log.write( "LOOP server is not inited yet...\n" );
-
             await threadInfo.sleep( 1000 );
             aClient.send( jo );
         }
@@ -863,6 +858,15 @@ export async function ensureHaveWorkers( opts ) {
         if( threadInfo.isMainThread() )
             notifyCacheChangedSNB( eventData.detail.arrSChainsCached );
     } );
+    // Force broadcast what we have in SNB right now because works above can start later than SNB
+    // is finished download connected chains quickly
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        log.write(
+            cc.debug( "Loop module will do first initial broadcast of arrSChainsCached to its " ) +
+            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
+            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+    }
+    notifyCacheChangedSNB( skaleObserver.getLastCachedSChains() );
 }
 
 export async function runParallelLoops( opts ) {
