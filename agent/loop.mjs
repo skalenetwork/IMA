@@ -866,7 +866,7 @@ export async function ensureHaveWorkers( opts ) {
             cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
             threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
     }
-    notifyCacheChangedSNB( getLastCachedSChains() );
+    notifyCacheChangedSNB( skaleObserver.getLastCachedSChains() );
 }
 
 export async function runParallelLoops( opts ) {
