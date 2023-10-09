@@ -380,8 +380,8 @@ jobs:
     - name: INIT - check SGX Wallet has listening ports
       working-directory: ${{env.working-directory}}
       run: |
-        echo "sleeping 45 seconds..."
-        sleep 45
+        echo "sleeping 90 seconds..."
+        sleep 90
         echo "checking port 1026 commonly used by SGX Wallet for HTTPS..."
         sudo netstat -tulpn | grep 1026
         echo "...Done"
