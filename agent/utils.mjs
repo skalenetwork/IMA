@@ -500,7 +500,7 @@ export function composeSChainNodeUrl( joNode ) {
     return "";
 }
 
-export function composeImaAgentNodeUrl( joNode ) {
+export function composeImaAgentNodeUrl( joNode, isThisNode ) {
     let nPort = -1;
     if( "imaAgentRpcPort" in joNode &&
         typeof joNode.imaAgentRpcPort === "number" &&
@@ -542,7 +542,9 @@ export function composeImaAgentNodeUrl( joNode ) {
         joNode.wssRpcPort > 0
     )
         nPort = joNode.wssRpcPort - 7 + 10;
-    if( nPort > 0 )
-        return "http://" + joNode.ip + ":" + nPort;
+    if( nPort > 0 ) {
+        const strNodeIP = isThisNode ? "127.0.0.1" : joNode.ip;
+        return "http://" + strNodeIP + ":" + nPort;
+    }
     return "";
 }
