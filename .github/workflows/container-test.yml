@@ -19,7 +19,7 @@ jobs:
 
     - name: INFO - force pre-clean
       run: |
-        sudo rm -rf comprehensive-test/sgxwallet | true
+        sudo rm -rf comprehensive-test | true
 
     - uses: actions/checkout@v2
 
