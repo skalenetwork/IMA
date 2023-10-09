@@ -319,6 +319,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
+        sudo docker stop run_sgx_sim_sgxwallet_1 || true
         sudo rm -rf ./sgxwallet || true
         git clone https://github.com/skalenetwork/sgxwallet.git --recursive
         cd sgxwallet
@@ -380,8 +381,8 @@ jobs:
     - name: INIT - check SGX Wallet has listening ports
       working-directory: ${{env.working-directory}}
       run: |
-        echo "sleeping 90 seconds..."
-        sleep 90
+        echo "sleeping 180 seconds..."
+        sleep 180
         echo "checking port 1026 commonly used by SGX Wallet for HTTPS..."
         sudo netstat -tulpn | grep 1026
         echo "...Done"
