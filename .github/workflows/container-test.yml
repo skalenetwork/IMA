@@ -19,7 +19,7 @@ jobs:
 
     - name: INFO - force pre-clean
       run: |
-        sudo rm -rf comprehensive-test | true
+        sudo rm -rf comprehensive-test || true
 
     - uses: actions/checkout@v2
 
@@ -158,6 +158,7 @@ jobs:
     - name: INIT - Download comprehensive-test
       working-directory: ${{env.working-directory}}
       run: |
+        sudo rm -rf ./comprehensive-test || true
         export IMA_ROOT_DIR=$(pwd)
         echo IMA_ROOT_DIR = $IMA_ROOT_DIR
         git clone https://github.com/skalenetwork/comprehensive-test.git --recursive
@@ -237,6 +238,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
+        sudo rm -rf ./skale-manager || true
         git clone https://github.com/skalenetwork/skale-manager.git --recursive
         cd ..
 
@@ -317,7 +319,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
-        sudo rm -rf ./sgxwallet | true
+        sudo rm -rf ./sgxwallet || true
         git clone https://github.com/skalenetwork/sgxwallet.git --recursive
         cd sgxwallet
         git checkout develop
@@ -391,7 +393,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
-        rm -rf transaction-manager || true
+        sudo rm -rf ./transaction-manager || true
         git clone https://github.com/skalenetwork/transaction-manager
         cd ..
 
