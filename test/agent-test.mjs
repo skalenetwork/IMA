@@ -1093,7 +1093,10 @@ describe( "Agent Utils Module-1", function() {
             // as result, 14999 + 7 = 15006
             assert.equal(
                 imaUtils.composeImaAgentNodeUrl(
-                    { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:15006" );
+                    { ip: "127.0.0.1", httpRpcPort: 14999 }, true ), "http://127.0.0.1:15006" );
+            assert.equal(
+                imaUtils.composeImaAgentNodeUrl(
+                    { ip: "127.0.0.1", httpRpcPort: 14999 }, false ), "http://127.0.0.1:15006" );
         } );
 
     } );
