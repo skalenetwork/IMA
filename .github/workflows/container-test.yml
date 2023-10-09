@@ -317,6 +317,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
+        sudo rm -rf ./sgxwallet | true
         git clone https://github.com/skalenetwork/sgxwallet.git --recursive
         cd sgxwallet
         git checkout develop
