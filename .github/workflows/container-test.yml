@@ -187,6 +187,11 @@ jobs:
       with:
         python-version: 3.8
 
+    - name: INIT - Install VEnv 4 PYTHON
+      working-directory: ${{env.working-directory}}
+      run: |
+        sudo apt-get install python3.8-venv
+
     - name: INIT - Install everything in IMA
       working-directory: ${{env.working-directory}}
       run: |
