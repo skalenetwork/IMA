@@ -90,13 +90,14 @@ jobs:
         echo ------------ lscpu
         lscpu || true
 
-    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps, curl
+    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps, curl, jq
       run: |
         sudo apt-get update
         sudo apt-get install libc6 net-tools btrfs-progs zip unzip
         sudo apt-get install bash
         sudo apt-get install procps
         sudo apt-get install curl
+        sudo apt-get install jq
         #
         # - name: INIT - install docker
         #   run: |
@@ -432,6 +433,13 @@ jobs:
       run: |
         cd comprehensive-test
         cd engine/create_pems
+        sudo rm -rf ./new_certs/* || true
+        sudo rm -rf ./k.key || true
+        sudo rm -rf ./k.pem || true
+        sudo rm -rf ./k.crt || true
+        sudo rm -rf ./client.key || true
+        sudo rm -rf ./client.pem || true
+        sudo rm -rf ./client.crt || true
         ./create_pems.sh
         cd ../..
         cd ..
