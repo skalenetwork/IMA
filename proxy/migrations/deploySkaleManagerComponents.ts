@@ -23,48 +23,19 @@
  * @copyright SKALE Labs 2021-Present
  */
 import { promises as fs } from 'fs';
-import { ethers, artifacts, web3 } from "hardhat";
-import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
-import { getAbi } from './tools/abi';
-import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
-import { KeyStorageMock } from '../typechain/KeyStorageMock';
+import { ethers } from "hardhat";
+import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
+import { Manifest } from "@openzeppelin/upgrades-core";
+import { KeyStorageMock } from '../typechain';
 import { Wallet } from 'ethers';
-import { getPublicKey } from '../test/utils/helper';
+import { getPublicKey, stringKeccak256 } from '../test/utils/helper';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
 }
 
 export async function getManifestFile(): Promise<string> {
-    return (await Manifest.forNetwork(ethers.provider)).file;;
-}
-
-export async function getContractFactory(contract: string) {
-    const { linkReferences } = await artifacts.readArtifact(contract);
-    if (!Object.keys(linkReferences).length)
-        return await ethers.getContractFactory(contract);
-
-    const libraryNames = [];
-    for (const key of Object.keys(linkReferences)) {
-        const libraryName = Object.keys(linkReferences[key])[0];
-        libraryNames.push(libraryName);
-    }
-
-    const libraries = await deployLibraries(libraryNames);
-    const libraryArtifacts: {[key: string]: any} = {};
-    for (const libraryName of Object.keys(libraries)) {
-        const { bytecode } = await artifacts.readArtifact(libraryName);
-        libraryArtifacts[libraryName] = {"address": libraries[libraryName], "bytecodeHash": hashBytecode(bytecode)};
-    }
-    let manifest: any;
-    try {
-        manifest = JSON.parse(await fs.readFile(await getManifestFile(), "utf-8"));
-        Object.assign(libraryArtifacts, manifest.libraries);
-    } finally {
-        Object.assign(manifest, {libraries: libraryArtifacts});
-        await fs.writeFile(await getManifestFile(), JSON.stringify(manifest, null, 4));
-    }
-    return await getLinkedContractFactory(contract, libraries);
+    return (await Manifest.forNetwork(ethers.provider)).file;
 }
 
 async function main() {
@@ -81,7 +52,7 @@ async function main() {
     }
 
     if ( process.env.PRIVATE_KEY_FOR_SCHAIN === undefined || process.env.PRIVATE_KEY_FOR_SCHAIN === "" ) {
-        console.log( "Please set PRIVATE_KEY_FOR_ETHEREUM to .env file" );
+        console.log( "Please set PRIVATE_KEY_FOR_SCHAIN to .env file" );
         process.exit( 128 );
     }
 
@@ -183,9 +154,9 @@ async function main() {
             b: "14411459380456065006136894392078433460802915485975038137226267466736619639091"
         }
     };
-    await keyStorage.setBlsCommonPublicKeyForSchain( ethers.utils.solidityKeccak256(['string'], [schainName]), BLSPublicKey );
+    await keyStorage.setBlsCommonPublicKeyForSchain( stringKeccak256(schainName), BLSPublicKey );
     console.log("Set common public key in KeyStorage contract", keyStorage.address, "\n");
-    await wallets.rechargeSchainWallet( web3.utils.soliditySha3( schainName ), { value: "1000000000000000000" } );
+    await wallets.rechargeSchainWallet( stringKeccak256(schainName), { value: "10000000000000000000" } ); // originally it was 1000000000000000000 = 1ETH
     console.log("Recharge schain wallet in Wallets contract", wallets.address, "\n");
 
     const jsonObject = {
