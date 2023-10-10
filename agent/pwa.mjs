@@ -286,10 +286,11 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
             nIndexS2S, isStart, nUtcUnixTimeStamp, signature
         ); // save own started
         for( let i = 0; i < jarrNodes.length; ++i ) {
-            if( i == imaState.nNodeNumber )
+            const isThisNode = ( i == imaState.nNodeNumber ) ? true : false;
+            if( isThisNode )
                 continue; // skip this node
             const joNode = jarrNodes[i];
-            const strNodeURL = imaUtils.composeImaAgentNodeUrl( joNode );
+            const strNodeURL = imaUtils.composeImaAgentNodeUrl( joNode, isThisNode );
             const rpcCallOpts = null;
             rpcCall.create( // NOTICE: no await here, executed async
                 strNodeURL, rpcCallOpts, async function( joCall, err ) {

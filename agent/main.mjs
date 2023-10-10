@@ -118,13 +118,13 @@ function parseCommandLine() {
                 cc.info( imaState.nAutoExitAfterSeconds ) +
                 cc.warning( " second(s) is requested." ) + "\n" );
         }
-        const iv = setInterval( function() {
+        const iv = owaspUtils.setInterval2( function() {
             if( log.verboseGet() >= log.verboseReversed().warning ) {
                 log.write( cc.warning( "Performing automatic exit after " ) +
                     cc.info( imaState.nAutoExitAfterSeconds ) + cc.warning( " second(s)..." ) +
                     "\n" );
             }
-            clearInterval( iv );
+            owaspUtils.clearInterval2( iv );
             process.exit( 0 );
         }, imaState.nAutoExitAfterSeconds * 1000 );
     } else
