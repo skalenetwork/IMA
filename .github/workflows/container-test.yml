@@ -98,21 +98,6 @@ jobs:
         sudo apt-get install procps
         sudo apt-get install curl
         sudo apt-get install jq
-        #
-        # - name: INIT - install docker
-        #   run: |
-        #     sudo apt-get remove docker* containerd* || true
-        #     curl -fsSL https://get.docker.com -o install-docker.sh
-        #     sudo sh install-docker.sh
-        #     docker --version
-        #     docker-compose --version
-        #
-        # - name: INIT - reconfigure docker and restart its daemon
-        #   run: |
-        #     sudo systemctl unmask docker
-        #     sudo groupadd docker || true
-        #     sudo gpasswd -a username docker || true
-        #     sudo service docker restart || true
 
     - name: INIT - uninstall old Node JS if any
       run: |
@@ -187,7 +172,7 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: INIT - Install VEnv 4 PYTHON
+    - name: INIT - Install venv for PYTHON
       working-directory: ${{env.working-directory}}
       run: |
         sudo apt-get install python3.8-venv
