@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es2017",
+        "target": "es2018",
         "module": "commonjs",
         "strict": true,
         "moduleResolution": "node",
@@ -8,13 +8,14 @@
         "alwaysStrict": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "forceConsistentCasingInFileNames": true,    
+        "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
-        "lib": ["es2015", "esnext.asynciterable"],
+        "lib": ["es2018", "esnext.asynciterable"],
         "sourceMap": true,
         "typeRoots": ["./node_modules/@types", "./typechain"],
         "types": ["node"],
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "skipLibCheck": true
     },
     "include": ["**/*.ts"],
     "exclude": ["node_modules", "example", "build", "test-tokens"]

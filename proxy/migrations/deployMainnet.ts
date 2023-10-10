@@ -24,13 +24,11 @@
  */
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
-import { ethers, upgrades, artifacts, web3 } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
-import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
-import { getAbi } from './tools/abi';
-import { verify, verifyProxy } from './tools/verification';
-import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
-import { getVersion } from './tools/version';
+import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
+import { Manifest } from "@openzeppelin/upgrades-core";
+import { SkaleABIFile } from '@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile';
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -40,44 +38,15 @@ export function getContractKeyInAbiFile(contract: string) {
 }
 
 export async function getManifestFile(): Promise<string> {
-    return (await Manifest.forNetwork(ethers.provider)).file;;
+    return (await Manifest.forNetwork(ethers.provider)).file;
 }
 
-export async function getContractFactory(contract: string) {
-    const { linkReferences } = await artifacts.readArtifact(contract);
-    if (!Object.keys(linkReferences).length)
-        return await ethers.getContractFactory(contract);
-
-    const libraryNames = [];
-    for (const key of Object.keys(linkReferences)) {
-        const libraryName = Object.keys(linkReferences[key])[0];
-        libraryNames.push(libraryName);
-    }
-
-    const libraries = await deployLibraries(libraryNames);
-    const libraryArtifacts: {[key: string]: any} = {};
-    for (const libraryName of Object.keys(libraries)) {
-        const { bytecode } = await artifacts.readArtifact(libraryName);
-        libraryArtifacts[libraryName] = {"address": libraries[libraryName], "bytecodeHash": hashBytecode(bytecode)};
-    }
-    let manifest: any;
+async function getContractManager() {
+    const defaultFilePath = "data/skaleManagerComponents.json";
+    const jsonData = JSON.parse(await fs.readFile(defaultFilePath)) as SkaleABIFile;
     try {
-        manifest = JSON.parse(await fs.readFile(await getManifestFile(), "utf-8"));
-        Object.assign(libraryArtifacts, manifest.libraries);
-    } finally {
-        Object.assign(manifest, {libraries: libraryArtifacts});
-        await fs.writeFile(await getManifestFile(), JSON.stringify(manifest, null, 4));
-    }
-    return await getLinkedContractFactory(contract, libraries);
-}
-
-
-export function getContractManager() {
-    const defaultFilePath = "../data/skaleManagerComponents.json";
-    const jsonData = require(defaultFilePath);
-    try {
-        const contractManagerAddress = jsonData.contract_manager_address;
-        const contractManagerABI = jsonData.contract_manager_abi;
+        const contractManagerAddress = jsonData.contract_manager_address as string;
+        const contractManagerABI = jsonData.contract_manager_abi as [];
         return { address: contractManagerAddress, abi: contractManagerABI };
     } catch (e) {
         console.log(e);
@@ -108,7 +77,7 @@ async function main() {
     const [ owner,] = await ethers.getSigners();
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
-    const contractManager = getContractManager();
+    const contractManager = await getContractManager();
     const version = await getVersion();
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
@@ -220,22 +189,29 @@ async function main() {
 
     console.log("Store ABIs");
 
-    const outputObject: {[k: string]: any} = {};
+    const outputObject: {[k: string]: string | []} = {};
     for (const contract of contracts) {
         const contractKey = getContractKeyInAbiFile(contract);
-        outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
-        outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
+        const deployedContract = deployed.get(contract);
+        if (deployedContract === undefined) {
+            throw Error(`Contract ${contract} was not found`);
+        }
+        outputObject[contractKey + "_address"] = deployedContract.address;
+        outputObject[contractKey + "_abi"] = getAbi(deployedContract.interface);
     }
-
-    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_address"] = deployed.get("DepositBoxERC721WithMetadata")?.address;
-    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_abi"] = getAbi(deployed.get("DepositBoxERC721WithMetadata")?.interface);
+    const deployedDepositBoxERC721WithMetadata = deployed.get("DepositBoxERC721WithMetadata");
+    if (deployedDepositBoxERC721WithMetadata === undefined) {
+        throw new Error("DepositBoxERC721WithMetadata was not found");
+    }
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_address"] = deployedDepositBoxERC721WithMetadata.address;
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_abi"] = getAbi(deployedDepositBoxERC721WithMetadata.interface);
 
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 
     if( contractManager?.address !== null && contractManager?.address !== "" && contractManager?.address !== "0x0000000000000000000000000000000000000000" ) {
         // register MessageProxy in ContractManager
-        if( contractManager?.abi !== "" && contractManager?.abi !== undefined ) {
-            if( await web3.eth.getCode( contractManager?.address) !== "0x") {
+        if( contractManager?.abi !== undefined ) {
+            if( await ethers.provider.getCode( contractManager?.address) !== "0x") {
                 const contractManagerInst = new ethers.Contract(contractManager?.address, contractManager?.abi, owner);
                 if (await contractManagerInst.owner() !== owner.address) {
                     console.log( "Owner of ContractManager is not the same of the deployer" );

@@ -34,13 +34,13 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringFromHex, stringKeccak256, getBalance, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 chai.use(chaiAlmost(0.002));
 
 import { deployDepositBoxERC721WithMetadata } from "./utils/deploy/mainnet/depositBoxERC721WithMetadata";
@@ -54,7 +54,7 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
 
@@ -69,9 +69,6 @@ const HashA = "30804919429741726545188616007474668515898092414623848790866732560
 const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
 const Counter = 0;
 
-async function getBalance(address: string) {
-    return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
-}
 describe("DepositBoxERC721WithMetadata", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
@@ -87,7 +84,7 @@ describe("DepositBoxERC721WithMetadata", () => {
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+    const schainHash = stringKeccak256(schainName);
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();
@@ -162,11 +159,9 @@ describe("DepositBoxERC721WithMetadata", () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC721 token";
                 const contractHere = erc721OnChain.address;
-                const to = user.address;
                 const tokenId = 10;
                 // the wei should be MORE than (55000 * 1000000000)
                 // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-                const wei = "20000000000000000";
                 // add schain to avoid the `Unconnected chain` error
                 await linker
                     .connect(deployer)
@@ -182,7 +177,6 @@ describe("DepositBoxERC721WithMetadata", () => {
             it("should invoke `depositERC721` without mistakes", async () => {
                 // preparation
                 const contractHere = erc721OnChain.address;
-                const to = user.address;
                 const tokenId = 10;
                 const tokenId2 = 11;
                 // the wei should be MORE than (55000 * 1000000000)
@@ -242,7 +236,7 @@ describe("DepositBoxERC721WithMetadata", () => {
                     .connect(deployer)
                     .depositERC721Direct(schainName, contractHere, tokenId2, to)
                     .should.emit(messageProxy, "OutgoingMessage")
-                    .withArgs(schainHash, 1, depositBoxERC721WithMetadata.address, deployer.address, data2);;
+                    .withArgs(schainHash, 1, depositBoxERC721WithMetadata.address, deployer.address, data2);
                 // console.log("Gas for depositERC721:", res.receipt.gasUsed);
                 // expectation
                 expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721WithMetadata.address);
@@ -290,7 +284,6 @@ describe("DepositBoxERC721WithMetadata", () => {
 
     describe("tests for `postMessage` function", async () => {
         let erc721: ERC721OnChain;
-        let erc721OnChain: ERC721OnChain;
         let weiAmount: string;
         let sign: {
             blsSignature: [BigNumber, BigNumber],
@@ -302,7 +295,6 @@ describe("DepositBoxERC721WithMetadata", () => {
         beforeEach(async () => {
             weiAmount = 1e18.toString();
             erc721 = await deployERC721OnChain("ERC721", "ERC721");
-            erc721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721OnChain");
 
             sign = {
                 blsSignature: BlsSignature,
@@ -327,10 +319,7 @@ describe("DepositBoxERC721WithMetadata", () => {
             const tokenId = 10;
             const tokenURI = "Hello10";
             const to = user.address;
-            const to0 = "0x0000000000000000000000000000000000000000";
             const senderFromSchain = deployer.address;
-
-
 
             const message = {
                 data: await messages.encodeTransferErc721MessageWithMetadata(erc721.address, to, tokenId, tokenURI),

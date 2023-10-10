@@ -1,4 +1,3 @@
-import { Wallet } from "@ethersproject/wallet";
 import { ethers } from "hardhat";
 import { ContractManager, KeyStorageMock, Nodes, Schains, SchainsInternal, SkaleVerifierMock, Wallets } from "../../../typechain";
 

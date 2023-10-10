@@ -8,13 +8,13 @@ import {
     MessagesTester
 } from "../typechain";
 
-import { stringValue } from "./utils/helper";
+import { stringKeccak256, getBalance } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 chai.use(chaiAlmost(0.000000000002));
 
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
@@ -27,15 +27,11 @@ import { deployContractManager } from "./utils/skale-manager-utils/contractManag
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { deployCommunityPoolTester } from "./utils/deploy/test/communityPoolTester";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployMessages } from "./utils/deploy/messages";
-
-async function getBalance(address: string) {
-    return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
-}
 
 describe("CommunityPool", () => {
     let deployer: SignerWithAddress;
@@ -50,7 +46,7 @@ describe("CommunityPool", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
     const schainName2 = "Schain2";
-    let minTransactionGas: any;
+    let minTransactionGas: BigNumber;
 
     before(async () => {
         [deployer, user, node] = await ethers.getSigners();
@@ -74,7 +70,7 @@ describe("CommunityPool", () => {
     it("should add link to contract on schain", async () => {
         const fakeContractOnSchain = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
-        const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+        const schainHash = stringKeccak256(schainName);
 
         await communityPool.getSchainContract(schainHash)
             .should.be.eventually.rejectedWith("Destination contract must be defined");
@@ -135,7 +131,7 @@ describe("CommunityPool", () => {
             await messageProxy.grantRole(extraContractRegistrarRole, deployer.address);
             await messageProxy.registerExtraContractForAll(communityPool.address);
             const tx = await messageProxy.addConnectedChain(schainName);
-            const wei = minTransactionGas.mul(tx.gasPrice);
+            const wei = minTransactionGas.mul(tx.gasPrice as BigNumber);
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: wei.toString() });
             await messageProxy.removeExtraContractForAll(communityPool.address);
             await communityPool.connect(user).withdrawFunds(schainName, wei.toString())
@@ -216,8 +212,8 @@ describe("CommunityPool", () => {
         });
 
         it("should recharge wallet for couple chains", async () => {
-            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
-            const schainHash2 = stringValue(web3.utils.soliditySha3(schainName2));
+            const schainHash = stringKeccak256(schainName);
+            const schainHash2 = stringKeccak256(schainName2);
             const activateUserData = await messages.encodeActivateUserMessage(user.address);
 
             await communityPool.addSchainContract(schainName2, mockContractOnSchain);
@@ -251,7 +247,7 @@ describe("CommunityPool", () => {
 
         it("should allow to withdraw money", async () => {
             await messageProxy.registerExtraContract(schainName, communityPool.address);
-            const gasPrice = (await messageProxy.addConnectedChain(schainName)).gasPrice;
+            const gasPrice = (await messageProxy.addConnectedChain(schainName)).gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice).toNumber();
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: wei.toString(), gasPrice });
         });
@@ -283,13 +279,13 @@ describe("CommunityPool", () => {
     });
 
     it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {
-            const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
+            const schainHash = stringKeccak256("Schain");
             await communityPool.connect(deployer).refundGasByUser(schainHash, node.address, user.address, 0)
                 .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
         });
 
         it("should set rejected when call refundGasBySchainWallet not from messageProxy contract", async () => {
-            const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
+            const schainHash = stringKeccak256("Schain");
             await communityPool.connect(deployer).refundGasBySchainWallet(schainHash, node.address, 0)
                 .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
         });
@@ -301,7 +297,7 @@ describe("CommunityPool", () => {
         let communityPoolTester: CommunityPool;
         let mockContractOnSchain: string;
         const schainNameRGBU = "SchainRGBU";
-        const schainHashRGBU = stringValue(web3.utils.soliditySha3("SchainRGBU"));
+        const schainHashRGBU = stringKeccak256("SchainRGBU");
 
         beforeEach(async () => {
             messageProxyTester = await deployMessageProxyForMainnetTester(contractManager);
@@ -315,7 +311,7 @@ describe("CommunityPool", () => {
         it("should be rejected with Node address must be set", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            const gasPrice = tx.gasPrice;
+            const gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice).mul(2);
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, "0x0000000000000000000000000000000000000000", user.address, 0)
@@ -326,7 +322,7 @@ describe("CommunityPool", () => {
             const balanceBefore = await getBalance(node.address);
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            const gasPrice = tx.gasPrice;
+            const gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice).mul(2);
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice });
@@ -337,7 +333,7 @@ describe("CommunityPool", () => {
         it("should lock user", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            const gasPrice = tx.gasPrice;
+            const gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
@@ -349,7 +345,7 @@ describe("CommunityPool", () => {
         it("should lock user with extra low balance", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
-            let gasPrice = tx.gasPrice;
+            let gasPrice = tx.gasPrice as BigNumber;
             const wei = minTransactionGas.mul(gasPrice);
             gasPrice = gasPrice?.mul(2);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;

@@ -53,7 +53,6 @@ jobs:
     - name: Install project
       working-directory: ${{env.working-directory}}
       run: |
-        ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
     - name: Install slither
@@ -70,7 +69,7 @@ jobs:
 
     - name: Lint typescript
       working-directory: ${{env.working-directory}}
-      run: yarn tslint
+      run: yarn eslint
 
     - name: Slither checks
       working-directory: ${{env.working-directory}}
@@ -130,7 +129,6 @@ jobs:
 
     - name: Install project
       run: |
-        ../npms/scrypt/get_scrypt_npm.sh
         yarn install
         npm run compile
 
@@ -237,9 +235,6 @@ jobs:
         cat /proc/version || true
         echo ------------ lscpu
         lscpu || true
-        # echo ------------ lsusb
-        # sudo apt-get install usbutils || true &> /dev/null
-        # lsusb -t || echo "No lsusb available" || true
 
     - name: ESLINT
       run: |
@@ -274,8 +269,9 @@ jobs:
         echo ------------ py3 wheel - pip
         pip3 install wheel
         echo ------------ slither analyzer install
-        # pip3 install slither-analyzer
-        pip3 install slither-analyzer==0.6.8
+        #pip3 install slither-analyzer==0.8.3
+        pip3 install -r proxy/scripts/requirements.txt
+
         echo ------------ slither search attempt
         sudo find / -name slither || true
         echo ------------ slither location detection - after install
@@ -333,7 +329,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v2
       with:
-        node-version: '12'
+        node-version: '16'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -343,7 +339,6 @@ jobs:
     - name: Compile contracts
       working-directory: ./proxy
       run: |
-        ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
     - name: Install agent
@@ -356,7 +351,7 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
-        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
+        npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}

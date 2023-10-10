@@ -1,2 +1,1 @@
-predeployed-generator >= 1.1.0a1
-web3 < 6.0.0 # TODO: remove when move to web3 6
+predeployed-generator>=1.2.0

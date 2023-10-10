@@ -5,15 +5,14 @@ import {
 } from "../typechain";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 
 describe("ERC721OnChain", () => {
     let deployer: SignerWithAddress;
