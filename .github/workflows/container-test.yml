@@ -13,9 +13,13 @@ jobs:
 
   test-comprehensive:
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
+
+    - name: INFO - force pre-clean
+      run: |
+        sudo rm -rf comprehensive-test || true
 
     - uses: actions/checkout@v2
 
@@ -86,28 +90,14 @@ jobs:
         echo ------------ lscpu
         lscpu || true
 
-    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps, curl
+    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps, curl, jq
       run: |
         sudo apt-get update
         sudo apt-get install libc6 net-tools btrfs-progs zip unzip
         sudo apt-get install bash
         sudo apt-get install procps
         sudo apt-get install curl
-
-    - name: INIT - install docker
-      run: |
-        sudo apt-get remove docker* containerd* || true
-        curl -fsSL https://get.docker.com -o install-docker.sh
-        sudo sh install-docker.sh
-        docker --version
-        docker-compose --version
-
-    - name: INIT - reconfigure docker and restart its daemon
-      run: |
-        sudo systemctl unmask docker
-        sudo groupadd docker || true
-        sudo gpasswd -a username docker || true
-        sudo service docker restart || true
+        sudo apt-get install jq
 
     - name: INIT - uninstall old Node JS if any
       run: |
@@ -154,6 +144,7 @@ jobs:
     - name: INIT - Download comprehensive-test
       working-directory: ${{env.working-directory}}
       run: |
+        sudo rm -rf ./comprehensive-test || true
         export IMA_ROOT_DIR=$(pwd)
         echo IMA_ROOT_DIR = $IMA_ROOT_DIR
         git clone https://github.com/skalenetwork/comprehensive-test.git --recursive
@@ -180,6 +171,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+
+    - name: INIT - Install venv for PYTHON
+      working-directory: ${{env.working-directory}}
+      run: |
+        sudo apt-get install python3.8-venv
 
     - name: INIT - Install everything in IMA
       working-directory: ${{env.working-directory}}
@@ -233,6 +229,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
+        sudo rm -rf ./skale-manager || true
         git clone https://github.com/skalenetwork/skale-manager.git --recursive
         cd ..
 
@@ -313,6 +310,8 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
+        sudo docker stop run_sgx_sim_sgxwallet_1 || true
+        sudo rm -rf ./sgxwallet || true
         git clone https://github.com/skalenetwork/sgxwallet.git --recursive
         cd sgxwallet
         git checkout develop
@@ -336,7 +335,7 @@ jobs:
         echo "version: '3'"                                 > docker-compose.yml
         echo 'services:'                                   >> docker-compose.yml
         echo '  sgxwallet:'                                >> docker-compose.yml
-        echo '    image: skalenetwork/sgxwallet_sim:1.83.0-develop.19'                          >> docker-compose.yml
+        echo '    image: skalenetwork/sgxwallet_sim:1.9.0-develop.11'                          >> docker-compose.yml
         echo '    restart: unless-stopped'                 >> docker-compose.yml
         echo '    network_mode: "host"'                    >> docker-compose.yml
         # echo '    ports:'                                  >> docker-compose.yml
@@ -373,8 +372,8 @@ jobs:
     - name: INIT - check SGX Wallet has listening ports
       working-directory: ${{env.working-directory}}
       run: |
-        echo "sleeping 45 seconds..."
-        sleep 45
+        echo "sleeping 180 seconds..."
+        sleep 180
         echo "checking port 1026 commonly used by SGX Wallet for HTTPS..."
         sudo netstat -tulpn | grep 1026
         echo "...Done"
@@ -386,7 +385,7 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
-        rm -rf transaction-manager || true
+        sudo rm -rf ./transaction-manager || true
         git clone https://github.com/skalenetwork/transaction-manager
         cd ..
 
@@ -424,6 +423,13 @@ jobs:
       run: |
         cd comprehensive-test
         cd engine/create_pems
+        sudo rm -rf ./new_certs/* || true
+        sudo rm -rf ./k.key || true
+        sudo rm -rf ./k.pem || true
+        sudo rm -rf ./k.crt || true
+        sudo rm -rf ./client.key || true
+        sudo rm -rf ./client.pem || true
+        sudo rm -rf ./client.crt || true
         ./create_pems.sh
         cd ../..
         cd ..
