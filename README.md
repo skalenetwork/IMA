@@ -28,34 +28,6 @@ The Agent is a Node JS application connecting the smart contracts on Mainnet wit
 
 IMA proxy is the Solidity part of IMA containing `Mainnet` and `SKALE Chain` smart contracts.
 
-### Agent
-
-IMA Agent is the main application implementing connectivity and message transfer between `Mainnet` and `SKALE Chains`. The Agent also provides an easy way to perform ETH, ERC20, and ERC721 transfers between `Main Net` and `S-Chain` nevertheless, this can be done without it.
-
-### NPMs
-
-The `npms` folder contains helper modules implementing parts of IMA functionality:
-
-#### SKALE-IMA
-
-A module implementing core IMA functionality.
-
-#### SKALE-OWASP
-
-Data validity verifier module. See [OWASP document](https://www.gitbook.com/download/pdf/book/checkmarx/JS-SCP).
-
-#### SKALE-OBSERVER
-
-[SKALE Network Browser](npms/skale-observer/README.md). Responsible for providing description of all SKALE chains.
-
-#### SKALE-LOG
-
-Console and log file output with rotation.
-
-#### SKALE-CC
-
-ANSI colorizer for console and log output.
-
 ## For more information
 
 -   [SKALE Network Website](https://skale.network)
