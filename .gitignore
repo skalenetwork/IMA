@@ -52,7 +52,6 @@ proxy/predeployed/test/genesis.json
 
 # Dependency directories
 node_modules
-agent/node_modules
 proxy/node_modules
 test/node_modules
 test-tokens/node_modules
