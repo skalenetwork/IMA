@@ -1,9 +1,9 @@
 version: 2
 updates:
 - package-ecosystem: npm
-    directory: "/proxy"
-    schedule:
-        interval: "weekly"
-        day: "saturday"
-    allow: 
-        - dependency-type: "production"
+  directory: "/proxy"
+  schedule:
+    interval: "weekly"
+    day: "saturday"
+  allow: 
+    - dependency-type: "production"
