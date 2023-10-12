@@ -169,11 +169,9 @@ jobs:
       python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
   test-integration:
-  runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest
     env:
-    working-directory: ./test
-
+      working-directory: ./test
     steps:
     - uses: actions/checkout@v2
 
