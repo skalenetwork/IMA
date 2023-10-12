@@ -1,150 +1,150 @@
 name: Build and publish
 
 on:
-    pull_request:
-        types: [closed]
-        branches:
-            - 'v*.*.*'
-            - develop
-            - beta
-            - stable
-    push:
-        tags:
-            - 'custom-release-*'
+  pull_request:
+    types: [closed]
+    branches:
+      - 'v*.*.*'
+      - develop
+      - beta
+      - stable
+  push:
+    tags:
+      - 'custom-release-*'
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        env:
-            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-            PROXY_DIR: "proxy"
-        steps:
-        - uses: actions/checkout@v2
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      PROXY_DIR: "proxy"
+    steps:
+    - uses: actions/checkout@v2
 
-        - name: Get yarn cache directory path
-            id: yarn-cache-dir-path
-            run: echo "::set-output name=dir::$(yarn cache dir)"
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
 
-        - uses: actions/cache@v2
-            id: yarn-cache
-            with:
-                path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-                key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-                restore-keys: |
-                    ${{ runner.os }}-yarn-
+    - uses: actions/cache@v2
+      id: yarn-cache
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
 
-        - uses: actions/cache@v2
-            with:
-                path: ~/.cache/pip
-                key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-                restore-keys: |
-                    ${{ runner.os }}-pip-
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
-        - name: Install NODE JS
-            uses: actions/setup-node@v2
-            with:
-                node-version: '16'
+    - name: Install NODE JS
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
 
-        - name: Set up Python 3.8
-            uses: actions/setup-python@v2
-            with:
-                python-version: 3.8
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
 
-        - name: Build and publish container
-            run: |
-                export BRANCH=${GITHUB_REF##*/}
-                echo "Branch $BRANCH"
-                export VERSION=$(bash ./scripts/calculate_version.sh)
-                echo "VERSION=$VERSION" >> $GITHUB_ENV
-                echo "Version $VERSION"
-                ( test $BRANCH = "stable" && export PRERELEASE=false ) || export PRERELEASE=true
-                echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
-                echo ------------ download binaries
-                LIB_BLS_RELEASE_TAG=${{ secrets.LIB_BLS_RELEASE_TAG }} bash ./scripts/download_binaries.sh
-                export RELEASE=true
-                echo "RELEASE=$RELEASE" >> $GITHUB_ENV
-                echo ------------ docker image
-                bash ./scripts/build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
+    - name: Build and publish container
+      run: |
+        export BRANCH=${GITHUB_REF##*/}
+        echo "Branch $BRANCH"
+        export VERSION=$(bash ./scripts/calculate_version.sh)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Version $VERSION"
+        ( test $BRANCH = "stable" && export PRERELEASE=false ) || export PRERELEASE=true
+        echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+        echo ------------ download binaries
+        LIB_BLS_RELEASE_TAG=${{ secrets.LIB_BLS_RELEASE_TAG }} bash ./scripts/download_binaries.sh
+        export RELEASE=true
+        echo "RELEASE=$RELEASE" >> $GITHUB_ENV
+        echo ------------ docker image
+        bash ./scripts/build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
 
-        - name: Prepare for pip package building
-            run: |
-                python3 -m pip install --upgrade build
-                python3 -m pip install --user --upgrade twine
+    - name: Prepare for pip package building
+      run: |
+        python3 -m pip install --upgrade build
+        python3 -m pip install --user --upgrade twine
 
-        - name: Install project
-            working-directory: ${{env.PROXY_DIR}}
-            run: |
-                yarn install
+    - name: Install project
+      working-directory: ${{env.PROXY_DIR}}
+      run: |
+        yarn install
 
-        - name: Generate Manifest
-            working-directory: ${{env.PROXY_DIR}}
-            run: |
-                npx hardhat run migrations/generateManifest.ts
+    - name: Generate Manifest
+      working-directory: ${{env.PROXY_DIR}}
+      run: |
+        npx hardhat run migrations/generateManifest.ts
 
-        - name: Install python testing staff
-            working-directory: ${{env.PROXY_DIR}}
-            run: pip3 install -r predeployed/test/requirements.txt
+    - name: Install python testing staff
+      working-directory: ${{env.PROXY_DIR}}
+      run: pip3 install -r predeployed/test/requirements.txt
 
-        - name: Build predeployed pip package
-            working-directory: ${{env.PROXY_DIR}}
-            env:
-                VERSION: ${{ env.VERSION }}
-            run: |
-                ./predeployed/scripts/build_package.sh
+    - name: Build predeployed pip package
+      working-directory: ${{env.PROXY_DIR}}
+      env:
+        VERSION: ${{ env.VERSION }}
+      run: |
+        ./predeployed/scripts/build_package.sh
 
-        - name: Publish predeployed pip package
-            working-directory: ${{env.PROXY_DIR}}
-            env:
-                PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-            run: |
-                ./predeployed/scripts/publish_package.sh
+    - name: Publish predeployed pip package
+      working-directory: ${{env.PROXY_DIR}}
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        ./predeployed/scripts/publish_package.sh
 
-        - name: Generate ABIs
-            working-directory: ${{env.PROXY_DIR}}/predeployed
-            env:
-                VERSION: ${{ env.VERSION }}
-            run: |
-                python3 -m venv scripts/venv
-                source scripts/venv/bin/activate
-                pip install dist/ima_predeployed-*.whl
-                mkdir data
-                python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+    - name: Generate ABIs
+      working-directory: ${{env.PROXY_DIR}}/predeployed
+      env:
+        VERSION: ${{ env.VERSION }}
+      run: |
+        python3 -m venv scripts/venv
+        source scripts/venv/bin/activate
+        pip install dist/ima_predeployed-*.whl
+        mkdir data
+        python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
-        - name: Create Release
-            id: create_release
-            uses: actions/create-release@v1
-            env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            with:
-                tag_name: ${{ env.VERSION }}
-                release_name: ${{ env.VERSION }}
-                draft: false
-                prerelease: ${{ env.PRERELEASE }}
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.VERSION }}
+        release_name: ${{ env.VERSION }}
+        draft: false
+        prerelease: ${{ env.PRERELEASE }}
 
-        - name: Upload Release Assets
-            id: upload-release-assets
-            uses: dwenegar/upload-release-assets@v1
-            env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            with:
-                release_id: ${{ steps.create_release.outputs.id }}
-                assets_path: proxy/predeployed/dist/
+    - name: Upload Release Assets
+      id: upload-release-assets
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: proxy/predeployed/dist/
 
-        - name: Upload Release Assets
-            id: upload-static-data
-            uses: dwenegar/upload-release-assets@v1
-            env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            with:
-                release_id: ${{ steps.create_release.outputs.id }}
-                assets_path: proxy/predeployed/data/
+    - name: Upload Release Assets
+      id: upload-static-data
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: proxy/predeployed/data/
 
-        - name: Upload Release Assets
-            id: upload-manifest-data
-            uses: dwenegar/upload-release-assets@v1
-            env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            with:
-                release_id: ${{ steps.create_release.outputs.id }}
-                assets_path: proxy/data/ima-schain-*-manifest.json
+    - name: Upload Release Assets
+      id: upload-manifest-data
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: proxy/data/ima-schain-*-manifest.json
