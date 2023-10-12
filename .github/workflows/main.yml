@@ -206,13 +206,6 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Get IMA contracts
-        run: |
-          git clone https://github.com/skalenetwork/IMA.git --recursive-submodules
-          cd IMA
-          yarn install
-          cd ..
-
       - name: Compile contracts
         working-directory: ./proxy
         run: |
