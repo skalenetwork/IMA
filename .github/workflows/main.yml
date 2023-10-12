@@ -28,27 +28,27 @@ jobs:
     - uses: actions/cache@v2
       id: yarn-cache
       with:
-      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      restore-keys: |
-        ${{ runner.os }}-yarn-
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
 
     - uses: actions/cache@v2
       with:
-      path: ~/.cache/pip
-      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-      restore-keys: |
-        ${{ runner.os }}-pip-
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install PYTHON
       uses: actions/setup-python@v2
       with:
-      python-version: 3.8
+        python-version: 3.8
 
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-      node-version: 16
+        node-version: 18
 
     - name: Install project
       working-directory: ${{env.working-directory}}
@@ -93,7 +93,7 @@ jobs:
 
     defaults:
       run:
-      working-directory: proxy
+        working-directory: proxy
 
     steps:
     - uses: actions/checkout@v2
@@ -105,27 +105,27 @@ jobs:
     - uses: actions/cache@v2
       id: yarn-cache
       with:
-      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      restore-keys: |
-        ${{ runner.os }}-yarn-
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
 
     - uses: actions/cache@v2
       with:
-      path: ~/.cache/pip
-      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-      restore-keys: |
-        ${{ runner.os }}-pip-
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install PYTHON
       uses: actions/setup-python@v2
       with:
-      python-version: 3.8
+        python-version: 3.8
 
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-      node-version: 16
+        node-version: 18
 
     - name: Install project
       run: |
