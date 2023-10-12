@@ -4,238 +4,238 @@ name: Build and test
 
 on:
   push:
-  branches-ignore:
-    - 'docs-v*'
+    branches-ignore:
+      - 'docs-v*'
   pull_request:
-  branches-ignore:
-    - 'docs-v*'
+    branches-ignore:
+      - 'docs-v*'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  env:
-    working-directory: ./proxy
+    env:
+      working-directory: ./proxy
 
-  steps:
-  - uses: actions/checkout@v2
+    steps:
+    - uses: actions/checkout@v2
 
-  - name: Get yarn cache directory path
-    id: yarn-cache-dir-path
-    run: echo "::set-output name=dir::$(yarn cache dir)"
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
 
-  - uses: actions/cache@v2
-    id: yarn-cache
-    with:
-    path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-    key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-    restore-keys: |
-      ${{ runner.os }}-yarn-
+    - uses: actions/cache@v2
+      id: yarn-cache
+      with:
+      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      restore-keys: |
+        ${{ runner.os }}-yarn-
 
-  - uses: actions/cache@v2
-    with:
-    path: ~/.cache/pip
-    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-    restore-keys: |
-      ${{ runner.os }}-pip-
+    - uses: actions/cache@v2
+      with:
+      path: ~/.cache/pip
+      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
 
-  - name: Install PYTHON
-    uses: actions/setup-python@v2
-    with:
-    python-version: 3.8
+    - name: Install PYTHON
+      uses: actions/setup-python@v2
+      with:
+      python-version: 3.8
 
-  - name: Install NODE JS
-    uses: actions/setup-node@v2
-    with:
-    node-version: 16
+    - name: Install NODE JS
+      uses: actions/setup-node@v2
+      with:
+      node-version: 16
 
-  - name: Install project
-    working-directory: ${{env.working-directory}}
-    run: |
-      yarn install
+    - name: Install project
+      working-directory: ${{env.working-directory}}
+      run: |
+        yarn install
 
-  - name: Install slither
-    working-directory: ${{env.working-directory}}
-    run: pip3 install -r scripts/requirements.txt
+    - name: Install slither
+      working-directory: ${{env.working-directory}}
+      run: pip3 install -r scripts/requirements.txt
 
-  - name: Lint solidity
-    working-directory: ${{env.working-directory}}
-    run: yarn lint
+    - name: Lint solidity
+      working-directory: ${{env.working-directory}}
+      run: yarn lint
 
-  - name: Compile typescript
-    working-directory: ${{env.working-directory}}
-    run: yarn tsc
+    - name: Compile typescript
+      working-directory: ${{env.working-directory}}
+      run: yarn tsc
 
-  - name: Lint typescript
-    working-directory: ${{env.working-directory}}
-    run: yarn eslint
+    - name: Lint typescript
+      working-directory: ${{env.working-directory}}
+      run: yarn eslint
 
-  - name: Slither checks
-    working-directory: ${{env.working-directory}}
-    run: yarn slither
+    - name: Slither checks
+      working-directory: ${{env.working-directory}}
+      run: yarn slither
 
-  - name: Gas calculation test
-    working-directory: ${{env.working-directory}}
-    run: npx hardhat test gas/calculateGas.ts
+    - name: Gas calculation test
+      working-directory: ${{env.working-directory}}
+      run: npx hardhat test gas/calculateGas.ts
 
-  - name: Test upgrade
-    run: bash ./proxy/scripts/test_upgrade.sh
+    - name: Test upgrade
+      run: bash ./proxy/scripts/test_upgrade.sh
 
-  - name: Run tests
-    working-directory: ${{env.working-directory}}
-    run: |
-      npx hardhat coverage --solcoverjs .solcover.js
-      bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
+    - name: Run tests
+      working-directory: ${{env.working-directory}}
+      run: |
+        npx hardhat coverage --solcoverjs .solcover.js
+        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
 
   test-predeployed:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  defaults:
-    run:
-    working-directory: proxy
+    defaults:
+      run:
+      working-directory: proxy
 
-  steps:
-  - uses: actions/checkout@v2
+    steps:
+    - uses: actions/checkout@v2
 
-  - name: Get yarn cache directory path
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+
+    - uses: actions/cache@v2
+      id: yarn-cache
+      with:
+      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      restore-keys: |
+        ${{ runner.os }}-yarn-
+
+    - uses: actions/cache@v2
+      with:
+      path: ~/.cache/pip
+      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
+
+    - name: Install PYTHON
+      uses: actions/setup-python@v2
+      with:
+      python-version: 3.8
+
+    - name: Install NODE JS
+      uses: actions/setup-node@v2
+      with:
+      node-version: 16
+
+    - name: Install project
+      run: |
+        yarn install
+        npm run compile
+
+    - name: Install python testing staff
+      run: pip3 install -r predeployed/test/requirements.txt
+
+    - name: Install geth
+      run: |
+        sudo add-apt-repository -y ppa:ethereum/ethereum
+        sudo apt install ethereum
+
+    - name: Build predeployed pip package
+      env:
+      VERSION: "0.0.0"
+      run: |
+        python3 -m pip install build==0.4.0
+        ./predeployed/scripts/build_package.sh
+
+    - name: Test predeployed pip package
+      env:
+      PYTHONPATH: src
+      run: |
+        killall -9 node || true # stop any ganache-cli, etc
+        killall -9 geth || true # stop any geth, etc
+        echo "-------------- checking occupied ports"
+        netstat -ltnp
+        echo "-------------- running tests"
+        ./predeployed/test/prepare_environment.sh
+        ./predeployed/test/test.sh
+
+    - name: Test ABIs generation
+      env:
+      VERSION: "0.0.0"
+      run: |
+        python3 -m venv predeployed/scripts/venv
+        source predeployed/scripts/venv/bin/activate
+        pip install predeployed/dist/ima_predeployed-*.whl
+        python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+
+    test-integration:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./test
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get yarn cache directory path
     id: yarn-cache-dir-path
     run: echo "::set-output name=dir::$(yarn cache dir)"
 
-  - uses: actions/cache@v2
+    - uses: actions/cache@v2
     id: yarn-cache
     with:
-    path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-    key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-    restore-keys: |
-      ${{ runner.os }}-yarn-
+      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      restore-keys: |
+        ${{ runner.os }}-yarn-
 
-  - uses: actions/cache@v2
+    - uses: actions/cache@v2
     with:
-    path: ~/.cache/pip
-    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-    restore-keys: |
-      ${{ runner.os }}-pip-
+      path: ~/.cache/pip
+      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
 
-  - name: Install PYTHON
-    uses: actions/setup-python@v2
-    with:
-    python-version: 3.8
-
-  - name: Install NODE JS
+    - name: Set up Node
     uses: actions/setup-node@v2
     with:
-    node-version: 16
+      node-version: '16'
 
-  - name: Install project
+    - name: Set up Python
+    uses: actions/setup-python@v2
+    with:
+      python-version: 3.8
+
+    - name: Compile contracts
+    working-directory: ./proxy
     run: |
       yarn install
-      npm run compile
 
-  - name: Install python testing staff
-    run: pip3 install -r predeployed/test/requirements.txt
-
-  - name: Install geth
+    - name: Install all NPMs
     run: |
-      sudo add-apt-repository -y ppa:ethereum/ethereum
-      sudo apt install ethereum
+      yarn install
 
-  - name: Build predeployed pip package
-    env:
-    VERSION: "0.0.0"
+    - name: Start background ganache
+    working-directory: ./proxy
     run: |
-      python3 -m pip install build==0.4.0
-      ./predeployed/scripts/build_package.sh
+      npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
 
-  - name: Test predeployed pip package
-    env:
-    PYTHONPATH: src
+    - name: Prepare test (PY part)
+    working-directory: ${{env.working-directory}}
     run: |
-      killall -9 node || true # stop any ganache-cli, etc
-      killall -9 geth || true # stop any geth, etc
-      echo "-------------- checking occupied ports"
-      netstat -ltnp
-      echo "-------------- running tests"
-      ./predeployed/test/prepare_environment.sh
-      ./predeployed/test/test.sh
+      python3 ../scripts/config_from_accounts.py accounts.json config.json
+      pip3 install -r requirements.txt
 
-  - name: Test ABIs generation
-    env:
-    VERSION: "0.0.0"
+    - name: Run test (PY part)
+    working-directory: ${{env.working-directory}}
     run: |
-      python3 -m venv predeployed/scripts/venv
-      source predeployed/scripts/venv/bin/activate
-      pip install predeployed/dist/ima_predeployed-*.whl
-      python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+      python3 test.py
 
-  test-integration:
-  runs-on: ubuntu-latest
-  env:
-    working-directory: ./test
-  steps:
-  - uses: actions/checkout@v2
+    - name: Prepare test (JS part)
+    working-directory: ${{env.working-directory}}
+    run: |
+      yarn install
 
-  - name: Get yarn cache directory path
-  id: yarn-cache-dir-path
-  run: echo "::set-output name=dir::$(yarn cache dir)"
-
-  - uses: actions/cache@v2
-  id: yarn-cache
-  with:
-    path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-    key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-    restore-keys: |
-      ${{ runner.os }}-yarn-
-
-  - uses: actions/cache@v2
-  with:
-    path: ~/.cache/pip
-    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-    restore-keys: |
-      ${{ runner.os }}-pip-
-
-  - name: Set up Node
-  uses: actions/setup-node@v2
-  with:
-    node-version: '16'
-
-  - name: Set up Python
-  uses: actions/setup-python@v2
-  with:
-    python-version: 3.8
-
-  - name: Compile contracts
-  working-directory: ./proxy
-  run: |
-    yarn install
-
-  - name: Install all NPMs
-  run: |
-    yarn install
-
-  - name: Start background ganache
-  working-directory: ./proxy
-  run: |
-    npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
-
-  - name: Prepare test (PY part)
-  working-directory: ${{env.working-directory}}
-  run: |
-    python3 ../scripts/config_from_accounts.py accounts.json config.json
-    pip3 install -r requirements.txt
-
-  - name: Run test (PY part)
-  working-directory: ${{env.working-directory}}
-  run: |
-    python3 test.py
-
-  - name: Prepare test (JS part)
-  working-directory: ${{env.working-directory}}
-  run: |
-    yarn install
-
-  - name: Run test (JS part)
-  working-directory: ${{env.working-directory}}
-  run: |
-    yarn test
+    - name: Run test (JS part)
+    working-directory: ${{env.working-directory}}
+    run: |
+      yarn test
 
