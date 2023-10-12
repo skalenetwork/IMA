@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-# SKALE Interchain Messaging Agent (IMA)
+# SKALE Interchain Messaging Contracts
 
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
@@ -17,7 +17,7 @@ IMA consists of the following three parts:
 
 1)  `Mainnet` smart contracts.
 2)  `SKALE Chain` smart contracts.
-3)  A containerized Agent application.
+3)  A containerized IMA Agent application.
 
 Smart contracts are interfaces for any software working with `Mainnet` and `SKALE Chain` like other smart contracts deployed there or software connecting these Ethereum networks.
 The Agent is a Node JS application connecting the smart contracts on Mainnet with SKALE Chains.
