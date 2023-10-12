@@ -45,4 +45,3 @@ All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MER
 [![License](https://img.shields.io/github/license/skalenetwork/IMA)](LICENSE)
 All contributions are made under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE](LICENSE).
 Copyright (C) 2019-Present SKALE Labs.
-[This is a link](src/Test.java)
