@@ -204,12 +204,17 @@ jobs:
       with:
         python-version: 3.8
 
+    - name: Install all NPMs in root
+      run: |
+        yarn install
+
     - name: Compile contracts
       working-directory: ./proxy
       run: |
         yarn install
 
-    - name: Install all NPMs
+    - name: Install all NPMs in test
+      working-directory: ./test
       run: |
         yarn install
 
