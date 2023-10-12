@@ -142,14 +142,14 @@ jobs:
 
     - name: Build predeployed pip package
       env:
-      VERSION: "0.0.0"
+        VERSION: "0.0.0"
       run: |
         python3 -m pip install build==0.4.0
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
       env:
-      PYTHONPATH: src
+        PYTHONPATH: src
       run: |
         killall -9 node || true # stop any ganache-cli, etc
         killall -9 geth || true # stop any geth, etc
@@ -161,14 +161,14 @@ jobs:
 
     - name: Test ABIs generation
       env:
-      VERSION: "0.0.0"
+        VERSION: "0.0.0"
       run: |
         python3 -m venv predeployed/scripts/venv
         source predeployed/scripts/venv/bin/activate
         pip install predeployed/dist/ima_predeployed-*.whl
         python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
-    test-integration:
+  test-integration:
     runs-on: ubuntu-latest
     env:
       working-directory: ./test
@@ -176,66 +176,66 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Get yarn cache directory path
-    id: yarn-cache-dir-path
-    run: echo "::set-output name=dir::$(yarn cache dir)"
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
 
     - uses: actions/cache@v2
-    id: yarn-cache
-    with:
-      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      restore-keys: |
-        ${{ runner.os }}-yarn-
+      id: yarn-cache
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
 
     - uses: actions/cache@v2
-    with:
-      path: ~/.cache/pip
-      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-      restore-keys: |
-        ${{ runner.os }}-pip-
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Set up Node
-    uses: actions/setup-node@v2
-    with:
-      node-version: '16'
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
 
     - name: Set up Python
-    uses: actions/setup-python@v2
-    with:
-      python-version: 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
 
     - name: Compile contracts
-    working-directory: ./proxy
-    run: |
-      yarn install
+      working-directory: ./proxy
+      run: |
+        yarn install
 
     - name: Install all NPMs
-    run: |
-      yarn install
+      run: |
+        yarn install
 
     - name: Start background ganache
-    working-directory: ./proxy
-    run: |
-      npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
+      working-directory: ./proxy
+      run: |
+        npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
 
     - name: Prepare test (PY part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      python3 ../scripts/config_from_accounts.py accounts.json config.json
-      pip3 install -r requirements.txt
+      working-directory: ${{env.working-directory}}
+      run: |
+        python3 ../scripts/config_from_accounts.py accounts.json config.json
+        pip3 install -r requirements.txt
 
     - name: Run test (PY part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      python3 test.py
+      working-directory: ${{env.working-directory}}
+      run: |
+        python3 test.py
 
     - name: Prepare test (JS part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      yarn install
+      working-directory: ${{env.working-directory}}
+      run: |
+        yarn install
 
     - name: Run test (JS part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      yarn test
+      working-directory: ${{env.working-directory}}
+      run: |
+        yarn test
 
