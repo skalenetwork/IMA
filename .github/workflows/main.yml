@@ -53,7 +53,7 @@ jobs:
   - name: Install project
     working-directory: ${{env.working-directory}}
     run: |
-    yarn install
+      yarn install
 
   - name: Install slither
     working-directory: ${{env.working-directory}}
@@ -85,8 +85,8 @@ jobs:
   - name: Run tests
     working-directory: ${{env.working-directory}}
     run: |
-    npx hardhat coverage --solcoverjs .solcover.js
-    bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
+      npx hardhat coverage --solcoverjs .solcover.js
+      bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
 
   test-predeployed:
   runs-on: ubuntu-latest
@@ -129,44 +129,44 @@ jobs:
 
   - name: Install project
     run: |
-    yarn install
-    npm run compile
+      yarn install
+      npm run compile
 
   - name: Install python testing staff
     run: pip3 install -r predeployed/test/requirements.txt
 
   - name: Install geth
     run: |
-    sudo add-apt-repository -y ppa:ethereum/ethereum
-    sudo apt install ethereum
+      sudo add-apt-repository -y ppa:ethereum/ethereum
+      sudo apt install ethereum
 
   - name: Build predeployed pip package
     env:
     VERSION: "0.0.0"
     run: |
-    python3 -m pip install build==0.4.0
-    ./predeployed/scripts/build_package.sh
+      python3 -m pip install build==0.4.0
+      ./predeployed/scripts/build_package.sh
 
   - name: Test predeployed pip package
     env:
     PYTHONPATH: src
     run: |
-    killall -9 node || true # stop any ganache-cli, etc
-    killall -9 geth || true # stop any geth, etc
-    echo "-------------- checking occupied ports"
-    netstat -ltnp
-    echo "-------------- running tests"
-    ./predeployed/test/prepare_environment.sh
-    ./predeployed/test/test.sh
+      killall -9 node || true # stop any ganache-cli, etc
+      killall -9 geth || true # stop any geth, etc
+      echo "-------------- checking occupied ports"
+      netstat -ltnp
+      echo "-------------- running tests"
+      ./predeployed/test/prepare_environment.sh
+      ./predeployed/test/test.sh
 
   - name: Test ABIs generation
     env:
     VERSION: "0.0.0"
     run: |
-    python3 -m venv predeployed/scripts/venv
-    source predeployed/scripts/venv/bin/activate
-    pip install predeployed/dist/ima_predeployed-*.whl
-    python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+      python3 -m venv predeployed/scripts/venv
+      source predeployed/scripts/venv/bin/activate
+      pip install predeployed/dist/ima_predeployed-*.whl
+      python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
   test-integration:
     runs-on: ubuntu-latest
@@ -187,14 +187,14 @@ jobs:
       path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
       key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       restore-keys: |
-      ${{ runner.os }}-yarn-
+        ${{ runner.os }}-yarn-
 
     - uses: actions/cache@v2
     with:
       path: ~/.cache/pip
       key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
       restore-keys: |
-      ${{ runner.os }}-pip-
+        ${{ runner.os }}-pip-
 
     - name: Set up Node
     uses: actions/setup-node@v2
