@@ -169,73 +169,73 @@ jobs:
       python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
   test-integration:
-    runs-on: ubuntu-latest
-    env:
-      working-directory: ./test
-    steps:
-    - uses: actions/checkout@v2
+  runs-on: ubuntu-latest
+  env:
+    working-directory: ./test
+  steps:
+  - uses: actions/checkout@v2
 
-    - name: Get yarn cache directory path
-    id: yarn-cache-dir-path
-    run: echo "::set-output name=dir::$(yarn cache dir)"
+  - name: Get yarn cache directory path
+  id: yarn-cache-dir-path
+  run: echo "::set-output name=dir::$(yarn cache dir)"
 
-    - uses: actions/cache@v2
-    id: yarn-cache
-    with:
-      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      restore-keys: |
-        ${{ runner.os }}-yarn-
+  - uses: actions/cache@v2
+  id: yarn-cache
+  with:
+    path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+    key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-yarn-
 
-    - uses: actions/cache@v2
-    with:
-      path: ~/.cache/pip
-      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-      restore-keys: |
-        ${{ runner.os }}-pip-
+  - uses: actions/cache@v2
+  with:
+    path: ~/.cache/pip
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
 
-    - name: Set up Node
-    uses: actions/setup-node@v2
-    with:
-      node-version: '16'
+  - name: Set up Node
+  uses: actions/setup-node@v2
+  with:
+    node-version: '16'
 
-    - name: Set up Python
-    uses: actions/setup-python@v2
-    with:
-      python-version: 3.8
+  - name: Set up Python
+  uses: actions/setup-python@v2
+  with:
+    python-version: 3.8
 
-    - name: Compile contracts
-    working-directory: ./proxy
-    run: |
-      yarn install
+  - name: Compile contracts
+  working-directory: ./proxy
+  run: |
+    yarn install
 
-    - name: Install all NPMs
-    run: |
-      yarn install
+  - name: Install all NPMs
+  run: |
+    yarn install
 
-    - name: Start background ganache
-    working-directory: ./proxy
-    run: |
-      npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
+  - name: Start background ganache
+  working-directory: ./proxy
+  run: |
+    npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
 
-    - name: Prepare test (PY part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      python3 ../scripts/config_from_accounts.py accounts.json config.json
-      pip3 install -r requirements.txt
+  - name: Prepare test (PY part)
+  working-directory: ${{env.working-directory}}
+  run: |
+    python3 ../scripts/config_from_accounts.py accounts.json config.json
+    pip3 install -r requirements.txt
 
-    - name: Run test (PY part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      python3 test.py
+  - name: Run test (PY part)
+  working-directory: ${{env.working-directory}}
+  run: |
+    python3 test.py
 
-    - name: Prepare test (JS part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      yarn install
+  - name: Prepare test (JS part)
+  working-directory: ${{env.working-directory}}
+  run: |
+    yarn install
 
-    - name: Run test (JS part)
-    working-directory: ${{env.working-directory}}
-    run: |
-      yarn test
+  - name: Run test (JS part)
+  working-directory: ${{env.working-directory}}
+  run: |
+    yarn test
 
