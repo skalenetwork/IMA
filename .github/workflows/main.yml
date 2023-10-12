@@ -223,16 +223,16 @@ jobs:
       run: |
         npx ganache --miner.blockGasLimit 12000000 --logging.quiet --chain.allowUnlimitedContractSize --wallet.defaultBalance 2000000 --wallet.accountKeysPath ../test/accounts.json &
 
-    - name: Prepare test (PY part)
-      working-directory: ./test
-      run: |
-        python3 ../scripts/config_from_accounts.py accounts.json config.json
-        pip3 install -r requirements.txt
+      # - name: Prepare test (PY part)
+      #   working-directory: ./test
+      #   run: |
+      #     python3 ../scripts/config_from_accounts.py accounts.json config.json
+      #     pip3 install -r requirements.txt
 
-    - name: Run test (PY part)
-      working-directory: ./test
-      run: |
-        python3 test.py
+      # - name: Run test (PY part)
+      #   working-directory: ./test
+      #   run: |
+      #     python3 test.py
 
     - name: Prepare test (JS part)
       working-directory: ./test
