@@ -226,9 +226,11 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
 
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.joMessageProxyMainNet,
+                        imaState.joMessageProxyMainNetABI,
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.joMessageProxySChain,
+                        imaState.joMessageProxySChainABI,
 
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.strChainName,
@@ -306,9 +308,11 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
 
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.joMessageProxySChain,
+                        imaState.joMessageProxySChainABI,
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.joMessageProxyMainNet,
+                        imaState.joMessageProxyMainNetABI,
 
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.strChainName,
@@ -373,6 +377,7 @@ async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
                 skaleObserver,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.joMessageProxySChain,
+                imaState.joMessageProxySChainABI,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.sc.chainId,
@@ -674,9 +679,9 @@ export async function ensureHaveWorkers( opts ) {
         return gArrWorkers;
     const cntWorkers = 2;
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write( cc.debug( "Loop module will create its " ) +
-            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
-            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        log.write( cc.debug( "Loop module will create its " ) + cc.info( cntWorkers ) +
+            cc.debug( " worker(s) in " ) + threadInfo.threadDescription() + cc.debug( "..." ) +
+            "\n" );
     }
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
@@ -764,7 +769,6 @@ export async function ensureHaveWorkers( opts ) {
                         "nBlockAgeM2S": opts.imaState.nBlockAgeM2S,
                         "nBlockAgeS2M": opts.imaState.nBlockAgeS2M,
                         "nBlockAgeS2S": opts.imaState.nBlockAgeS2S,
-
                         "nLoopPeriodSeconds": opts.imaState.nLoopPeriodSeconds,
                         "nNodeNumber": opts.imaState.nNodeNumber,
                         "nNodesCount": opts.imaState.nNodesCount,
@@ -779,7 +783,6 @@ export async function ensureHaveWorkers( opts ) {
                         "joDepositBoxERC721WithMetadata": null,
                         "joLinker": null,
                         "isWithMetadata721": false,
-
                         "joTokenManagerETH": null,
                         "joTokenManagerERC20": null,
                         "joTokenManagerERC20Target": null,
@@ -792,8 +795,11 @@ export async function ensureHaveWorkers( opts ) {
                         "joCommunityLocker": null,
                         "joCommunityLockerTarget": null,
                         "joMessageProxyMainNet": null,
+                        "joMessageProxyMainNetABI": null,
                         "joMessageProxySChain": null,
+                        "joMessageProxySChainABI": null,
                         "joMessageProxySChainTarget": null,
+                        "joMessageProxySChainTargetABI": null,
                         "joTokenManagerLinker": null,
                         "joTokenManagerLinkerTarget": null,
                         "joEthErc20": null,
@@ -836,7 +842,7 @@ export async function ensureHaveWorkers( opts ) {
         };
         while( ! aClient.logicalInitComplete ) {
             if( log.verboseGet() >= log.verboseReversed().info )
-                log.write( "LOOP server is not inited yet...\n" );
+                log.write( "LOOP server is not initialized yet...\n" );
             await threadInfo.sleep( 1000 );
             aClient.send( jo );
         }
@@ -861,9 +867,8 @@ export async function ensureHaveWorkers( opts ) {
     // Force broadcast what we have in SNB right now because works above can start later than SNB
     // is finished download connected chains quickly
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write(
-            cc.debug( "Loop module will do first initial broadcast of arrSChainsCached to its " ) +
-            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
+        log.write( cc.debug( "Loop module will do first initial broadcast of " +
+            "arrSChainsCached to its " ) + cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
             threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
     }
     notifyCacheChangedSNB( skaleObserver.getLastCachedSChains() );

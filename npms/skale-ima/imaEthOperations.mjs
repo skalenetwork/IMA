@@ -143,12 +143,14 @@ export async function doEthPaymentFromMainNet(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} :
+                joMessageProxyMainNet.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderMainNet, joMessageProxyMainNet, strEventName,
-                joReceipt.blockNumber, joReceipt.transactionHash,
-                joMessageProxyMainNet.filters[strEventName]()
-            );
+                details, strLogPrefix, ethersProviderMainNet,
+                joMessageProxyMainNet, joMessageProxyABI,
+                strEventName, joReceipt.blockNumber, joReceipt.transactionHash, joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
@@ -264,12 +266,14 @@ export async function doEthPaymentFromSChain(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxySChain.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderSChain, joMessageProxySChain, strEventName,
-                joReceipt.blockNumber, joReceipt.transactionHash,
-                joMessageProxySChain.filters[strEventName]()
-            );
+                details, strLogPrefix, ethersProviderSChain,
+                joMessageProxySChain, joMessageProxyABI,
+                strEventName, joReceipt.blockNumber, joReceipt.transactionHash, joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +

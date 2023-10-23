@@ -152,6 +152,10 @@ class ObserverServer extends SocketServer {
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     self.opts.imaState.chainProperties.sc.ethersProvider
                 );
+            self.opts.imaState.joMessageProxySChainABI = {
+                address: self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+                abi: self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi
+            };
             self.initComplete = true;
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 self.log( cc.debug( "Full init compete for in-worker SNB server in " ) +

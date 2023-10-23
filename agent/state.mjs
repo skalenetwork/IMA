@@ -229,8 +229,11 @@ export function get() {
         "joCommunityLocker": null, // only s-chain
         "joCommunityLockerTarget": null, // only s-chain target
         "joMessageProxyMainNet": null,
+        "joMessageProxyMainNetABI": null,
         "joMessageProxySChain": null,
+        "joMessageProxySChainABI": null,
         "joMessageProxySChainTarget": null, // only s-chain target
+        "joMessageProxySChainTargetABI": null,
         "joTokenManagerLinker": null,
         "joTokenManagerLinkerTarget": null, // only s-chain target
         "joEthErc20": null, // only s-chain

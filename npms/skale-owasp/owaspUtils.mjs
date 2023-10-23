@@ -35,10 +35,17 @@ import * as ethereumJsUtilModule from "ethereumjs-util";
 import * as ethereumJsWalletModule from "ethereumjs-wallet";
 const Wallet = ethereumJsWalletModule.default.default;
 
+// import { default as w3mod_def } from "web3";
+// // import { Web3 as w3mod } from "web3";
+// // import * as w3mod from "web3";
+// const w3mod = w3mod_def.modules;
+
+import { w3mod } from "./w3helper.js";
+
 const safeURL = cc.safeURL;
 const replaceAll = cc.replaceAll;
 
-export { ethersMod, safeURL, replaceAll };
+export { ethersMod, w3mod, safeURL, replaceAll };
 
 export function rxIsInt( val ) {
     try {
@@ -741,10 +748,72 @@ export function ethersProviderToUrl( ethersProvider ) {
     let strURL = null;
     if( ethersProvider &&
         "connection" in ethersProvider && typeof ethersProvider.connection == "object" &&
-        "url" in ethersProvider.connection && typeof ethersProvider.connection.url == "string"
-    )
-        strURL = "" + ethersProvider.connection.url;
+        "url" in ethersProvider.connection && "url" in ethersProvider.connection &&
+        ethersProvider.connection.url )
+        strURL = "" + ethersProvider.connection.url.toString();
     return strURL;
+}
+
+export function getWeb3FromURL( strURL, log ) {
+    let w3 = null;
+    log = log || { write: console.log };
+    try {
+        const u = cc.safeURL( strURL );
+        const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
+        if( strProtocol == "ws" || strProtocol == "wss" ) {
+            // see: https://github.com/ChainSafe/web3.js/tree/1.x/packages/web3-providers-ws#usage
+            const w3ws = new w3mod.providers.WebsocketProvider( strURL, {
+                clientConfig: {
+                    // // if requests are large:
+                    // maxReceivedFrameSize: 100000000,   // bytes - default: 1MiB
+                    // maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+                    // keep a connection alive
+                    keepalive: true,
+                    keepaliveInterval: 200000 // ms
+                },
+                reconnect: { // enable auto reconnection
+                    auto: true,
+                    delay: 5000, // ms
+                    maxAttempts: 10000000, // 10 million times
+                    onTimeout: false
+                }
+            } );
+            w3 = new w3mod( w3ws );
+        } else {
+            const w3http = new w3mod.providers.HttpProvider( strURL );
+            w3 = new w3mod( w3http );
+        }
+    } catch ( err ) {
+        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
+            cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
+            cc.error( ": " ) + cc.warning( extractErrorMessage( err ) ) + "\n" );
+        w3 = null;
+    }
+    return w3;
+}
+
+export function getUrlFromW3Provider( provider ) {
+    if( ! provider )
+        return null;
+    if( "host" in provider ) {
+        const u = provider.host.toString();
+        if( u && cc.safeURL( u ) )
+            return u;
+    }
+    if( "url" in provider ) {
+        const u = provider.url.toString();
+        if( u && cc.safeURL( u ) )
+            return u;
+    }
+    return null;
+}
+
+export function getUrlFromW3( w3 ) {
+    if( ! w3 )
+        return null;
+    if( !( "currentProvider" in w3 ) )
+        return null;
+    return getUrlFromW3Provider( w3.currentProvider );
 }
 
 export function ensureObserverOptionsInitialized( opts ) {

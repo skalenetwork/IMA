@@ -4237,6 +4237,10 @@ function initContractsIMA() {
         imaState.joMessageProxyMainNet =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.message_proxy_mainnet_address, joABI.message_proxy_mainnet_abi, ep );
+        imaState.joMessageProxyMainNetABI = {
+            address: joABI.message_proxy_mainnet_address,
+            abi: joABI.message_proxy_mainnet_abi
+        };
     }
     if( imaState.chainProperties.sc.bHaveAbiIMA ) {
         const cp = imaState.chainProperties.sc;
@@ -4277,6 +4281,10 @@ function initContractsIMA() {
                 joABI.message_proxy_chain_address,
                 joABI.message_proxy_chain_abi,
                 ep );
+        imaState.joMessageProxySChainABI = {
+            address: joABI.message_proxy_chain_address,
+            abi: joABI.message_proxy_chain_abi
+        };
         imaState.joTokenManagerLinker =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_linker_address,
@@ -4327,6 +4335,10 @@ function initContractsIMA() {
                 joABI.message_proxy_chain_address,
                 joABI.message_proxy_chain_abi,
                 ep );
+        imaState.joMessageProxySChainTargetABI = {
+            address: joABI.message_proxy_chain_address,
+            abi: joABI.message_proxy_chain_abi
+        };
         imaState.joTokenManagerLinkerTarget =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_linker_address,

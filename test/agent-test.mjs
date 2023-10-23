@@ -129,7 +129,11 @@ const imaState = {
     "joDepositBoxERC1155": null, // only main net
     "joTokenManager": null, // only s-chain
     "joMessageProxyMainNet": null,
+    "joMessageProxyMainNetABI": null,
     "joMessageProxySChain": null,
+    "joMessageProxySChainABI": null,
+    "joMessageProxySChainTarget": null, // only s-chain target
+    "joMessageProxySChainTargetABI": null,
     "joLinker": null,
     "joLockAndDataSChain": null,
     "joEthErc20": null, // only s-chain

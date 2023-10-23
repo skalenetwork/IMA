@@ -276,12 +276,15 @@ export async function doErc721PaymentFromMainNet(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxyMainNet.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderMainNet, joMessageProxyMainNet, strEventName,
-                joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                joMessageProxyMainNet.filters[strEventName]()
-            );
+                details, strLogPrefix, ethersProviderMainNet,
+                joMessageProxyMainNet, joMessageProxyABI,
+                strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
@@ -458,12 +461,15 @@ export async function doErc20PaymentFromMainNet(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxyMainNet.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderMainNet, joMessageProxyMainNet, strEventName,
-                joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                joMessageProxyMainNet.filters[strEventName]()
-            );
+                details, strLogPrefix, ethersProviderMainNet,
+                joMessageProxyMainNet, joMessageProxyABI,
+                strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
@@ -632,12 +638,15 @@ export async function doErc1155PaymentFromMainNet(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxyMainNet.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderMainNet, joMessageProxyMainNet, strEventName,
-                joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                joMessageProxyMainNet.filters[strEventName]()
-            );
+                details, strLogPrefix, ethersProviderMainNet,
+                joMessageProxyMainNet, joMessageProxyABI,
+                strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
@@ -802,12 +811,15 @@ export async function doErc1155BatchPaymentFromMainNet(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxyMainNet.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderMainNet, joMessageProxyMainNet, strEventName,
-                joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                joMessageProxyMainNet.filters[strEventName]()
-            );
+                details, strLogPrefix, ethersProviderMainNet,
+                joMessageProxyMainNet, joMessageProxyABI,
+                strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
@@ -984,11 +996,16 @@ export async function doErc20PaymentFromSChain(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxySChain.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderSChain, joMessageProxySChain, strEventName,
+                details, strLogPrefix, ethersProviderSChain,
+                joMessageProxySChain, joMessageProxyABI,
+                strEventName,
                 joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash,
-                joMessageProxySChain.filters[strEventName]() );
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
@@ -1165,12 +1182,16 @@ export async function doErc721PaymentFromSChain(
                 cc.debug( " contract ..." ) + "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxySChain.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderSChain, joMessageProxySChain, strEventName,
-                joReceiptExitToMainERC721.blockNumber,
-                joReceiptExitToMainERC721.transactionHash,
-                joMessageProxySChain.filters[strEventName]() );
+                details, strLogPrefix, ethersProviderSChain,
+                joMessageProxySChain, joMessageProxyABI,
+                strEventName,
+                joReceiptExitToMainERC721.blockNumber, joReceiptExitToMainERC721.transactionHash,
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
@@ -1350,12 +1371,17 @@ export async function doErc1155PaymentFromSChain(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxySChain.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderSChain, joMessageProxySChain, strEventName,
+                details, strLogPrefix, ethersProviderSChain,
+                joMessageProxySChain, joMessageProxyABI,
+                strEventName,
                 joReceiptExitToMainERC1155.blockNumber,
                 joReceiptExitToMainERC1155.transactionHash,
-                joMessageProxySChain.filters[strEventName]() );
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
@@ -1536,12 +1562,17 @@ export async function doErc1155BatchPaymentFromSChain(
                 "\n" );
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
+            const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
+                // ? {} : 
+                joMessageProxySChain.filters[strEventName]();
+            const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
-                details, strLogPrefix,
-                ethersProviderSChain, joMessageProxySChain, strEventName,
+                details, strLogPrefix, ethersProviderSChain,
+                joMessageProxySChain, joMessageProxyABI,
+                strEventName,
                 joReceiptExitToMainERC1155Batch.blockNumber,
                 joReceiptExitToMainERC1155Batch.transactionHash,
-                joMessageProxySChain.filters[strEventName]() );
+                joFilter );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
