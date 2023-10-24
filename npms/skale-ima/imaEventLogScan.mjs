@@ -551,13 +551,6 @@ function transformEthersProviderToW3( ethersProvider ) {
 }
 
 function transformEtherContractToW3( joContract, joABI, w3provider ) {
-    // console.log( "w3provider is", Object.keys( w3provider ) );
-    // console.log( Object.keys( owaspUtils.w3mod ) );
-    // console.log( Object.keys( owaspUtils.modules ) );
-    // console.log( Object.keys( owaspUtils.w3mod.Eth ) );
-    // console.log( Object.keys( owaspUtils.w3mod.Eth.providers ) );
-    // process.exit( 0 );
-    // return new owaspUtils.w3mod.eth.Contract( joABI, joContract.address );
     return new w3provider.eth.Contract( joABI.abi, joContract.address );
 }
 
@@ -582,14 +575,13 @@ export async function safeGetPastEventsViaWeb3(
     nBlockFrom, nBlockTo, joFilter,
     retValOnFail, throwIfServerOffline
 ) {
-    // console.log( "--- joABI ---", joABI ? Object.keys( joABI ) : "<<<NULL ABI>>>" );
-    // console.log( "--- strEventName ---", strEventName );
     const strFnName = "getPastEvents";
     const u = owaspUtils.getUrlFromW3( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1 ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
+    cntAttempts = ( owaspUtils.parseIntOrHex( cntAttempts ) < 1 )
+        ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;

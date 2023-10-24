@@ -51,7 +51,7 @@ async function findOutReferenceLogRecord(
     const bnMessageNumberToFind = owaspUtils.toBN( nMessageNumberToFind.toString() );
     const strEventName = "PreviousMessageReference";
     const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-        // ? {} : 
+        // ? {} :
         joMessageProxy.filters[strEventName]();
     const joMessageProxyABI = null;
     const arrLogRecords = await imaEventLogScan.safeGetPastEventsProgressive(
@@ -69,14 +69,13 @@ async function findOutReferenceLogRecord(
     }
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
-        const eventValuesByName = {
+        const ev = {
             "currentMessage": joEvent.args[0],
             "previousOutgoingMessageBlockId": joEvent.args[1]
         };
         const joReferenceLogRecord = {
-            "currentMessage": eventValuesByName.currentMessage,
-            "previousOutgoingMessageBlockId":
-                eventValuesByName.previousOutgoingMessageBlockId,
+            "currentMessage": ev.currentMessage,
+            "previousOutgoingMessageBlockId": ev.previousOutgoingMessageBlockId,
             "currentBlockId": bnBlockId
         };
         const bnCurrentMessage =
@@ -371,8 +370,7 @@ async function analyzeGatheredRecords( optsTransfer, r ) {
                 cc.debug( "Will review found event record " ) + cc.info( i ) +
                 cc.debug( " with data " ) + cc.j( joEvent ) + "\n" );
         }
-        // console.log( "--- joEvent ---", joEvent );
-        const eventValuesByName = imaEventLogScan.safeGetUseWen3ForPastEvents()
+        const ev = imaEventLogScan.safeGetUseWen3ForPastEvents()
             ? joEvent.returnValues
             : {
                 "dstChainHash": joEvent.args[0],
@@ -381,8 +379,8 @@ async function analyzeGatheredRecords( optsTransfer, r ) {
                 "dstContract": joEvent.args[3],
                 "data": joEvent.args[4]
             };
-        if( eventValuesByName.dstChainHash == strChainHashWeAreLookingFor ) {
-            joValues = eventValuesByName;
+        if( ev.dstChainHash == strChainHashWeAreLookingFor ) {
+            joValues = ev;
             joValues.savedBlockNumberForOptimizations = r[i].blockNumber;
             if( log.verboseGet() >= log.verboseReversed().debug ) {
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
@@ -922,6 +920,7 @@ async function handleAllMessagesSigning( optsTransfer ) {
 }
 
 async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
+    const sc = optsTransfer.imaState.chainProperties.sc;
     const cntNodes = joSChain.data.computed.nodes.length;
     const cntMessages = optsTransfer.jarrMessages.length;
     for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
@@ -952,21 +951,13 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                 let bEventIsFound = false;
                 try {
                     // eslint-disable-next-line dot-notation
-                    const ethersProviderNode =
-                        owaspUtils.getEthersProviderFromURL( strUrlHttp );
-                    const joMessageProxyNode =
-                        new owaspUtils.ethersMod.ethers.Contract(
-                            optsTransfer.imaState.chainProperties.sc
-                                .joAbiIMA.message_proxy_chain_address,
-                            optsTransfer.imaState.chainProperties.sc
-                                .joAbiIMA.message_proxy_chain_abi,
-                            ethersProviderNode
-                        );
+                    const ethersProviderNode = owaspUtils.getEthersProviderFromURL( strUrlHttp );
+                    const joMessageProxyNode = new owaspUtils.ethersMod.ethers.Contract(
+                        sc.joAbiIMA.message_proxy_chain_address,
+                        sc.joAbiIMA.message_proxy_chain_abi, ethersProviderNode );
                     const joMessageProxyNodeABI = {
-                        address: optsTransfer.imaState.chainProperties.sc
-                            .joAbiIMA.message_proxy_chain_address,
-                        abi: optsTransfer.imaState.chainProperties.sc
-                            .joAbiIMA.message_proxy_chain_abi
+                        address: sc.joAbiIMA.message_proxy_chain_address,
+                        abi: sc.joAbiIMA.message_proxy_chain_abi
                     };
                     const joFilter = imaEventLogScan.safeGetUseWen3ForPastEvents()
                         ? {
@@ -976,17 +967,13 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                         }
                         : joMessageProxyNode.filters[strEventName](
                             owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ),
-                            owaspUtils.toBN( idxImaMessage )
-                        );
+                            owaspUtils.toBN( idxImaMessage ) );
                     const strEventName = "OutgoingMessage";
                     const node_r = await imaEventLogScan.safeGetPastEventsProgressive(
                         optsTransfer.details, optsTransfer.strLogPrefixShort,
-                        ethersProviderNode, 10,
-                        joMessageProxyNode, joMessageProxyNodeABI,
-                        strEventName,
-                        joMessage.savedBlockNumberForOptimizations,
-                        joMessage.savedBlockNumberForOptimizations,
-                        joFilter );
+                        ethersProviderNode, 10, joMessageProxyNode, joMessageProxyNodeABI,
+                        strEventName, joMessage.savedBlockNumberForOptimizations,
+                        joMessage.savedBlockNumberForOptimizations, joFilter );
                     const cntEvents = node_r.length;
                     if( log.verboseGet() >= log.verboseReversed().trace ) {
                         optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Got " ) +
@@ -997,21 +984,20 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                     }
                     for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                         const joEvent = node_r[idxEvent];
-                        const eventValuesByName = {
-                            "dstChainHash": joEvent.args[0],
-                            "msgCounter": joEvent.args[1],
-                            "srcContract": joEvent.args[2],
-                            "dstContract": joEvent.args[3],
-                            "data": joEvent.args[4]
-                        };
-                        if( owaspUtils.ensureStartsWith0x(
-                            joMessage.sender ).toLowerCase() ==
-                            owaspUtils.ensureStartsWith0x(
-                                eventValuesByName.srcContract ).toLowerCase() &&
+                        const ev = imaEventLogScan.safeGetUseWen3ForPastEvents()
+                            ? joEvent.returnValues
+                            : {
+                                "dstChainHash": joEvent.args[0],
+                                "msgCounter": joEvent.args[1],
+                                "srcContract": joEvent.args[2],
+                                "dstContract": joEvent.args[3],
+                                "data": joEvent.args[4]
+                            };
+                        if( owaspUtils.ensureStartsWith0x( joMessage.sender ).toLowerCase() ==
+                            owaspUtils.ensureStartsWith0x( ev.srcContract ).toLowerCase() &&
                             owaspUtils.ensureStartsWith0x(
                                 joMessage.destinationContract ).toLowerCase() ==
-                            owaspUtils.ensureStartsWith0x(
-                                eventValuesByName.dstContract ).toLowerCase()
+                            owaspUtils.ensureStartsWith0x( ev.dstContract ).toLowerCase()
                         ) {
                             bEventIsFound = true;
                             break;

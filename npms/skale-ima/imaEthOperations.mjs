@@ -267,7 +267,7 @@ export async function doEthPaymentFromSChain(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxySChain.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(

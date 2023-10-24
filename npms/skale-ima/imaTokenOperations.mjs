@@ -277,7 +277,7 @@ export async function doErc721PaymentFromMainNet(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxyMainNet.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -462,7 +462,7 @@ export async function doErc20PaymentFromMainNet(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxyMainNet.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -639,7 +639,7 @@ export async function doErc1155PaymentFromMainNet(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxyMainNet.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -812,7 +812,7 @@ export async function doErc1155BatchPaymentFromMainNet(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxyMainNet.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -997,7 +997,7 @@ export async function doErc20PaymentFromSChain(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxySChain.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -1183,7 +1183,7 @@ export async function doErc721PaymentFromSChain(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxySChain.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -1372,7 +1372,7 @@ export async function doErc1155PaymentFromSChain(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxySChain.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(
@@ -1563,7 +1563,7 @@ export async function doErc1155BatchPaymentFromSChain(
             await imaHelperAPIs.sleep(
                 imaHelperAPIs.getMillisecondsSleepBeforeFetchOutgoingMessageEvent() );
             const joFilter = // imaEventLogScan.safeGetUseWen3ForPastEvents()
-                // ? {} : 
+                // ? {} :
                 joMessageProxySChain.filters[strEventName]();
             const joMessageProxyABI = null;
             const joEvents = await imaEventLogScan.getContractCallEvents(

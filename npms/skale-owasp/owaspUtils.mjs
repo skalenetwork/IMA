@@ -33,7 +33,6 @@ import * as fs from "fs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as ethereumJsUtilModule from "ethereumjs-util";
 import * as ethereumJsWalletModule from "ethereumjs-wallet";
-const Wallet = ethereumJsWalletModule.default.default;
 
 // import { default as w3mod_def } from "web3";
 // // import { Web3 as w3mod } from "web3";
@@ -41,6 +40,7 @@ const Wallet = ethereumJsWalletModule.default.default;
 // const w3mod = w3mod_def.modules;
 
 import { w3mod } from "./w3helper.js";
+const Wallet = ethereumJsWalletModule.default.default;
 
 const safeURL = cc.safeURL;
 const replaceAll = cc.replaceAll;
