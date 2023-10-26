@@ -140,7 +140,7 @@ export async function safeGetPastEventsProgressiveExternal(
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix +
                 cc.debug( "Will run external command to search logs for event " ) +
-                cc.j( strEventName ) + cc.debug( " via URL " ) + cc.u( joArg ) +
+                cc.j( strEventName ) + cc.debug( " via URL " ) + cc.u( joArg.url ) +
                 generateWhileTransferringLogMessageSuffix( optsChainPair ) +
                 cc.debug( "..." ) + "\n" );
         }
@@ -149,7 +149,7 @@ export async function safeGetPastEventsProgressiveExternal(
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 details.write( strLogPrefix +
                     cc.error( "Got error from external command to search logs for event " ) +
-                    cc.j( strEventName ) + cc.error( " via URL " ) + cc.u( joArg ) +
+                    cc.j( strEventName ) + cc.error( " via URL " ) + cc.u( joArg.url ) +
                     generateWhileTransferringLogMessageSuffix( optsChainPair ) +
                     cc.error( ":" ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
             }
@@ -158,7 +158,7 @@ export async function safeGetPastEventsProgressiveExternal(
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix +
                 cc.debug( "Done running external command to search logs for event " ) +
-                cc.j( strEventName ) + cc.debug( " via URL " ) + cc.u( joArg ) +
+                cc.j( strEventName ) + cc.debug( " via URL " ) + cc.u( joArg.url ) +
                 generateWhileTransferringLogMessageSuffix( optsChainPair ) +
                 cc.debug( "." ) + "\n" );
         }
