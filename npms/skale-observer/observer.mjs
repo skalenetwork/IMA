@@ -1333,7 +1333,7 @@ export async function ensureHaveWorker( opts ) {
     };
     while( ! gClient.logicalInitComplete ) {
         if( log.verboseGet() >= log.verboseReversed().info )
-            log.write( "SNB server is not inited yet...\n" );
+            log.write( "SNB server is not initialized yet...\n" );
 
         await threadInfo.sleep( 1000 );
         gClient.send( jo );
@@ -1511,6 +1511,19 @@ export function pickRandomSChainUrl( joSChain ) {
     const joNode = pickRandomSChainNode( joSChain );
     // eslint-disable-next-line dot-notation
     return "" + joNode["http_endpoint_ip"];
+}
+
+export function pickRandomSChainIndexAndNodeAndUrl( joSChain ) {
+    const idxNode = pickRandomSChainNodeIndex( joSChain );
+    const joNode = joSChain.data.computed.nodes[idxNode];
+    // eslint-disable-next-line dot-notation
+    const strURL = "" + joNode["http_endpoint_ip"];
+    const joPickResult = {
+        "strURL": strURL,
+        "joNode": joNode,
+        "idxNode": idxNode
+    };
+    return joPickResult;
 }
 
 export async function discoverChainId( strURL ) {
