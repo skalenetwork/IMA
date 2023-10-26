@@ -220,6 +220,11 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                 if( checkTimeFraming( null, "m2s", optsLoop.joRuntimeOpts ) ) {
                     imaState.loopState.m2s.isInProgress = true;
                     await pwa.notifyOnLoopStart( imaState, "m2s" );
+                    const optsChainPair = {
+                        "strDirection": "M2S",
+                        "chainSrc": imaState.chainProperties.mn,
+                        "chainDst": imaState.chainProperties.sc
+                    };
                     b1 = await IMA.doTransfer( // main-net --> s-chain
                         "M2S",
                         optsLoop.joRuntimeOpts,
@@ -244,7 +249,8 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                         imaState.nBlockAgeM2S,
                         imaBLS.doSignMessagesM2S,
                         null,
-                        imaState.chainProperties.sc.transactionCustomizer
+                        imaState.chainProperties.sc.transactionCustomizer,
+                        optsChainPair
                     );
                     imaState.loopState.m2s.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "m2s" );
@@ -300,6 +306,11 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                 if( checkTimeFraming( null, "s2m", optsLoop.joRuntimeOpts ) ) {
                     imaState.loopState.s2m.isInProgress = true;
                     await pwa.notifyOnLoopStart( imaState, "s2m" );
+                    const optsChainPair = {
+                        "strDirection": "S2M",
+                        "chainSrc": imaState.chainProperties.sc,
+                        "chainDst": imaState.chainProperties.mn
+                    };
                     b2 = await IMA.doTransfer( // s-chain --> main-net
                         "S2M",
                         optsLoop.joRuntimeOpts,
@@ -324,7 +335,8 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                         imaState.nBlockAgeS2M,
                         imaBLS.doSignMessagesS2M,
                         null,
-                        imaState.chainProperties.mn.transactionCustomizer
+                        imaState.chainProperties.mn.transactionCustomizer,
+                        optsChainPair
                     );
                     imaState.loopState.s2m.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "s2m" );

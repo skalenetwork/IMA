@@ -99,10 +99,27 @@ export function extractEventArg( arg ) {
     return arg;
 }
 
+function generateWhileTransferringLogMessageSuffix( optsChainPair ) {
+    if( ! optsChainPair )
+        return "";
+    if( ! optsChainPair.strDirection )
+        return "";
+    if( optsChainPair.strDirection == "S2S" ) {
+        return cc.debug( " (while performing " ) + cc.attention( optsChainPair.strDirection ) +
+            cc.debug( " transfer with external S-Chain " ) +
+            cc.info( optsChainPair.optsSpecificS2S.joSChain.data.name ) + cc.debug( " / " ) +
+            cc.notice( optsChainPair.optsSpecificS2S.joSChain.data.computed.chainId ) +
+            cc.debug( " node " ) + cc.info( optsChainPair.optsSpecificS2S.idxNode ) +
+            cc.debug( ")" );
+    }
+    return cc.debug( " (while performing " ) + optsChainPair.strDirection +
+        cc.debug( " transfer)" );
+}
+
 export async function safeGetPastEventsProgressiveExternal(
     details, strLogPrefix, ethersProvider, attempts,
     joContract, joABI, strEventName,
-    nBlockFrom, nBlockTo, joFilter
+    nBlockFrom, nBlockTo, joFilter, optsChainPair
 ) {
     if( joABI && typeof joABI == "object" ) {
         const escapeShell = function( cmd ) {
@@ -123,22 +140,27 @@ export async function safeGetPastEventsProgressiveExternal(
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix +
                 cc.debug( "Will run external command to search logs for event" ) +
-                cc.j( strEventName ) + cc.debug( "..." ) + "\n" );
+                cc.j( strEventName ) + cc.debug( "via URL " ) + cc.u( joArg ) +
+                generateWhileTransferringLogMessageSuffix( optsChainPair ) +
+                cc.debug( "..." ) + "\n" );
         }
         const res = childProcessModule.execSync( cmd );
         if( "error" in res && res.error ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 details.write( strLogPrefix +
                     cc.error( "Got error from external command to search logs for event" ) +
-                    cc.j( strEventName ) + cc.error( ":" ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                    cc.j( strEventName ) + cc.error( "via URL " ) + cc.u( joArg ) +
+                    generateWhileTransferringLogMessageSuffix( optsChainPair ) +
+                    cc.error( ":" ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
             }
             throw new Error( res.error );
         }
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( strLogPrefix +
                 cc.debug( "Done running external command to search logs for event" ) +
-                cc.j( strEventName ) + cc.debug( "." ) + "\n" );
+                cc.j( strEventName ) + cc.debug( "via URL " ) + cc.u( joArg ) +
+                generateWhileTransferringLogMessageSuffix( optsChainPair ) +
+                cc.debug( "." ) + "\n" );
         }
         return JSON.parse( res ).result;
     }
