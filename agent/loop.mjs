@@ -223,13 +223,13 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                     b1 = await IMA.doTransfer( // main-net --> s-chain
                         "M2S",
                         optsLoop.joRuntimeOpts,
-
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.joMessageProxyMainNet,
+                        imaState.chainProperties.sc.joAbiIMA.message_proxy_mainnet_abi,
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.joMessageProxySChain,
-
+                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.strChainName,
                         imaState.chainProperties.sc.strChainName,
@@ -303,13 +303,13 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                     b2 = await IMA.doTransfer( // s-chain --> main-net
                         "S2M",
                         optsLoop.joRuntimeOpts,
-
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.joMessageProxySChain,
+                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.joMessageProxyMainNet,
-
+                        imaState.chainProperties.sc.joAbiIMA.message_proxy_mainnet_abi,
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.strChainName,
                         imaState.chainProperties.mn.strChainName,
@@ -373,6 +373,7 @@ async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
                 skaleObserver,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.joMessageProxySChain,
+                imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.sc.chainId,
@@ -836,7 +837,7 @@ export async function ensureHaveWorkers( opts ) {
         };
         while( ! aClient.logicalInitComplete ) {
             if( log.verboseGet() >= log.verboseReversed().info )
-                log.write( "LOOP server is not inited yet...\n" );
+                log.write( "LOOP server is not initialized yet...\n" );
             await threadInfo.sleep( 1000 );
             aClient.send( jo );
         }

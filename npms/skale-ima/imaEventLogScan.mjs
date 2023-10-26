@@ -31,6 +31,12 @@ import * as rpcCall from "../../agent/rpcCall.mjs";
 import * as imaHelperAPIs from "./imaHelperAPIs.mjs";
 import * as imaTransferErrorHandling from "./imaTransferErrorHandling.mjs";
 
+import * as childProcessModule from "child_process";
+import * as path from "path";
+import * as url from "url";
+
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
+
 export function createProgressiveEventsScanPlan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
     const blocksInOneMinute = 6;
@@ -86,9 +92,49 @@ export function createProgressiveEventsScanPlan( details, nLatestBlockNumber ) {
     return arrProgressiveEventsScanPlan;
 }
 
+export function extractEventArg( arg ) {
+    if( arg && typeof arg == "object" && "type" in arg && typeof arg.type == "string" &&
+        arg.type == "BigNumber" && "hex" in arg && typeof arg.hex == "string" )
+        return owaspUtils.toBN( arg.hex );
+    return arg;
+}
+
+export async function safeGetPastEventsProgressiveExternal(
+    details, strLogPrefix, ethersProvider, attempts,
+    joContract, joABI, strEventName,
+    nBlockFrom, nBlockTo, joFilter
+) {
+    if( joABI && typeof joABI == "object" ) {
+        const escapeShell = function( cmd ) {
+            return "\"" + cmd.replace( /(["'$`\\])/g,"\\$1" ) + "\"";
+        };
+        const joArg = {
+            "url": owaspUtils.ethersProviderToUrl( ethersProvider ),
+            "attempts": attempts,
+            "strEventName": strEventName,
+            "nBlockFrom": nBlockFrom,
+            "nBlockTo": nBlockTo,
+            "joFilter": joFilter,
+            "address": joContract.address,
+            "abi": joABI
+        };
+        const cmd = "node " + path.join( __dirname, "imaExternalLogScan.mjs" ) + " " +
+            escapeShell( JSON.stringify( joArg ) );
+        const res = childProcessModule.execSync( cmd );
+        if( "error" in res && res.error )
+            throw new Error( res.error );
+
+        return JSON.parse( res ).result;
+    }
+    return await safeGetPastEventsProgressive(
+        details, strLogPrefix, ethersProvider, attempts,
+        joContract, strEventName,
+        nBlockFrom, nBlockTo, joFilter );
+}
+
 export async function safeGetPastEventsProgressive(
-    details, strLogPrefix,
-    ethersProvider, attempts, joContract, strEventName,
+    details, strLogPrefix, ethersProvider, attempts,
+    joContract, strEventName,
     nBlockFrom, nBlockTo, joFilter
 ) {
     if( ! imaTransferErrorHandling.getEnabledProgressiveEventsScan() ) {

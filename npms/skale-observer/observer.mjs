@@ -1333,7 +1333,7 @@ export async function ensureHaveWorker( opts ) {
     };
     while( ! gClient.logicalInitComplete ) {
         if( log.verboseGet() >= log.verboseReversed().info )
-            log.write( "SNB server is not inited yet...\n" );
+            log.write( "SNB server is not initialized yet...\n" );
 
         await threadInfo.sleep( 1000 );
         gClient.send( jo );

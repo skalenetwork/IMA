@@ -44,15 +44,13 @@ const perMessageGasForTransfer = 1000000;
 const additionalS2MTransferOverhead = 200000;
 
 async function findOutReferenceLogRecord(
-    details, strLogPrefix,
-    ethersProvider, joMessageProxy,
+    details, strLogPrefix, ethersProvider, joMessageProxy, joABI,
     bnBlockId, nMessageNumberToFind, isVerbose
 ) {
     const bnMessageNumberToFind = owaspUtils.toBN( nMessageNumberToFind.toString() );
     const strEventName = "PreviousMessageReference";
-    const arrLogRecords = await imaEventLogScan.safeGetPastEventsProgressive(
-        details, strLogPrefix,
-        ethersProvider, 10, joMessageProxy, strEventName,
+    const arrLogRecords = await imaEventLogScan.safeGetPastEventsProgressiveExternal(
+        details, strLogPrefix, ethersProvider, 10, joMessageProxy, joABI, strEventName,
         bnBlockId, bnBlockId, joMessageProxy.filters[strEventName]()
     );
     const cntLogRecord = arrLogRecords.length;
@@ -66,8 +64,8 @@ async function findOutReferenceLogRecord(
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
         const eventValuesByName = {
-            "currentMessage": joEvent.args[0],
-            "previousOutgoingMessageBlockId": joEvent.args[1]
+            "currentMessage": imaEventLogScan.extractEventArg( joEvent.args[0] ),
+            "previousOutgoingMessageBlockId": imaEventLogScan.extractEventArg( joEvent.args[1] )
         };
         const joReferenceLogRecord = {
             "currentMessage": eventValuesByName.currentMessage,
@@ -98,8 +96,7 @@ async function findOutReferenceLogRecord(
 }
 
 async function findOutAllReferenceLogRecords(
-    details, strLogPrefix,
-    ethersProvider, joMessageProxy,
+    details, strLogPrefix, ethersProvider, joMessageProxy, joABI,
     bnBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose
 ) {
     if( isVerbose ) {
@@ -130,8 +127,7 @@ async function findOutAllReferenceLogRecords(
     for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
         const joReferenceLogRecord =
             await findOutReferenceLogRecord(
-                details, strLogPrefix,
-                ethersProvider, joMessageProxy,
+                details, strLogPrefix, ethersProvider, joMessageProxy, joABI,
                 nWalkBlockId, nWalkMsgNumber, isVerbose
             );
         if( joReferenceLogRecord == null )
@@ -287,9 +283,9 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             optsTransfer.strActionName =
                 "in-getOutgoingMessagesCounter()--findOutAllReferenceLogRecords()";
             optsTransfer.arrLogRecordReferences =
-                await findOutAllReferenceLogRecords(
-                    optsTransfer.details, optsTransfer.strLogPrefixShort,
-                    optsTransfer.ethersProviderSrc, optsTransfer.joMessageProxySrc,
+                await findOutAllReferenceLogRecords( optsTransfer.details,
+                    optsTransfer.strLogPrefixShort, optsTransfer.ethersProviderSrc,
+                    optsTransfer.joMessageProxySrc, optsTransfer.joMessageProxySrcABI,
                     bnBlockId, optsTransfer.nIncMsgCnt, optsTransfer.nOutMsgCnt, true
                 );
             return true; // success, finish at this point
@@ -326,15 +322,14 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
         ++ nWalkMsgNumber
     ) {
         const joFilter = optsTransfer.joMessageProxySrc.filters[strEventName](
-            owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainIdDst ), // dstChainHash
+            owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainIdDst ),
             owaspUtils.toBN( nWalkMsgNumber )
         );
-        const arrLogRecordReferencesWalk = await imaEventLogScan.safeGetPastEventsProgressive(
-            optsTransfer.details, optsTransfer.strLogPrefixShort,
-            optsTransfer.ethersProviderSrc, attempts, optsTransfer.joMessageProxySrc,
-            strEventName,
-            nBlockFrom, nBlockTo, joFilter
-        );
+        const arrLogRecordReferencesWalk = await imaEventLogScan
+            .safeGetPastEventsProgressiveExternal( optsTransfer.details,
+                optsTransfer.strLogPrefixShort, optsTransfer.ethersProviderSrc, attempts,
+                optsTransfer.joMessageProxySrc, optsTransfer.joMessageProxySrcABI, strEventName,
+                nBlockFrom, nBlockTo, joFilter );
         optsTransfer.arrLogRecordReferences =
             optsTransfer.arrLogRecordReferences.concat( arrLogRecordReferencesWalk );
     }
@@ -361,11 +356,11 @@ async function analyzeGatheredRecords( optsTransfer, r ) {
                 cc.debug( " with data " ) + cc.j( joEvent ) + "\n" );
         }
         const eventValuesByName = {
-            "dstChainHash": joEvent.args[0],
-            "msgCounter": joEvent.args[1],
-            "srcContract": joEvent.args[2],
-            "dstContract": joEvent.args[3],
-            "data": joEvent.args[4]
+            "dstChainHash": imaEventLogScan.extractEventArg( joEvent.args[0] ),
+            "msgCounter": imaEventLogScan.extractEventArg( joEvent.args[1] ),
+            "srcContract": imaEventLogScan.extractEventArg( joEvent.args[2] ),
+            "dstContract": imaEventLogScan.extractEventArg( joEvent.args[3] ),
+            "data": imaEventLogScan.extractEventArg( joEvent.args[4] )
         };
         if( eventValuesByName.dstChainHash == strChainHashWeAreLookingFor ) {
             joValues = eventValuesByName;
@@ -432,11 +427,11 @@ async function gatherMessages( optsTransfer ) {
                 cc.notice( optsTransfer.strActionName ) + cc.debug( " for " ) +
                 cc.info( strEventName ) + cc.debug( " event..." ) + "\n" );
         }
-        r = await imaEventLogScan.safeGetPastEventsProgressive(
-            optsTransfer.details, optsTransfer.strLogPrefixShort, optsTransfer.ethersProviderSrc,
-            10, optsTransfer.joMessageProxySrc, strEventName, nBlockFrom, nBlockTo,
-            optsTransfer.joMessageProxySrc.filters[strEventName](
-                owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ), // dstChainHash
+        r = await imaEventLogScan.safeGetPastEventsProgressiveExternal( optsTransfer.details,
+            optsTransfer.strLogPrefixShort, optsTransfer.ethersProviderSrc, 10,
+            optsTransfer.joMessageProxySrc, optsTransfer.joMessageProxySrcABI, strEventName,
+            nBlockFrom, nBlockTo, optsTransfer.joMessageProxySrc.filters[strEventName](
+                owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ),
                 owaspUtils.toBN( optsTransfer.nIdxCurrentMsg )
             ) );
         const joValues = await analyzeGatheredRecords( optsTransfer, r );
@@ -450,8 +445,8 @@ async function gatherMessages( optsTransfer ) {
                 const transactionHash = r[0].transactionHash;
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) +
-                        "\n" );
+                        cc.debug( "Event transactionHash is " ) +
+                        cc.info( transactionHash ) + "\n" );
                 }
                 const blockNumber = r[0].blockNumber;
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
@@ -477,10 +472,10 @@ async function gatherMessages( optsTransfer ) {
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
                     const strError = owaspUtils.extractErrorMessage( err );
                     const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " Exception(evaluate block depth) while " +
-                            "getting transaction hash and block number during " +
-                        optsTransfer.strActionName + ": " ) + cc.error( strError ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+                        cc.error( " Exception(evaluate block depth) while getting transaction " +
+                        "hash and block number during " + optsTransfer.strActionName + ": " ) +
+                        cc.error( strError ) + cc.error( ", stack is: " ) + "\n" +
+                        cc.stack( err.stack ) + "\n";
                     optsTransfer.details.write( s );
                     if( log.id != optsTransfer.details.id )
                         log.write( s );
@@ -585,9 +580,7 @@ async function gatherMessages( optsTransfer ) {
                 cc.info( optsTransfer.nIdxCurrentMsg ) + cc.success( " and " ) +
                 cc.notice( "dstChain" ) + cc.success( " set to " ) +
                 cc.info( optsTransfer.chainNameDst ) + cc.success( ", event description: " ) +
-                cc.j( joValues ) +
-                // + cc.j(evs) +
-                "\n" );
+                cc.j( joValues ) + "\n" );
             optsTransfer.details.write( optsTransfer.strLogPrefix +
                 cc.debug( "Will process message counter value " ) +
                 cc.info( optsTransfer.nIdxCurrentMsg ) + "\n" );
@@ -938,17 +931,17 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                                 .joAbiIMA.message_proxy_chain_abi,
                             ethersProviderNode
                         );
+                    const joMessageProxyNodeABI =
+                        optsTransfer.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi;
                     const strEventName = "OutgoingMessage";
-                    const node_r = await imaEventLogScan.safeGetPastEventsProgressive(
-                        optsTransfer.details, optsTransfer.strLogPrefixShort,
-                        ethersProviderNode, 10, joMessageProxyNode, strEventName,
+                    const node_r = await imaEventLogScan.safeGetPastEventsProgressiveExternal(
+                        optsTransfer.details, optsTransfer.strLogPrefixShort, ethersProviderNode,
+                        10, joMessageProxyNode, joMessageProxyNodeABI, strEventName,
                         joMessage.savedBlockNumberForOptimizations,
                         joMessage.savedBlockNumberForOptimizations,
                         joMessageProxyNode.filters[strEventName](
                             owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ),
-                            owaspUtils.toBN( idxImaMessage )
-                        )
-                    );
+                            owaspUtils.toBN( idxImaMessage ) ) );
                     const cntEvents = node_r.length;
                     if( log.verboseGet() >= log.verboseReversed().trace ) {
                         optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Got " ) +
@@ -960,11 +953,11 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                     for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                         const joEvent = node_r[idxEvent];
                         const eventValuesByName = {
-                            "dstChainHash": joEvent.args[0],
-                            "msgCounter": joEvent.args[1],
-                            "srcContract": joEvent.args[2],
-                            "dstContract": joEvent.args[3],
-                            "data": joEvent.args[4]
+                            "dstChainHash": imaEventLogScan.extractEventArg( joEvent.args[0] ),
+                            "msgCounter": imaEventLogScan.extractEventArg( joEvent.args[1] ),
+                            "srcContract": imaEventLogScan.extractEventArg( joEvent.args[2] ),
+                            "dstContract": imaEventLogScan.extractEventArg( joEvent.args[3] ),
+                            "data": imaEventLogScan.extractEventArg( joEvent.args[4] )
                         };
                         if( owaspUtils.ensureStartsWith0x(
                             joMessage.sender ).toLowerCase() ==
@@ -1276,8 +1269,8 @@ let gIsOneTransferInProgressInThisThread = false;
 
 export async function doTransfer(
     strDirection, joRuntimeOpts,
-    ethersProviderSrc, joMessageProxySrc, joAccountSrc,
-    ethersProviderDst, joMessageProxyDst, joAccountDst,
+    ethersProviderSrc, joMessageProxySrc, joMessageProxySrcABI, joAccountSrc,
+    ethersProviderDst, joMessageProxyDst, joMessageProxyDstABI, joAccountDst,
     chainNameSrc, chainNameDst, chainIdSrc, chainIdDst,
     joDepositBoxMainNet, // for logs validation on mainnet
     joTokenManagerSChain, // for logs validation on s-chain
@@ -1290,9 +1283,11 @@ export async function doTransfer(
         joRuntimeOpts: joRuntimeOpts,
         ethersProviderSrc: ethersProviderSrc,
         joMessageProxySrc: joMessageProxySrc,
+        joMessageProxySrcABI: joMessageProxySrcABI,
         joAccountSrc: joAccountSrc,
         ethersProviderDst: ethersProviderDst,
         joMessageProxyDst: joMessageProxyDst,
+        joMessageProxyDstABI: joMessageProxyDstABI,
         joAccountDst: joAccountDst,
         chainNameSrc: chainNameSrc,
         chainNameDst: chainNameDst,
@@ -1471,6 +1466,7 @@ export async function doAllS2S( // s-chain --> s-chain
     skaleObserver,
     ethersProviderDst,
     joMessageProxyDst,
+    joMessageProxyDstABI,
     joAccountDst,
     chainNameDst,
     chainIdDst,
@@ -1524,6 +1520,8 @@ export async function doAllS2S( // s-chain --> s-chain
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                             ethersProviderSrc
                         );
+                    const joMessageProxySrcABI =
+                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi;
                     const joDepositBoxSrc =
                         new owaspUtils.ethersMod.ethers.Contract(
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
@@ -1554,9 +1552,11 @@ export async function doAllS2S( // s-chain --> s-chain
                         joRuntimeOpts,
                         ethersProviderSrc,
                         joMessageProxySrc,
+                        joMessageProxySrcABI,
                         joAccountSrc,
                         ethersProviderDst,
                         joMessageProxyDst,
+                        joMessageProxyDstABI,
                         joAccountDst,
                         chainNameSrc,
                         chainNameDst,
