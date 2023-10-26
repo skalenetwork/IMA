@@ -120,10 +120,26 @@ export async function safeGetPastEventsProgressiveExternal(
         };
         const cmd = "node " + path.join( __dirname, "imaExternalLogScan.mjs" ) + " " +
             escapeShell( JSON.stringify( joArg ) );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix +
+                cc.debug( "Will run external command to search logs for event" ) +
+                cc.j( strEventName ) + cc.debug( "..." ) + "\n" );
+        }
         const res = childProcessModule.execSync( cmd );
-        if( "error" in res && res.error )
+        if( "error" in res && res.error ) {
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( strLogPrefix +
+                    cc.error( "Got error from external command to search logs for event" ) +
+                    cc.j( strEventName ) + cc.error( ":" ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+            }
             throw new Error( res.error );
-
+        }
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix +
+                cc.debug( "Done running external command to search logs for event" ) +
+                cc.j( strEventName ) + cc.debug( "." ) + "\n" );
+        }
         return JSON.parse( res ).result;
     }
     return await safeGetPastEventsProgressive(
