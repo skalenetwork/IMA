@@ -1486,7 +1486,7 @@ export async function doAllS2S( // s-chain --> s-chain
     }
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         const joSChain = arrSChainsCached[idxSChain];
-        const joPickResult = pickRandomSChainIndexAndNodeAndUrl( joSChain );
+        const joPickResult = skaleObserver.pickRandomSChainIndexAndNodeAndUrl( joSChain );
         const urlSrc = joPickResult.strURL;
         const ethersProviderSrc = owaspUtils.getEthersProviderFromURL( urlSrc );
         const joAccountSrc = joAccountDst; // ???
