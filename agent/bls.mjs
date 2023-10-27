@@ -1271,7 +1271,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                         "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
                         optsSignOperation.details.write( strErrorMessage );
-                        if( log.id != details.id )
+                        if( log.id != optsSignOperation.details.id )
                             log.write( strErrorMessage );
                     }
                 }
