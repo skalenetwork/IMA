@@ -31,12 +31,6 @@ import * as rpcCall from "../../agent/rpcCall.mjs";
 import * as imaHelperAPIs from "./imaHelperAPIs.mjs";
 import * as imaTransferErrorHandling from "./imaTransferErrorHandling.mjs";
 
-import * as childProcessModule from "child_process";
-import * as path from "path";
-import * as url from "url";
-
-const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
-
 export function createProgressiveEventsScanPlan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
     const blocksInOneMinute = 6;
@@ -116,64 +110,9 @@ function generateWhileTransferringLogMessageSuffix( optsChainPair ) {
         cc.debug( " transfer)" );
 }
 
-export async function safeGetPastEventsProgressiveExternal(
-    details, strLogPrefix, ethersProvider, attempts,
-    joContract, joABI, strEventName,
-    nBlockFrom, nBlockTo, joFilter, optsChainPair
-) {
-    if( joABI && typeof joABI == "object" ) {
-        const escapeShell = function( cmd ) {
-            return "\"" + cmd.replace( /(["'$`\\])/g,"\\$1" ) + "\"";
-        };
-        const joArg = {
-            "url": owaspUtils.ethersProviderToUrl( ethersProvider ),
-            "attempts": attempts,
-            "strEventName": strEventName,
-            "nBlockFrom": nBlockFrom,
-            "nBlockTo": nBlockTo,
-            "joFilter": joFilter,
-            "address": joContract.address,
-            "abi": joABI
-        };
-        const cmd = "node " + path.join( __dirname, "imaExternalLogScan.mjs" ) + " " +
-            escapeShell( JSON.stringify( joArg ) );
-        if( log.verboseGet() >= log.verboseReversed().trace ) {
-            details.write( strLogPrefix +
-                cc.debug( "Will run external command to search logs for event " ) +
-                cc.j( strEventName ) + cc.debug( " via URL " ) + cc.u( joArg.url ) +
-                generateWhileTransferringLogMessageSuffix( optsChainPair ) +
-                cc.debug( "..." ) + "\n" );
-        }
-        const res = childProcessModule.execSync( cmd );
-        if( "error" in res && res.error ) {
-            if( log.verboseGet() >= log.verboseReversed().error ) {
-                details.write( strLogPrefix +
-                    cc.error( "Got error from external command to search logs for event " ) +
-                    cc.j( strEventName ) + cc.error( " via URL " ) + cc.u( joArg.url ) +
-                    generateWhileTransferringLogMessageSuffix( optsChainPair ) +
-                    cc.error( ":" ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" );
-            }
-            throw new Error( res.error );
-        }
-        if( log.verboseGet() >= log.verboseReversed().trace ) {
-            details.write( strLogPrefix +
-                cc.debug( "Done running external command to search logs for event " ) +
-                cc.j( strEventName ) + cc.debug( " via URL " ) + cc.u( joArg.url ) +
-                generateWhileTransferringLogMessageSuffix( optsChainPair ) +
-                cc.debug( "." ) + "\n" );
-        }
-        return JSON.parse( res ).result;
-    }
-    return await safeGetPastEventsProgressive(
-        details, strLogPrefix, ethersProvider, attempts,
-        joContract, strEventName,
-        nBlockFrom, nBlockTo, joFilter );
-}
-
 export async function safeGetPastEventsProgressive(
-    details, strLogPrefix, ethersProvider, attempts,
-    joContract, strEventName,
-    nBlockFrom, nBlockTo, joFilter
+    details, strLogPrefix, ethersProvider, attempts, joContract, strEventName,
+    nBlockFrom, nBlockTo, joFilter, optsChainPair
 ) {
     if( ! imaTransferErrorHandling.getEnabledProgressiveEventsScan() ) {
         details.write( strLogPrefix +
@@ -187,6 +126,14 @@ export async function safeGetPastEventsProgressive(
             ethersProvider, attempts, joContract, strEventName,
             nBlockFrom, nBlockTo, joFilter
         );
+    }
+    if( log.verboseGet() >= log.verboseReversed().information ) {
+        details.write( strLogPrefix +
+            cc.info( "Will run progressive event log search for event " ) +
+            cc.j( strEventName ) + cc.info( " via URL " ) +
+            cc.u( owaspUtils.ethersProviderToUrl( ethersProvider ) ) +
+            generateWhileTransferringLogMessageSuffix( optsChainPair ) +
+            cc.info( "..." ) );
     }
     const nLatestBlockNumber = owaspUtils.toBN(
         await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
