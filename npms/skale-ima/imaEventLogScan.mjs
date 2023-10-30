@@ -86,13 +86,6 @@ export function createProgressiveEventsScanPlan( details, nLatestBlockNumber ) {
     return arrProgressiveEventsScanPlan;
 }
 
-export function extractEventArg( arg ) {
-    if( arg && typeof arg == "object" && "type" in arg && typeof arg.type == "string" &&
-        arg.type == "BigNumber" && "hex" in arg && typeof arg.hex == "string" )
-        return owaspUtils.toBN( arg.hex );
-    return arg;
-}
-
 function generateWhileTransferringLogMessageSuffix( optsChainPair ) {
     if( ! optsChainPair )
         return "";

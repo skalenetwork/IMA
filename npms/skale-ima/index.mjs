@@ -64,8 +64,8 @@ async function findOutReferenceLogRecord(
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
         const eventValuesByName = {
-            "currentMessage": imaEventLogScan.extractEventArg( joEvent.args[0] ),
-            "previousOutgoingMessageBlockId": imaEventLogScan.extractEventArg( joEvent.args[1] )
+            "currentMessage": joEvent.args[0],
+            "previousOutgoingMessageBlockId": joEvent.args[1]
         };
         const joReferenceLogRecord = {
             "currentMessage": eventValuesByName.currentMessage,
@@ -352,11 +352,11 @@ async function analyzeGatheredRecords( optsTransfer, r ) {
                 cc.debug( " with data " ) + cc.j( joEvent ) + "\n" );
         }
         const eventValuesByName = {
-            "dstChainHash": imaEventLogScan.extractEventArg( joEvent.args[0] ),
-            "msgCounter": imaEventLogScan.extractEventArg( joEvent.args[1] ),
-            "srcContract": imaEventLogScan.extractEventArg( joEvent.args[2] ),
-            "dstContract": imaEventLogScan.extractEventArg( joEvent.args[3] ),
-            "data": imaEventLogScan.extractEventArg( joEvent.args[4] )
+            "dstChainHash": joEvent.args[0],
+            "msgCounter": joEvent.args[1],
+            "srcContract": joEvent.args[2],
+            "dstContract": joEvent.args[3],
+            "data": joEvent.args[4]
         };
         if( eventValuesByName.dstChainHash == strChainHashWeAreLookingFor ) {
             joValues = eventValuesByName;
@@ -944,11 +944,11 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                     for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                         const joEvent = node_r[idxEvent];
                         const eventValuesByName = {
-                            "dstChainHash": imaEventLogScan.extractEventArg( joEvent.args[0] ),
-                            "msgCounter": imaEventLogScan.extractEventArg( joEvent.args[1] ),
-                            "srcContract": imaEventLogScan.extractEventArg( joEvent.args[2] ),
-                            "dstContract": imaEventLogScan.extractEventArg( joEvent.args[3] ),
-                            "data": imaEventLogScan.extractEventArg( joEvent.args[4] )
+                            "dstChainHash": joEvent.args[0],
+                            "msgCounter": joEvent.args[1],
+                            "srcContract": joEvent.args[2],
+                            "dstContract": joEvent.args[3],
+                            "data": joEvent.args[4]
                         };
                         if( owaspUtils.ensureStartsWith0x(
                             joMessage.sender ).toLowerCase() ==
@@ -1260,8 +1260,8 @@ let gIsOneTransferInProgressInThisThread = false;
 
 export async function doTransfer(
     strDirection, joRuntimeOpts,
-    ethersProviderSrc, joMessageProxySrc, joMessageProxySrcABI, joAccountSrc,
-    ethersProviderDst, joMessageProxyDst, joMessageProxyDstABI, joAccountDst,
+    ethersProviderSrc, joMessageProxySrc, joAccountSrc,
+    ethersProviderDst, joMessageProxyDst, joAccountDst,
     chainNameSrc, chainNameDst, chainIdSrc, chainIdDst,
     joDepositBoxMainNet, // for logs validation on mainnet
     joTokenManagerSChain, // for logs validation on s-chain
@@ -1275,11 +1275,9 @@ export async function doTransfer(
         optsChainPair: optsChainPair,
         ethersProviderSrc: ethersProviderSrc,
         joMessageProxySrc: joMessageProxySrc,
-        joMessageProxySrcABI: joMessageProxySrcABI,
         joAccountSrc: joAccountSrc,
         ethersProviderDst: ethersProviderDst,
         joMessageProxyDst: joMessageProxyDst,
-        joMessageProxyDstABI: joMessageProxyDstABI,
         joAccountDst: joAccountDst,
         chainNameSrc: chainNameSrc,
         chainNameDst: chainNameDst,
@@ -1458,7 +1456,6 @@ export async function doAllS2S( // s-chain --> s-chain
     skaleObserver,
     ethersProviderDst,
     joMessageProxyDst,
-    joMessageProxyDstABI,
     joAccountDst,
     chainNameDst,
     chainIdDst,
@@ -1513,8 +1510,6 @@ export async function doAllS2S( // s-chain --> s-chain
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                             ethersProviderSrc
                         );
-                    const joMessageProxySrcABI =
-                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi;
                     const joDepositBoxSrc =
                         new owaspUtils.ethersMod.ethers.Contract(
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
@@ -1556,11 +1551,9 @@ export async function doAllS2S( // s-chain --> s-chain
                         joRuntimeOpts,
                         ethersProviderSrc,
                         joMessageProxySrc,
-                        joMessageProxySrcABI,
                         joAccountSrc,
                         ethersProviderDst,
                         joMessageProxyDst,
-                        joMessageProxyDstABI,
                         joAccountDst,
                         chainNameSrc,
                         chainNameDst,
