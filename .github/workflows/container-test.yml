@@ -21,7 +21,7 @@ jobs:
       run: |
         sudo rm -rf comprehensive-test || true
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: INFO - github environment variable checks
       run: |
