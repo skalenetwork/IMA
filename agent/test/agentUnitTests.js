@@ -490,8 +490,6 @@ describe( "tests for `npms/skale-ima` 3", function() {
 
     it( "should return `false` invoke `doTransfer`", async function() {
         let joMessageProxySrc; // for `false` output
-        const joMessageProxySrcABI = null;
-        const joMessageProxyDstABI = null;
         const chainNameSrc = "test";
         const chainNameDst = "test";
         const nTransactionsCountInBlock = 4;
@@ -510,11 +508,9 @@ describe( "tests for `npms/skale-ima` 3", function() {
             joRuntimeOpts,
             ethersProviderSrc,
             joMessageProxySrc,
-            joMessageProxySrcABI,
             joAccountSrc,
             ethersProviderDst,
             joMessageProxyDst,
-            joMessageProxyDstABI,
             joAccountDst,
             chainNameSrc,
             chainNameDst,
@@ -546,19 +542,15 @@ describe( "tests for `npms/skale-ima` 3", function() {
             idxChainKnownForS2S: 0,
             cntChainsKnownForS2S: 0
         };
-        const joMessageProxySrcABI = null;
-        const joMessageProxyDstABI = null;
         // eslint-disable-next-line no-unused-expressions
         expect( await IMA.doTransfer(
             "M2S",
             joRuntimeOpts,
             ethersProviderSrc,
             joMessageProxySrc,
-            joMessageProxySrcABI,
             joAccountSrc,
             ethersProviderDst,
             joMessageProxyDst,
-            joMessageProxyDstABI,
             joAccountDst,
             chainNameSrc,
             chainNameDst,
