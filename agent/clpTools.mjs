@@ -1314,21 +1314,14 @@ export function commandLineTaskTransferM2S() {
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            const optsChainPair = {
-                "strDirection": "M2S",
-                "chainSrc": imaState.chainProperties.mn,
-                "chainDst": imaState.chainProperties.sc
-            };
             return await IMA.doTransfer( // main-net --> s-chain
                 "M2S",
                 joRuntimeOpts,
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.joMessageProxyMainNet,
-                imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_abi,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.joMessageProxySChain,
-                imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.sc.strChainName,
@@ -1343,8 +1336,7 @@ export function commandLineTaskTransferM2S() {
                 imaState.nBlockAgeM2S,
                 imaBLS.doSignMessagesM2S,
                 null,
-                imaState.chainProperties.sc.transactionCustomizer,
-                optsChainPair
+                imaState.chainProperties.sc.transactionCustomizer
             );
         }
     } );
@@ -1362,21 +1354,14 @@ export function commandLineTaskTransferS2M() {
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            const optsChainPair = {
-                "strDirection": "S2M",
-                "chainSrc": imaState.chainProperties.sc,
-                "chainDst": imaState.chainProperties.mn
-            };
             return await IMA.doTransfer( // s-chain --> main-net
                 "S2M",
                 joRuntimeOpts,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.joMessageProxySChain,
-                imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.joMessageProxyMainNet,
-                imaState.chainProperties.sc.joAbiIMA.message_proxy_mainnet_abi,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.mn.strChainName,
@@ -1391,8 +1376,7 @@ export function commandLineTaskTransferS2M() {
                 imaState.nBlockAgeS2M,
                 imaBLS.doSignMessagesS2M,
                 null,
-                imaState.chainProperties.mn.transactionCustomizer,
-                optsChainPair
+                imaState.chainProperties.mn.transactionCustomizer
             );
         }
     } );
@@ -1419,7 +1403,6 @@ export function commandLineTaskTransferS2S() {
                 skaleObserver,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.joMessageProxySChain,
-                imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.sc.chainId,
