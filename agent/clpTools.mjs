@@ -1314,11 +1314,6 @@ export function commandLineTaskTransferM2S() {
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            const optsChainPair = {
-                "strDirection": "M2S",
-                "chainSrc": imaState.chainProperties.mn,
-                "chainDst": imaState.chainProperties.sc
-            };
             return await IMA.doTransfer( // main-net --> s-chain
                 "M2S",
                 joRuntimeOpts,
@@ -1341,8 +1336,7 @@ export function commandLineTaskTransferM2S() {
                 imaState.nBlockAgeM2S,
                 imaBLS.doSignMessagesM2S,
                 null,
-                imaState.chainProperties.sc.transactionCustomizer,
-                optsChainPair
+                imaState.chainProperties.sc.transactionCustomizer
             );
         }
     } );
@@ -1359,11 +1353,6 @@ export function commandLineTaskTransferS2M() {
                 isInsideWorker: false,
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
-            };
-            const optsChainPair = {
-                "strDirection": "S2M",
-                "chainSrc": imaState.chainProperties.sc,
-                "chainDst": imaState.chainProperties.mn
             };
             return await IMA.doTransfer( // s-chain --> main-net
                 "S2M",
@@ -1387,8 +1376,7 @@ export function commandLineTaskTransferS2M() {
                 imaState.nBlockAgeS2M,
                 imaBLS.doSignMessagesS2M,
                 null,
-                imaState.chainProperties.mn.transactionCustomizer,
-                optsChainPair
+                imaState.chainProperties.mn.transactionCustomizer
             );
         }
     } );
