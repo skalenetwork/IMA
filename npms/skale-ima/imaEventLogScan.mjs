@@ -86,10 +86,26 @@ export function createProgressiveEventsScanPlan( details, nLatestBlockNumber ) {
     return arrProgressiveEventsScanPlan;
 }
 
+function generateWhileTransferringLogMessageSuffix( optsChainPair ) {
+    if( ! optsChainPair )
+        return "";
+    if( ! optsChainPair.strDirection )
+        return "";
+    if( optsChainPair.strDirection == "S2S" ) {
+        return cc.debug( " (while performing " ) + cc.attention( optsChainPair.strDirection ) +
+            cc.debug( " transfer with external S-Chain " ) +
+            cc.info( optsChainPair.optsSpecificS2S.joSChain.data.name ) + cc.debug( " / " ) +
+            cc.notice( optsChainPair.optsSpecificS2S.joSChain.data.computed.chainId ) +
+            cc.debug( " node " ) + cc.info( optsChainPair.optsSpecificS2S.idxNode ) +
+            cc.debug( ")" );
+    }
+    return cc.debug( " (while performing " ) + cc.attention( optsChainPair.strDirection ) +
+        cc.debug( " transfer)" );
+}
+
 export async function safeGetPastEventsProgressive(
-    details, strLogPrefix,
-    ethersProvider, attempts, joContract, strEventName,
-    nBlockFrom, nBlockTo, joFilter
+    details, strLogPrefix, ethersProvider, attempts, joContract, strEventName,
+    nBlockFrom, nBlockTo, joFilter, optsChainPair
 ) {
     if( ! imaTransferErrorHandling.getEnabledProgressiveEventsScan() ) {
         details.write( strLogPrefix +
@@ -103,6 +119,14 @@ export async function safeGetPastEventsProgressive(
             ethersProvider, attempts, joContract, strEventName,
             nBlockFrom, nBlockTo, joFilter
         );
+    }
+    if( log.verboseGet() >= log.verboseReversed().information ) {
+        details.write( strLogPrefix +
+            cc.info( "Will run progressive event log search for event " ) +
+            cc.j( strEventName ) + cc.info( " via URL " ) +
+            cc.u( owaspUtils.ethersProviderToUrl( ethersProvider ) ) +
+            generateWhileTransferringLogMessageSuffix( optsChainPair ) +
+            cc.info( "..." ) );
     }
     const nLatestBlockNumber = owaspUtils.toBN(
         await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );

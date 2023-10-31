@@ -229,7 +229,6 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.joMessageProxySChain,
-
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.strChainName,
                         imaState.chainProperties.sc.strChainName,
@@ -309,7 +308,6 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.joMessageProxyMainNet,
-
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.strChainName,
                         imaState.chainProperties.mn.strChainName,
