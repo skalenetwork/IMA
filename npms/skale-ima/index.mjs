@@ -326,7 +326,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
         ++ nWalkMsgNumber
     ) {
         const joFilter = optsTransfer.joMessageProxySrc.filters[strEventName](
-            owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainIdDst ), // dstChainHash
+            owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ),
             owaspUtils.toBN( nWalkMsgNumber )
         );
         const arrLogRecordReferencesWalk = await imaEventLogScan.safeGetPastEventsProgressive(
