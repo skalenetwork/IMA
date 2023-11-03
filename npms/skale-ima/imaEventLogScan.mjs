@@ -126,7 +126,9 @@ export async function safeGetPastEventsProgressive(
             cc.j( strEventName ) + cc.info( " via URL " ) +
             cc.u( owaspUtils.ethersProviderToUrl( ethersProvider ) ) +
             generateWhileTransferringLogMessageSuffix( optsChainPair ) +
-            cc.info( "..." ) );
+            cc.info( ", from block " ) + cc.notice( nBlockFrom ) +
+            cc.info( ", to block " ) + cc.notice( nBlockTo ) +
+            cc.info( "..." ) + "\n" );
     }
     const nLatestBlockNumber = owaspUtils.toBN(
         await imaHelperAPIs.safeGetBlockNumber( details, 10, ethersProvider ) );
