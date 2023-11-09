@@ -108,9 +108,17 @@ class ObserverServer extends SocketServer {
                 const isFlush = true;
                 socket.send( jo, isFlush );
             } );
-            if( log.verboseGet() >= log.verboseReversed().debug ) {
-                log.write(
-                    cc.debug( "Loop worker " ) + cc.notice( workerData.url ) +
+            if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    log.write(
+                        cc.debug( "Loop worker " ) + cc.notice( workerData.url ) +
+                        cc.debug( " will save cached S-Chains..." ) + "\n" );
+                }
+            }
+            if( ! self.opts.imaState.optsLoop.enableStepS2S )
+                threadInfo.joCustomThreadProperties.isSChainsCacheNeeded = false;
+            if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+                log.write( cc.debug( "Loop worker " ) + cc.notice( workerData.url ) +
                     cc.debug( " will save cached S-Chains..." ) + "\n" );
             }
             skaleObserver.setLastCachedSChains( self.opts.imaState.arrSChainsCached );
@@ -200,11 +208,23 @@ class ObserverServer extends SocketServer {
                 imaState.joSChainNetworkInfo = joMessage.joSChainNetworkInfo;
             };
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
-            if( log.verboseGet() >= log.verboseReversed().debug ) {
-                self.log( cc.debug( "S-Chains cache did arrived to " ) +
-                    cc.notice( workerData.url ) + cc.debug( " loop worker in " ) +
-                    threadInfo.threadDescription() + cc.debug( ": " ) +
-                    cc.j( joMessage.message.arrSChainsCached ) + "\n" );
+            if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    self.log( cc.debug( "S-Chains cache did arrived to " ) +
+                        cc.notice( workerData.url ) + cc.debug( " loop worker in " ) +
+                        threadInfo.threadDescription() + cc.debug( ": " ) +
+                        cc.j( joMessage.message.arrSChainsCached ) + "\n" );
+                }
+            }
+            if( ( !joMessage.message.arrSChainsCached ) ||
+                joMessage.message.arrSChainsCached.length == 0
+            ) {
+                if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+                    self.log( cc.debug( "Empty S-Chains cache arrived to " ) +
+                        cc.notice( workerData.url ) + cc.debug( " will not be renewed in " ) +
+                        threadInfo.threadDescription() + "\n" );
+                }
+                return;
             }
             skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
         };

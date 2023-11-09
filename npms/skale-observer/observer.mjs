@@ -1084,10 +1084,12 @@ export async function cacheSChains( strChainNameConnectedTo, opts ) {
             }
         }
         if( opts && opts.details ) {
-            if( log.verboseGet() >= log.verboseReversed().trace ) {
-                opts.details.write(
-                    cc.debug( "Will dispatch inThread-arrSChainsCached event in " ) +
-                    threadInfo.threadDescription() + "\n" );
+            if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write(
+                        cc.debug( "Will dispatch inThread-arrSChainsCached event in " ) +
+                        threadInfo.threadDescription() + "\n" );
+                }
             }
         }
         events.dispatchEvent(
@@ -1095,10 +1097,12 @@ export async function cacheSChains( strChainNameConnectedTo, opts ) {
                 "inThread-arrSChainsCached",
                 { "detail": { "arrSChainsCached": arrSChains } } ) );
         if( opts && opts.details ) {
-            if( log.verboseGet() >= log.verboseReversed().trace ) {
-                opts.details.write(
-                    cc.debug( "Did dispatched inThread-arrSChainsCached event in " ) +
-                    threadInfo.threadDescription() + "\n" );
+            if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write(
+                        cc.debug( "Did dispatched inThread-arrSChainsCached event in " ) +
+                        threadInfo.threadDescription() + "\n" );
+                }
             }
         }
         if( opts.fnCacheChanged )
@@ -1127,12 +1131,19 @@ export function getLastCachedSChains() {
 }
 
 export function setLastCachedSChains( arrSChainsCached ) {
-    if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write( cc.debug( "Will set arrSChainsCached in " ) +
-            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
-        log.write( cc.debug( "Value of arrSChainsCached in " ) +
-            threadInfo.threadDescription() + cc.debug( " is: " ) +
-            cc.j( arrSChainsCached ) + "\n" );
+    if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( cc.debug( "Value of arrSChainsCached in " ) +
+                threadInfo.threadDescription() + cc.debug( " is: " ) +
+                cc.j( arrSChainsCached ) + "\n" );
+        }
+    }
+    if( ( !arrSChainsCached ) || arrSChainsCached.length == 0 ) {
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+            log.write( cc.debug( "Empty S-Chains cache arrived to SkaleObserver " ) +
+                "will not be renewed in " + threadInfo.threadDescription() + "\n" );
+        }
+        return;
     }
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
         gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
@@ -1143,20 +1154,24 @@ export function setLastCachedSChains( arrSChainsCached ) {
         const nMaxSize = getLastCachedHistoryMaxSize();
         while( gArrCacheHistory.length > nMaxSize )
             gArrCacheHistory.shift();
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.debug( "Will dispatch arrSChainsCached event in " ) +
-                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write( cc.debug( "Will dispatch arrSChainsCached event in " ) +
+                    threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+            }
         }
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
                 { "detail": { "arrSChainsCached": getLastCachedSChains() } } ) );
     } else {
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            log.write( cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " Cannot dispatch arrSChainsCached event with bad object " ) +
-                cc.j( arrSChainsCached ) + cc.error( " in " ) +
-                threadInfo.threadDescription() + "\n" );
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Cannot dispatch arrSChainsCached event with bad object " ) +
+                    cc.j( arrSChainsCached ) + cc.error( " in " ) +
+                    threadInfo.threadDescription() + "\n" );
+            }
         }
     }
 }
@@ -1333,7 +1348,7 @@ export async function ensureHaveWorker( opts ) {
     };
     while( ! gClient.logicalInitComplete ) {
         if( log.verboseGet() >= log.verboseReversed().info )
-            log.write( "SNB server is not inited yet...\n" );
+            log.write( "SNB server is not initialized yet...\n" );
 
         await threadInfo.sleep( 1000 );
         gClient.send( jo );

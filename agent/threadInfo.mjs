@@ -29,6 +29,11 @@ import * as cc from "../npms/skale-cc/cc.mjs";
 const Worker = worker_threads.Worker;
 export { Worker };
 
+const joCustomThreadProperties = {
+    "isSChainsCacheNeeded": true // by default is set to true
+};
+export { joCustomThreadProperties };
+
 export const sleep = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
