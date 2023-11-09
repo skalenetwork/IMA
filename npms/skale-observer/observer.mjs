@@ -779,12 +779,10 @@ async function checkWhetherSChainIsConnected( strSChainName, joMessageProxySChai
         ? opts.cntAttemptsCheckConnectedState : 3;
     for( let idxAttempt = 0; idxAttempt < cntAttempts; ++ idxAttempt ) {
         try {
-            isConnected =
-                await joMessageProxySChain.callStatic.isConnectedChain( strSChainName );
+            isConnected = await joMessageProxySChain.callStatic.isConnectedChain( strSChainName );
             isQueryPassed = true;
             break;
         } catch ( err ) {
-            isConnected = false;
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
                     opts.details.write( cc.error( "Failed attempt " ) +
@@ -798,17 +796,14 @@ async function checkWhetherSChainIsConnected( strSChainName, joMessageProxySChai
             }
         }
     }
-    if( opts && opts.details ) {
-        if( ! isQueryPassed ) {
-            if( log.verboseGet() >= log.verboseReversed().warning ) {
-                opts.details.write( cc.debug( "Will assume S-Chain " ) +
-                    cc.info( strSChainName ) + cc.debug( " connected status: " ) +
-                    cc.yn( isConnected ) + "\n" );
-            }
-        } else if( log.verboseGet() >= log.verboseReversed().trace ) {
-            opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
-                cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
+    if( ! isQueryPassed ) {
+        if( opts && opts.details ) {
+            opts.details.write( cc.error( "Failed all " ) + cc.info( cntAttempts ) +
+                cc.error( " attempt(s) to query connected state of " ) + cc.info( strSChainName ) +
+                cc.error( " S-Chain" ) + "\n" );
         }
+        throw new Error( "Failed all " + cntAttempts + " attempt(s) to query connected state of " +
+            strSChainName + " S-Chain" );
     }
     return isConnected;
 }
@@ -843,50 +838,40 @@ export async function loadSChainsConnectedOnly( strChainNameConnectedTo, opts ) 
         );
     const arrSChains = [], arrSChainNames = await getAllSchainNames( arrSChainHashes, opts );
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
-        try {
-            if( opts && opts.bStopNeeded )
-                break;
-            const strSChainHash = arrSChainHashes[idxSChain];
-            const strSChainName = arrSChainNames[idxSChain];
-            if( strChainNameConnectedTo == strSChainName ) {
-                if( opts && opts.details ) {
-                    if( log.verboseGet() >= log.verboseReversed().trace ) {
-                        opts.details.write( cc.debug( "Skip this S-Chain " ) +
-                            cc.info( strSChainName ) + cc.debug( " connected status check" ) +
-                            "\n" );
-                    }
-                }
-                continue;
-            }
+        if( opts && opts.bStopNeeded )
+            break;
+        const strSChainHash = arrSChainHashes[idxSChain];
+        const strSChainName = arrSChainNames[idxSChain];
+        if( strChainNameConnectedTo == strSChainName ) {
             if( opts && opts.details ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    opts.details.write(
-                        cc.debug( "Querying(1) connected status between S-Chain " ) +
-                        cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
-                        cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+                    opts.details.write( cc.debug( "Skip this S-Chain " ) +
+                        cc.info( strSChainName ) + cc.debug( " connected status check" ) +
+                        "\n" );
                 }
             }
-            let isConnected = false;
-            if( isLoadConnectedOnly ) {
-                isConnected = await checkWhetherSChainIsConnected(
-                    strSChainName, joMessageProxySChain, opts );
-                if( ! isConnected )
-                    continue;
-            }
-            const joSChain = await loadSChain( idxSChain, strSChainHash, null, cntSChains, opts );
-            if( ! joSChain )
-                continue;
-            joSChain.isConnected = isConnected;
-            arrSChains.push( joSChain );
-        } catch ( err ) {
-            if( opts && opts.details ) {
-                if( log.verboseGet() >= log.verboseReversed().error ) {
-                    opts.details.write( cc.error( "Got error: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
-                }
+            continue;
+        }
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "Querying(1) connected status between S-Chain " ) +
+                    cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
+                    cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
         }
+        let isConnected = false;
+        if( isLoadConnectedOnly ) {
+            isConnected = await checkWhetherSChainIsConnected(
+                strSChainName, joMessageProxySChain, opts );
+            if( ! isConnected )
+                continue;
+        }
+        const joSChain = await loadSChain( idxSChain, strSChainHash, null, cntSChains, opts );
+        if( ! joSChain )
+            continue;
+        joSChain.isConnected = isConnected;
+        arrSChains.push( joSChain );
     }
     return arrSChains;
 }
@@ -905,34 +890,22 @@ export async function checkConnectedSChains( strChainNameConnectedTo, arrSChains
         joSChain.isConnected = false;
         if( joSChain.data.name == strChainNameConnectedTo )
             continue;
-        try {
-            const url = pickRandomSChainUrl( joSChain );
-            if( opts && opts.details ) {
-                if( log.verboseGet() >= log.verboseReversed().trace ) {
-                    opts.details.write( cc.debug( "Querying(2) via URL " ) + cc.u( url ) +
-                        cc.debug( " to S-Chain " ) + cc.info( joSChain.data.name ) +
-                        cc.debug( " whether it's connected to S-Chain " ) +
-                        cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
-                }
-            }
-            const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
-            const joMessageProxySChain =
-                new owaspUtils.ethersMod.ethers.Contract(
-                    opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
-                    opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
-                    ethersProvider
-                );
-            joSChain.isConnected = await checkWhetherSChainIsConnected(
-                strChainNameConnectedTo, joMessageProxySChain, opts );
-        } catch ( err ) {
-            if( opts && opts.details ) {
-                if( log.verboseGet() >= log.verboseReversed().error ) {
-                    opts.details.write( cc.error( "Got error: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
-                }
+        const url = pickRandomSChainUrl( joSChain );
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write( cc.debug( "Querying(2) via URL " ) + cc.u( url ) +
+                    cc.debug( " to S-Chain " ) + cc.info( joSChain.data.name ) +
+                    cc.debug( " whether it's connected to S-Chain " ) +
+                    cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
         }
+        const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
+        const joMessageProxySChain = new owaspUtils.ethersMod.ethers.Contract(
+            opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+            opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+            ethersProvider );
+        joSChain.isConnected = await checkWhetherSChainIsConnected(
+            strChainNameConnectedTo, joMessageProxySChain, opts );
     }
     return arrSChains;
 }
@@ -1065,15 +1038,8 @@ export async function cacheSChains( strChainNameConnectedTo, opts ) {
             ( typeof strChainNameConnectedTo == "string" ) &&
             strChainNameConnectedTo.length > 0
         ) {
-            await checkConnectedSChains(
-                strChainNameConnectedTo,
-                arrSChains,
-                opts
-            );
-            gArrSChainsCached = await filterSChainsMarkedAsConnected(
-                arrSChains,
-                opts
-            );
+            await checkConnectedSChains( strChainNameConnectedTo, arrSChains, opts );
+            gArrSChainsCached = await filterSChainsMarkedAsConnected( arrSChains, opts );
         } else
             gArrSChainsCached = arrSChains;
         if( opts && opts.details ) {
@@ -1092,10 +1058,8 @@ export async function cacheSChains( strChainNameConnectedTo, opts ) {
                 }
             }
         }
-        events.dispatchEvent(
-            new UniversalDispatcherEvent(
-                "inThread-arrSChainsCached",
-                { "detail": { "arrSChainsCached": arrSChains } } ) );
+        events.dispatchEvent( new UniversalDispatcherEvent(
+            "inThread-arrSChainsCached", { "detail": { "arrSChainsCached": arrSChains } } ) );
         if( opts && opts.details ) {
             if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
@@ -1133,17 +1097,10 @@ export function getLastCachedSChains() {
 export function setLastCachedSChains( arrSChainsCached ) {
     if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
         if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.debug( "Value of arrSChainsCached in " ) +
+            log.write( cc.debug( "Will save value of arrSChainsCached in " ) +
                 threadInfo.threadDescription() + cc.debug( " is: " ) +
                 cc.j( arrSChainsCached ) + "\n" );
         }
-    }
-    if( ( !arrSChainsCached ) || arrSChainsCached.length == 0 ) {
-        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
-            log.write( cc.debug( "Empty S-Chains cache arrived to SkaleObserver " ) +
-                "will not be renewed in " + threadInfo.threadDescription() + "\n" );
-        }
-        return;
     }
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
         gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
