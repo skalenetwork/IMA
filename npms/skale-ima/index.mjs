@@ -938,21 +938,29 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                 cc.debug( " with IMA message index " ) + cc.j( idxImaMessage ) +
                 cc.debug( " and message envelope data:" ) + cc.j( joMessage ) + "\n" );
         }
-        let cntPassedNodes = 0, cntFailedNodes = 0, joNode = null;
+        let cntPassedNodes = 0, cntFailedNodes = 0, joNode = null, cntWaitStepsDone = 0;
         const promiseComplete = new Promise( function( resolve, reject ) {
             const iv = setInterval( function() {
+                ++ cntWaitStepsDone;
                 if( cntFailedNodes > optsTransfer.cntNodesMayFail ) {
                     clearInterval( iv );
-                    reject( new Error( "Error validating " + optsTransfer.strDirection +
+                    reject( new Error( "Critical error validating " + optsTransfer.strDirection +
                         " messages, failed node count " + cntFailedNodes +
                         " is greater then allowed to fail " + optsTransfer.cntNodesMayFail ) );
                     return;
                 }
                 if( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) {
+                    clearInterval( iv );
                     resolve( true );
                     return;
                 }
-            }, 500 );
+                if( cntWaitStepsDone > 300 ) {
+                    clearInterval( iv );
+                    reject( new Error( "Timeout error validating " + optsTransfer.strDirection +
+                        " messages" ) );
+                    return;
+                }
+            }, 1000 );
             try {
                 for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
                     joNode = joSChain.data.computed.nodes[idxNode];
@@ -997,21 +1005,18 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                             let bEventIsFound = false;
                             for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                                 const joEvent = node_r[idxEvent];
-                                const eventValuesByName = {
+                                const ev = {
                                     "dstChainHash": joEvent.args[0],
                                     "msgCounter": joEvent.args[1],
                                     "srcContract": joEvent.args[2],
                                     "dstContract": joEvent.args[3],
                                     "data": joEvent.args[4]
                                 };
-                                if( owaspUtils.ensureStartsWith0x(
-                                    joMessage.sender ).toLowerCase() ==
-                                    owaspUtils.ensureStartsWith0x(
-                                        eventValuesByName.srcContract ).toLowerCase() &&
-                                    owaspUtils.ensureStartsWith0x(
-                                        joMessage.destinationContract ).toLowerCase() ==
-                                    owaspUtils.ensureStartsWith0x(
-                                        eventValuesByName.dstContract ).toLowerCase()
+                                if( owaspUtils.ensureStartsWith0xLC( joMessage.sender ) ==
+                                        owaspUtils.ensureStartsWith0xLC( ev.srcContract ) &&
+                                    owaspUtils.ensureStartsWith0xLC(
+                                        joMessage.destinationContract ) ==
+                                        owaspUtils.ensureStartsWith0xLC( ev.dstContract )
                                 ) {
                                     bEventIsFound = true;
                                     break;
@@ -1112,10 +1117,7 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                 }
             }
         } );
-        try {
-            await promiseComplete;
-        } catch ( err ) {
-        }
+        try { await promiseComplete; } catch ( err ) { }
         if( ! checkOutgoingMessageEventResult(
             optsTransfer, joSChain, idxMessage, cntPassedNodes, cntFailedNodes ) )
             return false;
