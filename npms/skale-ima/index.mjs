@@ -922,6 +922,7 @@ async function checkOutgoingMessageEventResult(
         optsTransfer.details.close();
         return false;
     }
+    return true;
 }
 
 async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
