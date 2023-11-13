@@ -1559,10 +1559,8 @@ async function doSignProcessHandleCall(
             cc.j( joOut ) + cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) +
             cc.attention( optsSignOperation.sequenceId ) + "\n" );
     }
-    if( joOut.result == null ||
-        joOut.result == undefined ||
-        ( !typeof joOut.result == "object" )
-    ) {
+    if( ( !joOut ) || typeof joOut != "object" || ( !( "result" in joOut ) ) || ( !joOut.result ) ||
+        typeof joOut.result != "object" ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage = optsSignOperation.strLogPrefix +
             cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
