@@ -487,10 +487,6 @@ export function ensureStartsWith0x( s ) {
     return "0x" + s;
 }
 
-export function ensureStartsWith0xLC( s ) {
-    return ensureStartsWith0x( s ).toLowerCase();
-}
-
 export function removeStarting0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
