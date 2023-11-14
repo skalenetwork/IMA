@@ -232,11 +232,7 @@ class ObserverServer extends SocketServer {
                         cc.debug( " thread will invoke S-Chains caching(attempt + " ) +
                         cc.info( idxAttempt ) + cc.debug( ")..." ) + "\n" );
                 }
-                strError =
-                    await skaleObserver.cacheSChains(
-                        strChainNameConnectedTo,
-                        self.opts
-                    );
+                strError = await skaleObserver.cacheSChains( strChainNameConnectedTo, self.opts );
                 if( ! strError )
                     break;
             } catch ( err ) {
