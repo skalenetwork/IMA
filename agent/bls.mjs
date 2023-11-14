@@ -1560,7 +1560,7 @@ async function doSignProcessHandleCall(
             cc.attention( optsSignOperation.sequenceId ) + "\n" );
     }
     if( ( !joOut ) || typeof joOut != "object" || ( !( "result" in joOut ) ) || ( !joOut.result ) ||
-        typeof joOut.result != "object" || "error" in joOut || joOut.error ) {
+        typeof joOut.result != "object" || ( "error" in joOut && joOut.error ) ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage = optsSignOperation.strLogPrefix +
             cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
