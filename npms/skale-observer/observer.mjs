@@ -1082,7 +1082,7 @@ export async function cacheSChains( strChainNameConnectedTo, opts ) {
         if( opts && opts.details ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 opts.details.write( cc.fatal( "ERROR:" ) +
-                    cc.error( " Failed to cache: " ) + cc.error( err ) );
+                    cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
                 opts.details.write( cc.stack( err.stack ) );
             }
         }
