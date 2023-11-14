@@ -510,17 +510,21 @@ const gArrClients = [];
 export function notifyCacheChangedSNB( arrSChainsCached ) {
     const cntWorkers = gArrWorkers.length;
     if( cntWorkers == 0 ) {
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.warning( "Will skip chainsCacheChanged dispatch event with " ) +
-                cc.warning( "no chains arrived in " ) + threadInfo.threadDescription() + "\n" );
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write( cc.warning( "Will skip chainsCacheChanged dispatch event with " ) +
+                    cc.warning( "no chains arrived in " ) + threadInfo.threadDescription() + "\n" );
+            }
         }
         return;
     }
-    if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write(
-            cc.debug( "Loop module will broadcast arrSChainsCached event to its " ) +
-            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
-            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+    if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write(
+                cc.debug( "Loop module will broadcast arrSChainsCached event to its " ) +
+                cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        }
     }
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
@@ -529,34 +533,44 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
                 "arrSChainsCached": arrSChainsCached
             }
         };
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.debug( "S-Chains cache will be sent to " ) +
-                cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker..." ) +
-                "\n" );
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write( cc.debug( "S-Chains cache will be sent to " ) +
+                    cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker..." ) +
+                    "\n" );
+            }
         }
         gArrClients[idxWorker].send( jo );
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
-            log.write( cc.debug( "S-Chains cache did sent to " ) +
-                cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker" ) +
-                "\n" );
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                log.write( cc.debug( "S-Chains cache did sent to " ) +
+                    cc.notice( gArrClients[idxWorker].url ) + cc.debug( " loop worker" ) +
+                    "\n" );
+            }
         }
     }
-    if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write(
-            cc.debug( "Loop module did finished broadcasting arrSChainsCached event to its " ) +
-            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
-            threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+    if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write(
+                cc.debug( "Loop module did finished broadcasting arrSChainsCached event to its " ) +
+                cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
+                threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
+        }
     }
 }
 
 if( log.verboseGet() >= log.verboseReversed().trace ) {
-    log.write( cc.debug( "Subscribe to chainsCacheChanged event in " ) +
-        threadInfo.threadDescription() + "\n" );
+    if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+        log.write( cc.debug( "Subscribe to chainsCacheChanged event in " ) +
+            threadInfo.threadDescription() + "\n" );
+    }
 }
 skaleObserver.events.on( "chainsCacheChanged", function( eventData ) {
-    if( log.verboseGet() >= log.verboseReversed().trace ) {
-        log.write( cc.debug( "Did arrived chainsCacheChanged event in " ) +
-            threadInfo.threadDescription() + "\n" );
+    if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded ) {
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            log.write( cc.debug( "Did arrived chainsCacheChanged event in " ) +
+                threadInfo.threadDescription() + "\n" );
+        }
     }
     notifyCacheChangedSNB( eventData.detail.arrSChainsCached );
 } );
@@ -755,14 +769,12 @@ export async function ensureHaveWorkers( opts ) {
                         "nMaxTransactionsM2S": opts.imaState.nMaxTransactionsM2S,
                         "nMaxTransactionsS2M": opts.imaState.nMaxTransactionsS2M,
                         "nMaxTransactionsS2S": opts.imaState.nMaxTransactionsS2S,
-
                         "nBlockAwaitDepthM2S": opts.imaState.nBlockAwaitDepthM2S,
                         "nBlockAwaitDepthS2M": opts.imaState.nBlockAwaitDepthS2M,
                         "nBlockAwaitDepthS2S": opts.imaState.nBlockAwaitDepthS2S,
                         "nBlockAgeM2S": opts.imaState.nBlockAgeM2S,
                         "nBlockAgeS2M": opts.imaState.nBlockAgeS2M,
                         "nBlockAgeS2S": opts.imaState.nBlockAgeS2S,
-
                         "nLoopPeriodSeconds": opts.imaState.nLoopPeriodSeconds,
                         "nNodeNumber": opts.imaState.nNodeNumber,
                         "nNodesCount": opts.imaState.nNodesCount,
@@ -834,7 +846,7 @@ export async function ensureHaveWorkers( opts ) {
         };
         while( ! aClient.logicalInitComplete ) {
             if( log.verboseGet() >= log.verboseReversed().info )
-                log.write( "LOOP server is not inited yet...\n" );
+                log.write( "LOOP server is not initialized yet...\n" );
             await threadInfo.sleep( 1000 );
             aClient.send( jo );
         }
@@ -844,12 +856,14 @@ export async function ensureHaveWorkers( opts ) {
             cc.info( gArrWorkers.length ) + cc.debug( " worker(s) in " ) +
             threadInfo.threadDescription() + cc.debug( "" ) + "\n" );
     }
-    if( log.verboseGet() >= log.verboseReversed().trace ) {
+    if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded &&
+        log.verboseGet() >= log.verboseReversed().trace ) {
         log.write( cc.debug( "Subscribe to inThread-arrSChainsCached event in " ) +
             threadInfo.threadDescription() + "\n" );
     }
     skaleObserver.events.on( "inThread-arrSChainsCached", function( eventData ) {
-        if( log.verboseGet() >= log.verboseReversed().trace ) {
+        if( threadInfo.joCustomThreadProperties.isSChainsCacheNeeded &&
+            log.verboseGet() >= log.verboseReversed().trace ) {
             log.write( cc.debug( "Did arrived inThread-arrSChainsCached event in " ) +
                 threadInfo.threadDescription() + "\n" );
         }
@@ -859,9 +873,8 @@ export async function ensureHaveWorkers( opts ) {
     // Force broadcast what we have in SNB right now because works above can start later than SNB
     // is finished download connected chains quickly
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        log.write(
-            cc.debug( "Loop module will do first initial broadcast of arrSChainsCached to its " ) +
-            cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
+        log.write( cc.debug( "Loop module will do first initial broadcast of arrSChainsCached " +
+            "to its " ) + cc.info( cntWorkers ) + cc.debug( " worker(s) in " ) +
             threadInfo.threadDescription() + cc.debug( "..." ) + "\n" );
     }
     notifyCacheChangedSNB( skaleObserver.getLastCachedSChains() );
