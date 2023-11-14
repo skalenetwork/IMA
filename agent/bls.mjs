@@ -1194,7 +1194,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
     optsSignOperation.errGathering = null;
     optsSignOperation.promiseCompleteGathering = new Promise( ( resolve, reject ) => {
         const iv = setInterval( function() {
-            const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+            const cntSuccess = optsSignOperation.arrSignResults.length;
             if( optsSignOperation.joGatheringTracker.nCountReceivedPrevious !=
                 optsSignOperation.joGatheringTracker.nCountReceived ) {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
@@ -1316,7 +1316,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     " node(s)", optsSignOperation.jarrMessages,
                     null
                 ).catch( ( err ) => {
-                    const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+                    const cntSuccess = optsSignOperation.arrSignResults.length;
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strErrorMessage =
                             cc.error( "Problem(3) in BLS sign result handler, " +
@@ -1350,7 +1350,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     optsSignOperation.jarrMessages,
                     null
                 ).catch( ( err ) => {
-                    const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+                    const cntSuccess = optsSignOperation.arrSignResults.length;
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strErrorMessage =
                             cc.error(
@@ -1425,7 +1425,7 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
                 optsSignOperation.jarrMessages,
                 null
             ).catch( ( err ) => {
-                const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+                const cntSuccess = optsSignOperation.arrSignResults.length;
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
                     const strErrorMessage =
                         cc.error( "Problem(5) in BLS sign result handler, " +
@@ -1462,7 +1462,7 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
             JSON.stringify( optsSignOperation.joGatheringTracker ),
             optsSignOperation.jarrMessages, null
         ).catch( ( err ) => {
-            const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+            const cntSuccess = optsSignOperation.arrSignResults.length;
             if( log.verboseGet() >= log.verboseReversed().critical ) {
                 const strErrorMessage =
                     cc.error( "Problem(6) in BLS sign result handler, " +
@@ -1598,7 +1598,7 @@ async function doSignProcessHandleCall(
                 cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) +
                 cc.debug( ":" ) + " ";
             try {
-                const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+                const cntSuccess = optsSignOperation.arrSignResults.length;
                 if( cntSuccess > optsSignOperation.nCountOfBlsPartsToCollect ) {
                     ++optsSignOperation.joGatheringTracker.nCountSkipped;
                     if( log.verboseGet() >= log.verboseReversed().notice ) {
@@ -1840,7 +1840,7 @@ async function doSignMessagesImpl(
         if( ! ( await prepareSignMessagesImpl( optsSignOperation ) ) )
             return;
         for( let i = 0; i < optsSignOperation.jarrNodes.length; ++i ) {
-            const cntSuccess = 0 + optsSignOperation.arrSignResults.length;
+            const cntSuccess = optsSignOperation.arrSignResults.length;
             if( cntSuccess >= optsSignOperation.nCountOfBlsPartsToCollect ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
                     optsSignOperation.details.write( optsSignOperation.strLogPrefix +
@@ -2097,7 +2097,7 @@ async function doSignU256OneImpl( i, optsSignU256 ) {
                     const strLogPrefixA = cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) +
                         cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
                     try {
-                        const cntSuccess = 0 + optsSignU256.arrSignResults.length;
+                        const cntSuccess = optsSignU256.arrSignResults.length;
                         if( cntSuccess > optsSignU256.nCountOfBlsPartsToCollect ) {
                             ++optsSignU256.joGatheringTracker.nCountSkipped;
                             if( log.verboseGet() >= log.verboseReversed().notice ) {
@@ -2200,7 +2200,7 @@ async function doSignU256Gathering( optsSignU256 ) {
         const iv = setInterval( function() {
             if( optsSignU256.joGatheringTracker.nCountReceivedPrevious !=
                 optsSignU256.joGatheringTracker.nCountReceived ) {
-                const cntSuccess = 0 + optsSignU256.arrSignResults.length;
+                const cntSuccess = optsSignU256.arrSignResults.length;
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     optsSignU256.details.write(
                         cc.info( "BLS u256" ) +
@@ -2217,7 +2217,7 @@ async function doSignU256Gathering( optsSignU256 ) {
                     0 + optsSignU256.joGatheringTracker.nCountReceived;
             }
             ++ optsSignU256.joGatheringTracker.nWaitIntervalStepsDone;
-            const cntSuccess = 0 + optsSignU256.arrSignResults.length;
+            const cntSuccess = optsSignU256.arrSignResults.length;
             if( cntSuccess >= optsSignU256.nCountOfBlsPartsToCollect ) {
                 const strLogPrefixB = cc.info( "BLS u256" ) +
                     cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
