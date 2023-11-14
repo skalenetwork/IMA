@@ -2811,6 +2811,7 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
 async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
     const strSChainNameSrc = optsHandleVerifyAndSign.joCallData.params.srcChainName;
     const strSChainNameDst = optsHandleVerifyAndSign.joCallData.params.dstChainName;
+    const strDir = cc.bright( optsHandleVerifyAndSign.strDirection );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
         optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix + strDir +
             cc.debug( " verification algorithm will use for source chain name " ) +
