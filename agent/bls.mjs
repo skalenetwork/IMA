@@ -1560,7 +1560,7 @@ async function doSignProcessHandleCall(
             cc.attention( optsSignOperation.sequenceId ) + "\n" );
     }
     if( ( !joOut ) || typeof joOut != "object" || ( !( "result" in joOut ) ) || ( !joOut.result ) ||
-        typeof joOut.result != "object" ) {
+        typeof joOut.result != "object" || "error" in joOut || joOut.error ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage = optsSignOperation.strLogPrefix +
             cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
@@ -2065,6 +2065,7 @@ async function doSignU256OneImpl( i, optsSignU256 ) {
                     cc.j( joOut ) + "\n" );
             }
             if( ( !joOut ) || typeof joOut != "object" || ( !( "result" in joOut ) ) ||
+                "error" in joOut || joOut.error ||
                 ( !joOut.result ) || typeof joOut.result != "object" ||
                 ( !( "signature" in joOut.result ) ) || joOut.result.signature != "object"
             ) {
