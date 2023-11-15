@@ -259,30 +259,14 @@ export async function safeGetTransactionCount(
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts =
-        owaspUtils.parseIntOrHex( cntAttempts ) < 1
-            ? 1
-            : owaspUtils.parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1
+        ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
     let idxAttempt = 1;
-    try {
-        ret = await ethersProvider[strFnName]( address, param );
-        return ret;
-    } catch ( err ) {
-        ret = retValOnFail;
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
-                cc.u( u ) + cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
-        }
-    }
-    ++ idxAttempt;
-    while( ret === "" && idxAttempt <= cntAttempts ) {
-        const isOnLine = rpcCall.checkUrl( u, nWaitStepMilliseconds );
+    while( ( idxAttempt == 1 || ret === "" ) && idxAttempt <= cntAttempts ) {
+        const isOnLine = await rpcCall.checkUrl( u, nWaitStepMilliseconds );
         if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
@@ -316,17 +300,14 @@ export async function safeGetTransactionCount(
         }
         ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
-                cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
-                cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
-        }
-        throw new Error(
-            "Failed call to " + strFnName + "() via " + u.toString() +
-            " after " + cntAttempts + " attempts" );
+    if( log.verboseGet() >= log.verboseReversed().error ) {
+        details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
+            cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+            cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
     }
-    return ret;
+    throw new Error(
+        "Failed call to " + strFnName + "() via " + u.toString() +
+        " after " + cntAttempts + " attempts" );
 }
 
 export async function safeGetTransactionReceipt(
@@ -337,29 +318,14 @@ export async function safeGetTransactionReceipt(
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts =
-        owaspUtils.parseIntOrHex( cntAttempts ) < 1
-            ? 1
-            : owaspUtils.parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1
+        ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
     let idxAttempt = 1;
-    try {
-        ret = await ethersProvider[strFnName]( txHash );
-        return ret;
-    } catch ( err ) {
-        ret = retValOnFail;
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
-        }
-    }
-    ++ idxAttempt;
-    while( txReceipt === "" && idxAttempt <= cntAttempts ) {
-        const isOnLine = rpcCall.checkUrl( u, nWaitStepMilliseconds );
+    while( ( idxAttempt == 1 || txReceipt === "" ) && idxAttempt <= cntAttempts ) {
+        const isOnLine = await rpcCall.checkUrl( u, nWaitStepMilliseconds );
         if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
@@ -393,17 +359,14 @@ export async function safeGetTransactionReceipt(
         }
         ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) ) {
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
-                cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
-                cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
-        }
-        throw new Error(
-            "Failed call to " + strFnName + "() via " + u.toString() +
-            " after " + cntAttempts + " attempts" );
+    if( log.verboseGet() >= log.verboseReversed().error ) {
+        details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
+            cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+            cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
     }
-    return ret;
+    throw new Error(
+        "Failed call to " + strFnName + "() via " + u.toString() +
+        " after " + cntAttempts + " attempts" );
 }
 
 export async function safeGetPastEvents(
@@ -415,10 +378,8 @@ export async function safeGetPastEvents(
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts =
-        owaspUtils.parseIntOrHex( cntAttempts ) < 1
-            ? 1
-            : owaspUtils.parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1
+        ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
@@ -433,47 +394,8 @@ export async function safeGetPastEvents(
     } else
         nBlockTo = owaspUtils.toBN( nBlockTo );
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
-    try {
-        if( log.verboseGet() >= log.verboseReversed().trace ) {
-            details.write( strLogPrefix + cc.debug( "First time, will query filter " ) +
-                cc.j( joFilter ) + cc.debug( " on contract " ) + cc.info( joContract.address ) +
-                cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
-                cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
-                cc.debug( " while current latest block number on chain is " ) +
-                cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
-        }
-        ret =
-            await joContract.queryFilter(
-                joFilter,
-                nBlockFrom.toHexString(),
-                nBlockTo.toHexString()
-            );
-        return ret;
-    } catch ( err ) {
-        ret = retValOnFail;
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( strLogPrefix + cc.error( "Failed filtering attempt " ) +
-                cc.info( idxAttempt ) + cc.error( " for event " ) + cc.note( strEventName ) +
-                cc.error( " via " ) + cc.u( u ) + cc.error( ", from block " ) +
-                cc.warning( nBlockFrom.toHexString() ) +
-                cc.error( ", to block " ) + cc.warning( nBlockTo.toHexString() ) +
-                cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
-        }
-        if( owaspUtils.extractErrorMessage( err )
-            .indexOf( strErrorTextAboutNotExistingEvent ) >= 0
-        ) {
-            if( log.verboseGet() >= log.verboseReversed().error ) {
-                details.write( strLogPrefix + cc.error( "Did stopped filtering of " ) +
-                    cc.note( strEventName ) + cc.error( " event because no such event " +
-                    "exist in smart contract " ) + "\n" );
-            }
-            return ret;
-        }
-    }
-    ++ idxAttempt;
-    while( ret === "" && idxAttempt <= cntAttempts ) {
-        const isOnLine = rpcCall.checkUrl( u, nWaitStepMilliseconds );
+    while( ( idxAttempt == 1 || ret === "" ) && idxAttempt <= cntAttempts ) {
+        const isOnLine = await rpcCall.checkUrl( u, nWaitStepMilliseconds );
         if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
@@ -502,12 +424,8 @@ export async function safeGetPastEvents(
                     cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
                     cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
             }
-            ret =
-                await joContract.queryFilter(
-                    joFilter,
-                    nBlockFrom.toHexString(),
-                    nBlockTo.toHexString()
-                );
+            ret = await joContract.queryFilter(
+                joFilter, nBlockFrom.toHexString(), nBlockTo.toHexString() );
             return ret;
 
         } catch ( err ) {
@@ -534,22 +452,19 @@ export async function safeGetPastEvents(
         }
         ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) === cntAttempts && ret === "" ) {
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( strLogPrefix + cc.fatal( "ERROR:" ) +
-                cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
-                + cc.error( " event via " ) + cc.u( u ) + cc.error( ", from block " ) +
-                cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) +
-                cc.info( nBlockTo.toHexString() ) + cc.error( " after " ) + cc.info( cntAttempts ) +
-                cc.error( " attempts " ) + "\n" );
-        }
-        throw new Error(
-            "Failed filtering attempt for " + strEventName + " event, from block " +
-            nBlockFrom.toHexString() + ", to block " + nBlockTo.toHexString() +
-            " via " + u.toString() + " after " + cntAttempts + " attempts"
-        );
+    if( log.verboseGet() >= log.verboseReversed().error ) {
+        details.write( strLogPrefix + cc.fatal( "ERROR:" ) +
+            cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
+            + cc.error( " event via " ) + cc.u( u ) + cc.error( ", from block " ) +
+            cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) +
+            cc.info( nBlockTo.toHexString() ) + cc.error( " after " ) + cc.info( cntAttempts ) +
+            cc.error( " attempts " ) + "\n" );
     }
-    return ret;
+    throw new Error(
+        "Failed filtering attempt for " + strEventName + " event, from block " +
+        nBlockFrom.toHexString() + ", to block " + nBlockTo.toHexString() +
+        " via " + u.toString() + " after " + cntAttempts + " attempts"
+    );
 }
 
 export async function safeGetPastEventsIterative(

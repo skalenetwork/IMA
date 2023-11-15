@@ -94,29 +94,14 @@ export async function safeGetBlockNumber(
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts =
-        owaspUtils.parseIntOrHex( cntAttempts ) < 1
-            ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1
+        ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let idxAttempt = 1;
     let ret = retValOnFail;
-    try {
-        ret = await ethersProvider[strFnName]();
-        return ret;
-    } catch ( err ) {
-        ret = retValOnFail;
-        if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
-                cc.u( u ) + cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
-        }
-    }
-    ++ idxAttempt;
-    while( ret === "" && idxAttempt <= cntAttempts ) {
-        const isOnLine = rpcCall.checkUrl( u, nWaitStepMilliseconds );
+    while( ( idxAttempt == 1 || ret === "" ) && idxAttempt <= cntAttempts ) {
+        const isOnLine = await rpcCall.checkUrl( u, nWaitStepMilliseconds );
         if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
@@ -126,8 +111,9 @@ export async function safeGetBlockNumber(
                     cc.error( " via " ) + cc.u( u ) + cc.warning( " because server is off-line" ) +
                     "\n" );
             }
-            throw new Error( "Cannot " + strFnName + "() via " + u.toString() +
-            " because server is off-line" );
+            throw new Error(
+                "Cannot " + strFnName + "() via " + u.toString() +
+                " because server is off-line" );
         }
         if( log.verboseGet() >= log.verboseReversed().trace ) {
             details.write( cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
@@ -149,16 +135,13 @@ export async function safeGetBlockNumber(
         }
         ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
-        details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
-            + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) +
-            cc.info( cntAttempts ) + cc.error( " attempts " ) +
-            "\n" );
-        throw new Error( "Failed call to " + strFnName + "() via " +
-        u.toString() + " after " + cntAttempts + " attempts" );
-    }
-    return ret;
+    details.write( cc.fatal( "ERROR:" ) +
+        cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
+        + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) +
+        cc.info( cntAttempts ) + cc.error( " attempts " ) +
+        "\n" );
+    throw new Error( "Failed call to " + strFnName + "() via " +
+    u.toString() + " after " + cntAttempts + " attempts" );
 }
 
 let gCountOfBlocksInIterativeStep = 1000;
