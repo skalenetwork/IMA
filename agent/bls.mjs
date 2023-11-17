@@ -280,6 +280,8 @@ export function keccak256ForPendingWorkAnalysis( nNodeNumber, strLoopWorkType, i
 
 function splitSignatureShare( signatureShare ) {
     const jarr = signatureShare.split( ":" );
+    if( jarr.length < 2 )
+        throw new Error( "Failed to split signatureShare=" + signatureShare.toString() );
     return {
         X: jarr[0],
         Y: jarr[1]
@@ -301,10 +303,7 @@ function allocBlsTmpActionDir() {
 }
 
 function performBlsGlue(
-    details,
-    strDirection,
-    jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
-    arrSignResults
+    details, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, arrSignResults
 ) {
     const imaState = state.get();
     const strLogPrefix =
@@ -345,6 +344,8 @@ function performBlsGlue(
         const cnt = arrSignResults.length;
         for( let i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
+            if( ( !jo ) || typeof jo != "object" )
+                throw new Error( "Failed to save BLS part " + i + "because it's not JSON object" );
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) +
@@ -483,6 +484,8 @@ function performBlsGlueU256( details, u256, arrSignResults ) {
         const cnt = arrSignResults.length;
         for( let i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
+            if( ( !jo ) || typeof jo != "object" )
+                throw new Error( "Failed to save BLS part " + i + "because it's not JSON object" );
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) +
@@ -1191,6 +1194,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
     optsSignOperation.errGathering = null;
     optsSignOperation.promiseCompleteGathering = new Promise( ( resolve, reject ) => {
         const iv = setInterval( function() {
+            const cntSuccess = optsSignOperation.arrSignResults.length;
             if( optsSignOperation.joGatheringTracker.nCountReceivedPrevious !=
                 optsSignOperation.joGatheringTracker.nCountReceived ) {
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
@@ -1199,9 +1203,9 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                         cc.attention( "#" ) + cc.sunny( optsSignOperation.nTransferLoopCounter ) +
                         cc.debug( " BLS signature gathering progress updated, now have " ) +
                         cc.info( optsSignOperation.joGatheringTracker.nCountReceived ) +
-                        cc.debug( " BLS parts of " ) +
+                        cc.debug( " BLS parts of needed " ) +
                         cc.info( optsSignOperation.nCountOfBlsPartsToCollect ) +
-                        cc.debug( " arrived, have " ) + cc.info( optsSignOperation.cntSuccess ) +
+                        cc.debug( " arrived, have " ) + cc.info( cntSuccess ) +
                         cc.debug( " success(es) and " ) +
                         cc.info( optsSignOperation.joGatheringTracker.nCountErrors ) +
                         cc.debug( " error(s)" ) + "\n" );
@@ -1210,10 +1214,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     0 + optsSignOperation.joGatheringTracker.nCountReceived;
             }
             ++ optsSignOperation.joGatheringTracker.nWaitIntervalStepsDone;
-            optsSignOperation.cntSuccess =
-                optsSignOperation.joGatheringTracker.nCountReceived -
-                optsSignOperation.joGatheringTracker.nCountErrors;
-            if( optsSignOperation.cntSuccess >= optsSignOperation.nCountOfBlsPartsToCollect ) {
+            if( cntSuccess >= optsSignOperation.nCountOfBlsPartsToCollect ) {
                 optsSignOperation.strLogPrefixB =
                     cc.bright( optsSignOperation.strDirection ) + cc.debug( "/" ) +
                     cc.attention( "#" ) + cc.sunny( optsSignOperation.nTransferLoopCounter ) +
@@ -1221,13 +1222,10 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
                 clearInterval( iv );
                 let strError = null, strSuccessfulResultDescription = null;
-                const joGlueResult = performBlsGlue(
-                    optsSignOperation.details, optsSignOperation.strDirection,
-                    optsSignOperation.jarrMessages,
-                    optsSignOperation.nIdxCurrentMsgBlockStart,
-                    optsSignOperation.strFromChainName,
-                    optsSignOperation.arrSignResults
-                );
+                const joGlueResult = performBlsGlue( optsSignOperation.details,
+                    optsSignOperation.strDirection, optsSignOperation.jarrMessages,
+                    optsSignOperation.nIdxCurrentMsgBlockStart, optsSignOperation.strFromChainName,
+                    optsSignOperation.arrSignResults );
                 if( joGlueResult ) {
                     if( log.verboseGet() >= log.verboseReversed().debug ) {
                         optsSignOperation.details.write( optsSignOperation.strLogPrefixB +
@@ -1271,7 +1269,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                         "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
                         optsSignOperation.details.write( strErrorMessage );
-                        if( log.id != details.id )
+                        if( log.id != optsSignOperation.details.id )
                             log.write( strErrorMessage );
                     }
                 }
@@ -1318,15 +1316,14 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     " node(s)", optsSignOperation.jarrMessages,
                     null
                 ).catch( ( err ) => {
+                    const cntSuccess = optsSignOperation.arrSignResults.length;
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strErrorMessage =
                             cc.error( "Problem(3) in BLS sign result handler, " +
                                 "not enough successful BLS signature parts(" ) +
-                            cc.info( optsSignOperation.cntSuccess ) +
-                            cc.error( " when all attempts done, " +
+                            cc.info( cntSuccess ) + cc.error( " when all attempts done, " +
                                 "error optsSignOperation.details: " ) +
-                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                            "\n";
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
                         optsSignOperation.details.write( strErrorMessage );
                         if( log.id != optsSignOperation.details.id )
                             log.write( strErrorMessage );
@@ -1334,7 +1331,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     optsSignOperation.errGathering =
                         "Problem(3) in BLS sign result handler," +
                             " not enough successful BLS signature parts(" +
-                        optsSignOperation.cntSuccess +
+                        cntSuccess +
                         " when all attempts done, error optsSignOperation.details: " +
                         owaspUtils.extractErrorMessage( err );
                     reject( new Error( optsSignOperation.errGathering ) );
@@ -1353,13 +1350,13 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     optsSignOperation.jarrMessages,
                     null
                 ).catch( ( err ) => {
+                    const cntSuccess = optsSignOperation.arrSignResults.length;
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strErrorMessage =
                             cc.error(
                                 "Problem(4) in BLS sign result handler, " +
                                 "not enough successful BLS signature parts(" ) +
-                            cc.info( optsSignOperation.cntSuccess ) +
-                            cc.error( ") and timeout reached, " +
+                            cc.info( cntSuccess ) + cc.error( ") and timeout reached, " +
                                 "error optsSignOperation.details: " ) +
                             cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                             "\n";
@@ -1369,8 +1366,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     }
                     optsSignOperation.errGathering =
                         "Problem(4) in BLS sign result handler, " +
-                        "not enough successful BLS signature parts(" +
-                        optsSignOperation.cntSuccess +
+                        "not enough successful BLS signature parts(" + cntSuccess +
                         ") and timeout reached, error optsSignOperation.details: " +
                         owaspUtils.extractErrorMessage( err );
                     reject( new Error( optsSignOperation.errGathering ) );
@@ -1429,14 +1425,13 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
                 optsSignOperation.jarrMessages,
                 null
             ).catch( ( err ) => {
+                const cntSuccess = optsSignOperation.arrSignResults.length;
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
                     const strErrorMessage =
                         cc.error( "Problem(5) in BLS sign result handler, " +
-                        "not enough successful BLS signature parts(" ) +
-                        cc.info( optsSignOperation.cntSuccess ) +
+                        "not enough successful BLS signature parts(" ) + cc.info( cntSuccess ) +
                         cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        "\n";
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
                         if( log.id != optsSignOperation.details.id )
                             log.write( strErrorMessage );
@@ -1467,11 +1462,11 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
             JSON.stringify( optsSignOperation.joGatheringTracker ),
             optsSignOperation.jarrMessages, null
         ).catch( ( err ) => {
+            const cntSuccess = optsSignOperation.arrSignResults.length;
             if( log.verboseGet() >= log.verboseReversed().critical ) {
                 const strErrorMessage =
                     cc.error( "Problem(6) in BLS sign result handler, " +
-                    "not enough successful BLS signature parts(" ) +
-                    cc.info( optsSignOperation.cntSuccess ) +
+                    "not enough successful BLS signature parts(" ) + cc.info( cntSuccess ) +
                     cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
                 if( log.id != optsSignOperation.details.id )
@@ -1564,10 +1559,8 @@ async function doSignProcessHandleCall(
             cc.j( joOut ) + cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) +
             cc.attention( optsSignOperation.sequenceId ) + "\n" );
     }
-    if( joOut.result == null ||
-        joOut.result == undefined ||
-        ( !typeof joOut.result == "object" )
-    ) {
+    if( ( !joOut ) || typeof joOut != "object" || ( !( "result" in joOut ) ) || ( !joOut.result ) ||
+        typeof joOut.result != "object" || ( "error" in joOut && joOut.error ) ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
         const strErrorMessage = optsSignOperation.strLogPrefix +
             cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
@@ -1605,11 +1598,8 @@ async function doSignProcessHandleCall(
                 cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) +
                 cc.debug( ":" ) + " ";
             try {
-                optsSignOperation.cntSuccess =
-                    optsSignOperation.joGatheringTracker.nCountReceived -
-                    optsSignOperation.joGatheringTracker.nCountErrors;
-                if( optsSignOperation.cntSuccess >
-                        optsSignOperation.nCountOfBlsPartsToCollect ) {
+                const cntSuccess = optsSignOperation.arrSignResults.length;
+                if( cntSuccess > optsSignOperation.nCountOfBlsPartsToCollect ) {
                     ++optsSignOperation.joGatheringTracker.nCountSkipped;
                     if( log.verboseGet() >= log.verboseReversed().notice ) {
                         optsSignOperation.details.write(
@@ -1810,7 +1800,6 @@ async function doSignMessagesImpl(
         strLogPrefixB: "",
         joGatheringTracker: {},
         arrSignResults: [],
-        cntSuccess: 0,
         details: log,
         strGatheredDetailsName: "",
         sequenceId: "",
@@ -1851,10 +1840,8 @@ async function doSignMessagesImpl(
         if( ! ( await prepareSignMessagesImpl( optsSignOperation ) ) )
             return;
         for( let i = 0; i < optsSignOperation.jarrNodes.length; ++i ) {
-            optsSignOperation.cntSuccess =
-                optsSignOperation.joGatheringTracker.nCountReceived -
-                optsSignOperation.joGatheringTracker.nCountErrors;
-            if( optsSignOperation.cntSuccess >= optsSignOperation.nCountOfBlsPartsToCollect ) {
+            const cntSuccess = optsSignOperation.arrSignResults.length;
+            if( cntSuccess >= optsSignOperation.nCountOfBlsPartsToCollect ) {
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
                     optsSignOperation.details.write( optsSignOperation.strLogPrefix +
                         log.generateTimestampString( null, true ) + " " +
@@ -1862,7 +1849,7 @@ async function doSignMessagesImpl(
                         cc.debug( " for transfer from chain " ) + cc.info( fromChainName ) +
                         cc.debug( " at #" ) + cc.info( i ) +
                         cc.debug( " because successfully gathered count is reached " ) +
-                        cc.j( optsSignOperation.cntSuccess ) + "\n" );
+                        cc.j( cntSuccess ) + "\n" );
                 }
                 break;
             }
@@ -2077,9 +2064,10 @@ async function doSignU256OneImpl( i, optsSignU256 ) {
                     cc.info( optsSignU256.u256.toString() ) + cc.debug( ", answer is: " ) +
                     cc.j( joOut ) + "\n" );
             }
-            if( joOut.result == null ||
-                joOut.result == undefined ||
-                ( !typeof joOut.result == "object" )
+            if( ( !joOut ) || typeof joOut != "object" || ( !( "result" in joOut ) ) ||
+                "error" in joOut || joOut.error ||
+                ( !joOut.result ) || typeof joOut.result != "object" ||
+                ( !( "signature" in joOut.result ) ) || joOut.result.signature != "object"
             ) {
                 ++optsSignU256.joGatheringTracker.nCountErrors;
                 const strErrorMessage =
@@ -2110,8 +2098,7 @@ async function doSignU256OneImpl( i, optsSignU256 ) {
                     const strLogPrefixA = cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) +
                         cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
                     try {
-                        const cntSuccess = optsSignU256.joGatheringTracker.nCountReceived -
-                            optsSignU256.joGatheringTracker.nCountErrors;
+                        const cntSuccess = optsSignU256.arrSignResults.length;
                         if( cntSuccess > optsSignU256.nCountOfBlsPartsToCollect ) {
                             ++optsSignU256.joGatheringTracker.nCountSkipped;
                             if( log.verboseGet() >= log.verboseReversed().notice ) {
@@ -2214,14 +2201,15 @@ async function doSignU256Gathering( optsSignU256 ) {
         const iv = setInterval( function() {
             if( optsSignU256.joGatheringTracker.nCountReceivedPrevious !=
                 optsSignU256.joGatheringTracker.nCountReceived ) {
+                const cntSuccess = optsSignU256.arrSignResults.length;
                 if( log.verboseGet() >= log.verboseReversed().debug ) {
                     optsSignU256.details.write(
                         cc.info( "BLS u256" ) +
                         cc.debug( " BLS signature gathering progress updated, now have " ) +
                         cc.info( optsSignU256.joGatheringTracker.nCountReceived ) +
-                        cc.debug( " BLS parts of " ) +
+                        cc.debug( " BLS parts of needed " ) +
                         cc.info( optsSignU256.nCountOfBlsPartsToCollect ) +
-                        cc.debug( " arrived, have " ) + cc.info( optsSignU256.cntSuccess ) +
+                        cc.debug( " arrived, have " ) + cc.info( cntSuccess ) +
                         cc.debug( " success(es) and " ) +
                         cc.info( optsSignU256.joGatheringTracker.nCountErrors ) +
                         cc.debug( " error(s)" ) + "\n" );
@@ -2230,9 +2218,7 @@ async function doSignU256Gathering( optsSignU256 ) {
                     0 + optsSignU256.joGatheringTracker.nCountReceived;
             }
             ++ optsSignU256.joGatheringTracker.nWaitIntervalStepsDone;
-            const cntSuccess =
-                optsSignU256.joGatheringTracker.nCountReceived -
-                optsSignU256.joGatheringTracker.nCountErrors;
+            const cntSuccess = optsSignU256.arrSignResults.length;
             if( cntSuccess >= optsSignU256.nCountOfBlsPartsToCollect ) {
                 const strLogPrefixB = cc.info( "BLS u256" ) +
                     cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
@@ -2696,16 +2682,28 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                 if( joOut.signResult != null && joOut.signResult != undefined &&
                     typeof joOut.signResult == "object" )
                     joSignResult = joOut.signResult;
+                if( !joSignResult ) {
+                    const strError = "No signature arrived";
+                    joRetVal.error = strError;
+                    if( log.id != details.id ) {
+                        log.write( strLogPrefix + cc.error( "BLS-sign(1) finished with error: }" ) +
+                            cc.warning( strError ) + "\n" );
+                    }
+                    details.write( strLogPrefix + cc.error( "BLS-sign(1) finished with error: }" ) +
+                        cc.warning( strError ) + "\n" );
+                    await joCall.disconnect();
+                    throw new Error( strError );
+                }
                 if( "errorMessage" in joSignResult &&
                     typeof joSignResult.errorMessage == "string" &&
                     joSignResult.errorMessage.length > 0
                 ) {
                     const strError =
-                        "BLS signing finished with error: " + joSignResult.errorMessage;
+                        "BLS-sign(2) finished with error: " + joSignResult.errorMessage;
                     joRetVal.error = strError;
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " BLS signing(1) finished with error: " ) +
+                        cc.error( " BLS-sign(2) finished with error: " ) +
                         cc.warning( joSignResult.errorMessage ) +
                         "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -2766,9 +2764,9 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
         optsHandleVerifyAndSign.joCallData.params.direction;
     optsHandleVerifyAndSign.jarrMessages =
         optsHandleVerifyAndSign.joCallData.params.messages;
+    const strDir = cc.bright( optsHandleVerifyAndSign.strDirection );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
-        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-            cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix + strDir +
             cc.debug( " verification algorithm will work for transfer from chain " ) +
             cc.info( optsHandleVerifyAndSign.strFromChainName ) + cc.debug( "/" ) +
             cc.notice( optsHandleVerifyAndSign.strFromChainID ) + cc.debug( " to chain" ) +
@@ -2782,12 +2780,10 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
     optsHandleVerifyAndSign.nParticipants =
         discoverBlsParticipants( optsHandleVerifyAndSign.imaState.joSChainNetworkInfo );
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-            cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix + strDir +
             cc.debug( " verification algorithm discovered BLS threshold is " ) +
             cc.info( optsHandleVerifyAndSign.nThreshold ) + cc.debug( "." ) + "\n" );
-        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-            cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix + strDir +
             cc.debug( " verification algorithm discovered number of BLS participants is " ) +
             cc.info( optsHandleVerifyAndSign.nParticipants ) + cc.debug( "." ) + "\n" );
     }
@@ -2806,11 +2802,9 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
             )
         );
     if( log.verboseGet() >= log.verboseReversed().debug ) {
-        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-            cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix + strDir +
             cc.debug( " verification algorithm message hash to sign is " ) +
-            cc.info( optsHandleVerifyAndSign.strMessageHash ) +
-            "\n" );
+            cc.info( optsHandleVerifyAndSign.strMessageHash ) + "\n" );
     }
     return true;
 }
@@ -2818,9 +2812,9 @@ async function prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign )
 async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
     const strSChainNameSrc = optsHandleVerifyAndSign.joCallData.params.srcChainName;
     const strSChainNameDst = optsHandleVerifyAndSign.joCallData.params.dstChainName;
+    const strDir = cc.bright( optsHandleVerifyAndSign.strDirection );
     if( log.verboseGet() >= log.verboseReversed().trace ) {
-        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-            cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix + strDir +
             cc.debug( " verification algorithm will use for source chain name " ) +
             cc.info( strSChainNameSrc ) + cc.debug( " and destination chain name " ) +
             cc.info( strSChainNameDst ) + "\n" );
@@ -2887,19 +2881,18 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
         nThreshold: 1,
         nParticipants: 1
     };
+    const strDir = cc.bright( optsHandleVerifyAndSign.strDirection );
     try {
         if( ! ( await prepareHandlingOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) ) )
             return null;
         optsHandleVerifyAndSign.joExtraSignOpts = null;
         if( optsHandleVerifyAndSign.strDirection == "S2S" )
             await prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign );
-
         await checkCorrectnessOfMessagesToSign(
             optsHandleVerifyAndSign.details, optsHandleVerifyAndSign.strLogPrefix,
             optsHandleVerifyAndSign.strDirection, optsHandleVerifyAndSign.jarrMessages,
             optsHandleVerifyAndSign.nIdxCurrentMsgBlockStart,
-            optsHandleVerifyAndSign.joExtraSignOpts
-        );
+            optsHandleVerifyAndSign.joExtraSignOpts );
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
                 cc.debug( "Will BLS-sign verified messages." ) + "\n" );
@@ -2930,12 +2923,10 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
         const signerIndex = optsHandleVerifyAndSign.imaState.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
-                const strErrorMessage = optsHandleVerifyAndSign.strLogPrefix +
-                    cc.bright( optsHandleVerifyAndSign.strDirection ) + " " +
-                    cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, " +
-                        "RPC call was not created, error is: " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
+                const strErrorMessage = optsHandleVerifyAndSign.strLogPrefix + strDir + " " +
+                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call" +
+                    "(handleSkaleImaVerifyAndSign) to SGX failed, RPC call was not created, " +
+                    "error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
                 if( log.verboseGet() >= log.verboseReversed().error ) {
                     if( log.id != optsHandleVerifyAndSign.details.id )
                         log.write( strErrorMessage );
@@ -2944,10 +2935,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                 if( joCall )
                     await joCall.disconnect();
                 throw new Error(
-                    "JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, " +
-                    "RPC call was not created, error is: " +
-                    owaspUtils.extractErrorMessage( err )
-                );
+                    "JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, RPC call was " +
+                    "not created, error is: " + owaspUtils.extractErrorMessage( err ) );
             }
             const joCallSGX = {
                 "jsonrpc": "2.0",
@@ -2963,22 +2952,19 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
             };
             if( log.verboseGet() >= log.verboseReversed().trace ) {
                 optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-                    cc.bright( optsHandleVerifyAndSign.strDirection ) +
-                    cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + " " +
-                    cc.debug( "with call data" ) + " " + cc.j( joCallSGX ) + "\n" );
+                    strDir + cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) +
+                    " " + cc.debug( "with call data" ) + " " + cc.j( joCallSGX ) + "\n" );
             }
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
                     const strError =
-                        "JSON RPC call(handleSkaleImaVerifyAndSign) " +
-                        "to SGX failed, RPC call reported error: " +
-                        owaspUtils.extractErrorMessage( err );
+                        "JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, RPC call " +
+                        "reported error: " + owaspUtils.extractErrorMessage( err );
                     optsHandleVerifyAndSign.joRetVal.error = strError;
                     const jsErrorObject = new Error( strError );
                     const strErrorMessage = optsHandleVerifyAndSign.strLogPrefix +
-                        cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call(handleSkaleImaVerifyAndSign) to SGX failed, " +
-                            "RPC call reported error: " ) +
+                        cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call" +
+                        "(handleSkaleImaVerifyAndSign) to SGX failed, RPC call reported error: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) + "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -2991,8 +2977,7 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                 }
                 if( log.verboseGet() >= log.verboseReversed().trace ) {
                     optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
-                        cc.bright( optsHandleVerifyAndSign.strDirection ) +
-                        cc.debug( " Call to " ) + cc.info( "SGX" ) +
+                        strDir + cc.debug( " Call to " ) + cc.info( "SGX" ) +
                         cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 }
                 let joSignResult = joOut;
@@ -3004,18 +2989,29 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                     joSignResult = joOut.signResult;
                 if( "qa" in optsHandleVerifyAndSign.joCallData )
                     optsHandleVerifyAndSign.joRetVal.qa = optsHandleVerifyAndSign.joCallData.qa;
+                if( !joSignResult ) {
+                    const strError = "No signature arrived";
+                    joRetVal.error = strError;
+                    if( log.id != details.id ) {
+                        log.write( strLogPrefix + cc.error( "BLS-sign(1) finished with error: }" ) +
+                            cc.warning( strError ) + "\n" );
+                    }
+                    details.write( strLogPrefix + cc.error( "BLS-sign(1) finished with error: }" ) +
+                        cc.warning( strError ) + "\n" );
+                    await joCall.disconnect();
+                    throw new Error( strError );
+                }
                 if( "errorMessage" in joSignResult &&
                     typeof joSignResult.errorMessage == "string" &&
                     joSignResult.errorMessage.length > 0
                 ) {
                     optsHandleVerifyAndSign.isSuccess = false;
                     const strError =
-                        "BLS signing finished with error: " + joSignResult.errorMessage;
+                        "BLS-sign(2) finished with error: " + joSignResult.errorMessage;
                     optsHandleVerifyAndSign.joRetVal.error = strError;
                     const strErrorMessage = optsHandleVerifyAndSign.strLogPrefix +
-                        cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " BLS signing(2) finished with error: " ) +
-                        cc.warning( joSignResult.errorMessage ) + "\n";
+                        cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS-sign(2) finished with " +
+                        "error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
                     if( log.verboseGet() >= log.verboseReversed().error ) {
                         if( log.id != optsHandleVerifyAndSign.details.id )
                             log.write( strErrorMessage );
@@ -3039,8 +3035,7 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
             const strErrorMessage =
                 optsHandleVerifyAndSign.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
                 cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
-                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                "\n";
+                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) + "\n";
             if( log.id != optsHandleVerifyAndSign.details.id )
                 log.write( strErrorMessage );
             optsHandleVerifyAndSign.details.write( strErrorMessage );
@@ -3204,17 +3199,28 @@ export async function handleSkaleImaBSU256( joCallData ) {
                     if( joOut.signResult != null && joOut.signResult != undefined &&
                         typeof joOut.signResult == "object" )
                         joSignResult = joOut.signResult;
+                    if( !joSignResult ) {
+                        const strError = "No signature arrived";
+                        joRetVal.error = strError;
+                        if( log.id != details.id ) {
+                            log.write( strLogPrefix + cc.error( "U256/BLS-sign(1) finished " +
+                                "with error: " ) + cc.warning( strError ) + "\n" );
+                        }
+                        details.write( strLogPrefix + cc.error( "U256/BLS-sign(1) finished " +
+                            "with error: " ) + cc.warning( strError ) + "\n" );
+                        await joCall.disconnect();
+                        throw new Error( strError );
+                    }
                     if( "errorMessage" in joSignResult &&
                         typeof joSignResult.errorMessage == "string" &&
                         joSignResult.errorMessage.length > 0 ) {
                         optsBSU256.isSuccess = false;
                         const strError =
-                            "BLS signing finished with error: " + joSignResult.errorMessage;
+                            "U256/BLS-sign(2) finished with error: " + joSignResult.errorMessage;
                         optsBSU256.joRetVal.error = strError;
                         const strErrorMessage = optsBSU256.strLogPrefix +
-                            cc.fatal( "CRITICAL ERROR:" ) +
-                            cc.error( " BLS signing(3) finished with error: " ) +
-                            cc.warning( joSignResult.errorMessage ) + "\n";
+                            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " U256/BLS-sign(2) finished" +
+                            " with error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
                         if( log.verboseGet() >= log.verboseReversed().error ) {
                             if( log.id != optsBSU256.details.id )
                                 log.write( strErrorMessage );
@@ -3235,11 +3241,9 @@ export async function handleSkaleImaBSU256( joCallData ) {
         const strError = owaspUtils.extractErrorMessage( err );
         optsBSU256.joRetVal.error = strError;
         if( log.verboseGet() >= log.verboseReversed().critical ) {
-            const strErrorMessage =
-                optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+            const strErrorMessage = optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
                 cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
-                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                "\n";
+                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) + "\n";
             if( log.id != optsBSU256.details.id )
                 log.write( strErrorMessage );
             optsBSU256.details.write( strErrorMessage );
