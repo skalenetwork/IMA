@@ -112,7 +112,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --monitoring-port=$MONITORING_PORT \
 --pwa \
 --no-expose-pwa \
---auto-exit=86400"
+--auto-exit=3600"
 
 echo "Running loop cmd..."
 node "$DIR/main.mjs" --loop $BASE_OPTIONS
