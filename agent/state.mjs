@@ -277,7 +277,7 @@ export function get() {
             "isEnabled": true,
             "bParallelModeRefreshSNB": true,
             // seconds to re-discover SKALE network, 0 to disable
-            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60,
+            "secondsToReDiscoverSkaleNetwork": 90 * 60, // 90 minutes
             "secondsToWaitForSkaleNetworkDiscovered": 5 * 60
         },
 
