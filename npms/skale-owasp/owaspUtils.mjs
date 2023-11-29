@@ -729,10 +729,24 @@ export function fnAddressImpl_() {
 }
 
 export function getEthersProviderFromURL( strURL ) {
+    const u = new URL( strURL );
+    let userName = null, userPwd = null;
+    if( u.username ) {
+        userName = u.username;
+        userPwd = u.password;
+        u.username = "";
+        u.password = "";
+        strURL = u.href; // remove credentials
+    }
     const joConnectionInfo = { // see https://docs.ethers.io/v5/api/utils/web/#ConnectionInfo
         url: strURL,
         allowInsecureAuthentication: true
     };
+    if( userName ) {
+        joConnectionInfo.user = userName;
+        if( userPwd )
+            joConnectionInfo.password = userPwd;
+    }
     const ethersProvider = new ethersMod.ethers.providers.JsonRpcProvider( joConnectionInfo );
     return ethersProvider;
 }
