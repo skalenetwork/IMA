@@ -135,8 +135,8 @@ export function toFloat( value ) {
 }
 
 export function validateURL( s ) {
-    const u = toURL( s );
-    if( u == null )
+    const url = toURL( s );
+    if( url == null )
         return false;
     return true;
 }
@@ -155,20 +155,20 @@ export function toURL( s ) {
             const cnt = s.length;
             if( s[cnt - 1] == sc ) {
                 const ss = s.substring( 1, cnt - 1 );
-                const u = toURL( ss );
-                if( u != null && u != undefined )
-                    u.strStrippedStringComma = sc;
-                return u;
+                const url = toURL( ss );
+                if( url != null && url != undefined )
+                    url.strStrippedStringComma = sc;
+                return url;
             }
             return null;
         }
-        const u = new URL( s );
-        if( !u.hostname )
+        const url = new URL( s );
+        if( !url.hostname )
             return null;
-        if( u.hostname.length === 0 )
+        if( url.hostname.length === 0 )
             return null;
-        u.strStrippedStringComma = null;
-        return u;
+        url.strStrippedStringComma = null;
+        return url;
     } catch ( err ) {
         return null;
     }
@@ -177,10 +177,10 @@ export function toURL( s ) {
 export function toStringURL( s, defValue ) {
     defValue = defValue || "";
     try {
-        const u = toURL( s );
-        if( u == null || u == undefined )
+        const url = toURL( s );
+        if( url == null || url == undefined )
             return defValue;
-        return u.toString();
+        return url.toString();
     } catch ( err ) {
         return defValue;
     }
@@ -190,8 +190,8 @@ export function isUrlHTTP( strURL ) {
     try {
         if( !validateURL( strURL ) )
             return false;
-        const u = new URL( strURL );
-        if( u.protocol == "http:" || u.protocol == "https:" )
+        const url = new URL( strURL );
+        if( url.protocol == "http:" || url.protocol == "https:" )
             return true;
     } catch ( err ) {
     }
@@ -202,8 +202,8 @@ export function isUrlWS( strURL ) {
     try {
         if( !validateURL( strURL ) )
             return false;
-        const u = new URL( strURL );
-        if( u.protocol == "ws:" || u.protocol == "wss:" )
+        const url = new URL( strURL );
+        if( url.protocol == "ws:" || url.protocol == "wss:" )
             return true;
     } catch ( err ) {
     }
@@ -291,8 +291,8 @@ export function verifyArgumentWithNonEmptyValue( joArg ) {
 export function verifyArgumentIsURL( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
-        const u = toURL( joArg.value );
-        if( u == null ) {
+        const url = toURL( joArg.value );
+        if( url == null ) {
             console.log(
                 cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) +
                 cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) +
@@ -300,7 +300,7 @@ export function verifyArgumentIsURL( joArg ) {
             );
             process.exit( 126 );
         }
-        if( u.hostname.length <= 0 ) {
+        if( url.hostname.length <= 0 ) {
             console.log( cc.fatal(
                 "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) +
                 cc.error( " of argument " ) + cc.info( joArg.name ) +
@@ -729,10 +729,24 @@ export function fnAddressImpl_() {
 }
 
 export function getEthersProviderFromURL( strURL ) {
+    const url = new URL( strURL );
+    let userName = null, userPwd = null;
+    if( url.username ) {
+        userName = url.username;
+        userPwd = url.password;
+        url.username = "";
+        url.password = "";
+        strURL = url.href; // remove credentials
+    }
     const joConnectionInfo = { // see https://docs.ethers.io/v5/api/utils/web/#ConnectionInfo
         url: strURL,
         allowInsecureAuthentication: true
     };
+    if( userName ) {
+        joConnectionInfo.user = userName;
+        if( userPwd )
+            joConnectionInfo.password = userPwd;
+    }
     const ethersProvider = new ethersMod.ethers.providers.JsonRpcProvider( joConnectionInfo );
     return ethersProvider;
 }
