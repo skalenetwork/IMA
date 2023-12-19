@@ -675,6 +675,7 @@ export async function getAllSchainNames( arrSChainHashes, opts ) {
         for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
             if( opts && opts.bStopNeeded )
                 break;
+            const strSChainHash = arrSChainHashes[idxSChain];
             const strSChainName =
                 rawResults.results[strRef3].callsReturnContext[idxResult].returnValues[0];
             arrSChainNames.push( strSChainName );
