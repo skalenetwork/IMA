@@ -163,6 +163,7 @@ const gArrChainIdsSupportedByMulticall = [
 ];
 
 async function isMulticallAvailable( mn ) {
+    // return true;
     if( mn && mn.ethersProvider ) {
         const { chainId } = await mn.ethersProvider.getNetwork();
         const bnChainId = owaspUtils.toBN( chainId );
@@ -196,6 +197,7 @@ export async function loadSChainParts( joSChain, opts ) {
         const multicall = new EMC.Multicall( {
             ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
             tryAggregate: true
+            //, multicallCustomContractAddress: "0xcA11bde05977b3631167028862bE2a173976CA11"
         } );
         const strRef0 = "Nodes-nodes";
         const strRef1 = "Nodes-getNodeDomainName";
@@ -425,6 +427,7 @@ export async function loadSChainsWithEMC( opts ) {
     const multicall = new EMC.Multicall( {
         ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
         tryAggregate: true
+        //, multicallCustomContractAddress: "0xcA11bde05977b3631167028862bE2a173976CA11"
     } );
     const cntGroupMax = 30, cntLastExtraGroup = cntSChains % cntGroupMax;
     const bHaveExtraGroup = ( cntLastExtraGroup > 0 ) ? true : false;
@@ -652,6 +655,7 @@ export async function getAllSchainNames( arrSChainHashes, opts ) {
         const multicall = new EMC.Multicall( {
             ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
             tryAggregate: true
+            //, multicallCustomContractAddress: "0xcA11bde05977b3631167028862bE2a173976CA11"
         } );
         const strRef3 = "SchainsInternal-getSchainName";
         const contractCallContext = [ {
@@ -675,6 +679,7 @@ export async function getAllSchainNames( arrSChainHashes, opts ) {
         for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
             if( opts && opts.bStopNeeded )
                 break;
+            const strSChainHash = arrSChainHashes[idxSChain];
             const strSChainName =
                 rawResults.results[strRef3].callsReturnContext[idxResult].returnValues[0];
             arrSChainNames.push( strSChainName );
@@ -1295,7 +1300,8 @@ export async function ensureHaveWorker( opts ) {
                             opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds,
                         "periodicDiscoveryInterval":
                             opts.imaState.joSChainDiscovery.periodicDiscoveryInterval
-                    }
+                    },
+                    "isEnabledMultiCall": opts.imaState.isEnabledMultiCall
                 }
             },
             "cc": {
