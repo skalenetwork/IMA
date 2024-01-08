@@ -210,7 +210,7 @@ describe("TokenManagerERC20", () => {
     });
 
     describe("when token added by owner", async () => {
-        const mainnetChainHash = stringValue(web3.utils.soliditySha3(mainnetName));
+        const mainnetChainHash = stringKeccak256(mainnetName);
         let erc20OnSchainTokenAddress: string;
         let erc20OnOriginChainTokenAddress: string;
 
