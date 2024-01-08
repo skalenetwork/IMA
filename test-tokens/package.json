@@ -9,7 +9,7 @@
     "scripts": {
         "compile": "npx hardhat clean && npx hardhat compile",
         "prepare": "yarn compile",
-        "postinstall": "cd ../npms/skale-owasp && yarn install && cd ../../test-tokens"
+        "postinstall": "./postinstall.sh"
     },
     "dependencies": {
         "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -29,10 +29,5 @@
         "typescript": "^4.2.4"
     },
     "resolutions": {
-        "**/sqlite3": "5.0.2",
-        "**/sha3": "2.1.4",
-        "web3/ethereumjs-**/scrypt": "file:../npms/scrypt/node-scrypt",
-        "web3/**/scrypt": "file:../npms/scrypt/node-scrypt",
-        "scrypt.js/scrypt": "file:../npms/scrypt/node-scrypt"
     }
 }

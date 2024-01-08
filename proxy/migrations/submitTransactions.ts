@@ -1,6 +1,6 @@
-import { createMultiSendTransaction, sendSafeTransaction } from "./tools/gnosis-safe";
-import { ethers } from "hardhat";
+import { createMultiSendTransaction } from "@skalenetwork/upgrade-tools";
 import { promises as fs } from "fs";
+import { UnsignedTransaction } from "ethers";
 
 async function main() {
     if (!process.env.TRANSACTIONS || !process.env.SAFE) {
@@ -15,21 +15,14 @@ async function main() {
         process.exit(1);
     }
 
-    let isSafeMock: boolean = false;
-    if (process.env.SAFE_MOCK) {
-        isSafeMock = true;
-    }
-
     const safe = process.env.SAFE;
     let privateKey = process.env.PRIVATE_KEY;
     if (!privateKey.startsWith("0x")) {
         privateKey = "0x" + privateKey;
     }
-    const safeTransactions: string[] = JSON.parse(await fs.readFile(process.env.TRANSACTIONS, "utf-8"));
+    const safeTransactions = JSON.parse(await fs.readFile(process.env.TRANSACTIONS, "utf-8")) as UnsignedTransaction[];
 
-    const safeTx = await createMultiSendTransaction(ethers, safe, privateKey, safeTransactions, isSafeMock);
-    const chainId = (await ethers.provider.getNetwork()).chainId;
-    await sendSafeTransaction(safe, chainId, safeTx);
+    await createMultiSendTransaction(safe, safeTransactions);
     console.log("Done");
 }
 

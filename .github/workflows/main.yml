@@ -2,14 +2,14 @@
 
 name: Build and test
 
-on: 
+on:
   push:
     branches-ignore:
       - 'docs-v*'
   pull_request:
     branches-ignore:
       - 'docs-v*'
-  
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+          submodules: recursive
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
@@ -48,12 +50,11 @@ jobs:
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: 16
+        node-version: 18
 
     - name: Install project
       working-directory: ${{env.working-directory}}
       run: |
-        ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
     - name: Install slither
@@ -70,7 +71,7 @@ jobs:
 
     - name: Lint typescript
       working-directory: ${{env.working-directory}}
-      run: yarn tslint
+      run: yarn eslint
 
     - name: Slither checks
       working-directory: ${{env.working-directory}}
@@ -79,7 +80,7 @@ jobs:
     - name: Gas calculation test
       working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
-    
+
     - name: Test upgrade
       run: bash ./proxy/scripts/test_upgrade.sh
 
@@ -92,11 +93,14 @@ jobs:
   test-predeployed:
     runs-on: ubuntu-latest
 
-    env:
-      working-directory: ./proxy
+    defaults:
+      run:
+        working-directory: proxy
 
     steps:
     - uses: actions/checkout@v2
+      with:
+          submodules: recursive
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
@@ -125,17 +129,14 @@ jobs:
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: 16
+        node-version: 18
 
     - name: Install project
-      working-directory: ${{env.working-directory}}
       run: |
-        ../npms/scrypt/get_scrypt_npm.sh
         yarn install
         npm run compile
 
     - name: Install python testing staff
-      working-directory: ${{env.working-directory}}
       run: pip3 install -r predeployed/test/requirements.txt
 
     - name: Install geth
@@ -144,7 +145,6 @@ jobs:
         sudo apt install ethereum
 
     - name: Build predeployed pip package
-      working-directory: ${{env.working-directory}}
       env:
         VERSION: "0.0.0"
       run: |
@@ -152,7 +152,6 @@ jobs:
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
-      working-directory: ${{env.working-directory}}
       env:
         PYTHONPATH: src
       run: |
@@ -164,211 +163,14 @@ jobs:
         ./predeployed/test/prepare_environment.sh
         ./predeployed/test/test.sh
 
-  test-agent:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    - name: SYSTEM VERSION CHECKS
+    - name: Test ABIs generation
+      env:
+        VERSION: "0.0.0"
       run: |
-        echo ------------ GIT_CURRENT_BRANCH
-        export GIT_CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        echo $GIT_CURRENT_BRANCH
-        echo ------------ GIT_SYMBOLIC_BRANCH
-        export GIT_SYMBOLIC_BRANCH=$(git symbolic-ref --short HEAD)
-        echo $GIT_SYMBOLIC_BRANCH
-        echo ------------ GITHUB_WORKFLOW
-        echo $GITHUB_WORKFLOW
-        echo ------------ GITHUB_RUN_ID
-        echo $GITHUB_RUN_ID
-        echo ------------ GITHUB_RUN_NUMBER
-        echo $GITHUB_RUN_NUMBER
-        echo ------------ GITHUB_ACTION
-        echo $GITHUB_ACTION
-        echo ------------ GITHUB_ACTIONS
-        echo $GITHUB_ACTIONS
-        echo ------------ GITHUB_ACTOR
-        echo $GITHUB_ACTOR
-        echo ------------ GITHUB_REPOSITORY
-        echo $GITHUB_REPOSITORY
-        echo ------------ GITHUB_EVENT_NAME
-        echo $GITHUB_EVENT_NAME
-        echo ------------ GITHUB_EVENT_PATH
-        echo $GITHUB_EVENT_PATH
-        echo ------------ GITHUB_WORKSPACE
-        echo $GITHUB_WORKSPACE
-        echo ------------ GITHUB_SHA
-        echo $GITHUB_SHA
-        echo ------------ GITHUB_REF
-        echo $GITHUB_REF
-        echo ------------ GITHUB_HEAD_REF
-        echo $GITHUB_HEAD_REF
-        echo ------------ GITHUB_BASE_REF
-        echo $GITHUB_BASE_REF
-        echo ------------ user
-        echo $USER
-        echo ------------ home
-        echo $HOME
-        echo ------------ path
-        echo $PATH
-        echo ------------ pwd
-        pwd
-        echo ------------ unix name - a
-        uname -a || true
-        echo ------------ unix name - r
-        uname -r || true
-        echo ------------ lsb
-        lsb_release -a || true
-        echo ------------ hostnamectl
-        hostnamectl || true
-        echo ------------ /etc/os-release
-        cat /etc/os-release || true
-        echo ------------ /proc/version
-        cat /proc/version || true
-        echo ------------ lscpu
-        lscpu || true
-        # echo ------------ lsusb
-        # sudo apt-get install usbutils || true &> /dev/null
-        # lsusb -t || echo "No lsusb available" || true
+        python3 -m venv predeployed/scripts/venv
+        source predeployed/scripts/venv/bin/activate
+        pip install predeployed/dist/ima_predeployed-*.whl
+        python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
-    - name: ESLINT
-      run: |
-        sudo npm install -g eslint
-        eslint --version
 
-    - name: INSTALL PREREQUISITES - ROOT - PACKAGES
-      run: |
-        yarn install
-        ls -1
 
-    - name: JS LINT CHECK EVERYTHING IN AGENT AND NPMS WITH ESLINT
-      run: |
-        yarn run lint-check
-        echo "Looks like no JS code formatting errors so far)"
-
-    - name: PY CHECKS
-      run: |
-        echo ------------ python version check
-        which python || echo "----> Looks like python was not installed, next command will fail"
-        python --version
-        echo ------------ python3 version check
-        which python3 || echo "----> Looks like python3 was not installed, next command will fail"
-        python3 --version    
-
-    - name: INSTALL PREREQUISITES - PY
-      run: |
-        echo ------------ py3 installs
-        sudo apt-get install python3-pip python3-setuptools python3-dev
-        echo ------------ py3 wheel - apt
-        sudo apt-get install python3-wheel
-        echo ------------ py3 wheel - pip
-        pip3 install wheel
-        echo ------------ slither analyzer install
-        # pip3 install slither-analyzer
-        pip3 install slither-analyzer==0.6.8
-        echo ------------ slither search attempt
-        sudo find / -name slither || true
-        echo ------------ slither location detection - after install
-        export PATH=$PATH:/home/$USER/.local/bin
-        which slither || echo "----> Looks like slither was not installed, next command will fail"
-        echo ------------ slither version check - after install
-        slither --version || true
-
-    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
-      run: |
-        cd agent 
-        yarn install
-        cd ..
-
-    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
-      run: |
-        cd npms/skale-ima
-        yarn install
-        cd ../..
-
-    - name: INSTALL PREREQUISITES - SKALE-OWASP - PACKAGES
-      run: |
-        cd npms/skale-owasp
-        yarn install
-        cd ../..    
-
-  test-integration:
-    runs-on: ubuntu-latest
-
-    env:
-      working-directory: ./test
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-
-    - uses: actions/cache@v2
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
-
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
-    - name: Set up Node
-      uses: actions/setup-node@v2
-      with:
-        node-version: '12'
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Compile contracts
-      working-directory: ./proxy
-      run: |
-        ../npms/scrypt/get_scrypt_npm.sh
-        yarn install
-
-    - name: Install agent      
-      run: |
-        cd agent 
-        yarn install
-        cd ../npms/skale-ima
-        yarn install
-
-    - name: Start background ganache
-      run: |
-        cd proxy
-        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
-
-    - name: Prepare test (PY part)
-      working-directory: ${{env.working-directory}}
-      run: |
-        python3 ../scripts/config_from_accounts.py accounts.json config.json
-        pip3 install -r requirements.txt
-
-    - name: Run test (PY part)
-      working-directory: ${{env.working-directory}}
-      run: |
-        python3 test.py
-
-    - name: Prepare test (JS part)
-      working-directory: ${{env.working-directory}}
-      run: |
-        yarn install
-
-    - name: Run test (JS part)
-      working-directory: ${{env.working-directory}}
-      run: |
-        yarn test

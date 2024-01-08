@@ -34,11 +34,11 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerERC721WithMetadata } from "./utils/deploy/schain/tokenManagerERC721WithMetadata";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
@@ -47,11 +47,11 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect, should } from "chai";
+import { expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC721WithMetadata", () => {
@@ -60,11 +60,11 @@ describe("TokenManagerERC721WithMetadata", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
-    const schainId = stringValue(web3.utils.soliditySha3(schainName));
+    const schainId = stringKeccak256(schainName);
     const tokenId = 1;
     const tokenURI = "Hello1";
     const mainnetName = "Mainnet";
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const mainnetId = stringKeccak256("Mainnet");
     let to: string;
     let token: ERC721OnChain;
     let tokenClone: ERC721OnChain;
@@ -77,8 +77,6 @@ describe("TokenManagerERC721WithMetadata", () => {
     let communityLocker: CommunityLocker;
     let token2: ERC721OnChain;
     let tokenClone2: ERC721OnChain;
-    let token3: ERC721OnChain;
-    let tokenClone3: ERC721OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -110,8 +108,6 @@ describe("TokenManagerERC721WithMetadata", () => {
         token = await deployERC721OnChain("SKALE", "SKL");
         tokenClone2 = await deployERC721OnChain("ELVIS2", "ELV");
         token2 = await deployERC721OnChain("SKALE2", "SKL");
-        tokenClone3 = await deployERC721OnChain("ELVIS3", "ELV");
-        token3 = await deployERC721OnChain("SKALE3", "SKL");
 
         to = user.address;
 
@@ -217,7 +213,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         let tokenManagerERC721WithMetadata2: TokenManagerERC721WithMetadata;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = stringKeccak256(newSchainName);
 
         beforeEach(async () => {
             erc721OnOriginChain = await deployERC721OnChain("NewToken", "NTN");
@@ -230,6 +226,7 @@ describe("TokenManagerERC721WithMetadata", () => {
             tokenManagerERC721WithMetadata2 = await deployTokenManagerERC721WithMetadata(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
             await erc721OnTargetChain.connect(deployer).grantRole(await erc721OnTargetChain.MINTER_ROLE(), tokenManagerERC721WithMetadata2.address);
             await tokenManagerLinker2.registerTokenManager(tokenManagerERC721WithMetadata2.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerERC721WithMetadata2.address);
         });
 
         it("should invoke `transferToSchainERC721` without mistakes", async () => {
@@ -605,7 +602,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         });
 
         it("should invoke `transferToSchainERC721` and transfer back without mistakes", async () => {
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721WithMetadata.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -684,13 +681,6 @@ describe("TokenManagerERC721WithMetadata", () => {
 
             await tokenManagerERC721WithMetadata2
                 .connect(user)
-                .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC721WithMetadata2.address);
-
-            await tokenManagerERC721WithMetadata2
-                .connect(user)
                 .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId);
 
             data = await messages.encodeTransferErc721MessageWithMetadata(
@@ -707,7 +697,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         });
 
         it("should invoke `transferToSchainERC721` and transfer back without mistakes with attached tokens", async () => {
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721WithMetadata.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -780,13 +770,6 @@ describe("TokenManagerERC721WithMetadata", () => {
 
             await tokenManagerERC721WithMetadata2
                 .connect(user)
-                .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC721WithMetadata2.address);
-
-            await tokenManagerERC721WithMetadata2
-                .connect(user)
                 .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId);
 
             data = await messages.encodeTransferErc721MessageWithMetadata(
@@ -804,7 +787,7 @@ describe("TokenManagerERC721WithMetadata", () => {
 
 
         it("should invoke `transferToSchainERC721` and transfer back without mistakes double", async () => {
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721WithMetadata.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -880,13 +863,6 @@ describe("TokenManagerERC721WithMetadata", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC721 Token");
 
             await targetErc721OnChain.connect(user).approve(tokenManagerERC721WithMetadata2.address, tokenId);
-
-            await tokenManagerERC721WithMetadata2
-                .connect(user)
-                .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC721WithMetadata2.address);
 
             await tokenManagerERC721WithMetadata2
                 .connect(user)
@@ -986,7 +962,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         });
 
         it("should invoke `transferToSchainERC721` and transfer back without mistakes double with attached tokens", async () => {
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721WithMetadata.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -1056,13 +1032,6 @@ describe("TokenManagerERC721WithMetadata", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC721 Token");
 
             await erc721OnTargetChain.connect(user).approve(tokenManagerERC721WithMetadata2.address, tokenId);
-
-            await tokenManagerERC721WithMetadata2
-                .connect(user)
-                .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC721WithMetadata2.address);
 
             await tokenManagerERC721WithMetadata2
                 .connect(user)
@@ -1207,27 +1176,21 @@ describe("TokenManagerERC721WithMetadata", () => {
             expect((await erc721OnTargetChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnTargetChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
-            let erc721OnTargetZChain: ERC721OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC721WithMetadataZ: TokenManagerERC721WithMetadata;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
+            const erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc721OnTargetZChain.connect(deployer).grantRole(await erc721OnTargetZChain.MINTER_ROLE(), tokenManagerERC721WithMetadataZ.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC721WithMetadataZ.address);
 
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
 
-            await messageProxyForSchain2.registerExtraContract(newSchainNameZ, tokenManagerERC721WithMetadata2.address);
             await tokenManagerERC721WithMetadata2.addTokenManager(newSchainNameZ, tokenManagerERC721WithMetadataZ.address);
 
             await erc721OnTargetChain.connect(user).approve(tokenManagerERC721WithMetadata2.address, tokenId);
@@ -1244,7 +1207,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         });
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721WithMetadata.address);
 
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
@@ -1306,8 +1269,6 @@ describe("TokenManagerERC721WithMetadata", () => {
                 .exitToMainERC721(erc721OnTargetChain.address, tokenId)
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
 
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC721WithMetadata2.address);
-
             await tokenManagerERC721WithMetadata2
                 .connect(user)
                 .transferToSchainERC721(schainName, erc721OnOriginChain.address, tokenId);
@@ -1325,8 +1286,6 @@ describe("TokenManagerERC721WithMetadata", () => {
 
             await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, tokenId);
 
-            await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerERC721WithMetadata.address);
-
             await tokenManagerERC721WithMetadata
                 .connect(user)
                 .exitToMainERC721(erc721OnOriginChain.address, tokenId)
@@ -1342,6 +1301,9 @@ describe("TokenManagerERC721WithMetadata", () => {
     });
 
     describe("tests for `postMessage` function", async () => {
+        beforeEach(async () => {
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721WithMetadata.address);
+        });
 
         it("should transfer ERC721 token token with token info", async () => {
             //  preparation

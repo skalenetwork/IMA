@@ -27,20 +27,18 @@ import chaiAsPromised from "chai-as-promised";
 import {
     ContractManager,
     DepositBoxERC20,
-    ERC721OnChain,
-    ERC1155OnChain,
     Linker,
     MessageProxyForMainnet,
     MessagesTester,
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, getPublicKey } from "./utils/helper";
+import { stringFromHex, getPublicKey, stringKeccak256 } from "./utils/helper";
 
 import chai = require("chai");
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
@@ -51,18 +49,15 @@ import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
-import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
-import { deployERC1155OnChain } from "./utils/deploy/erc1155OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
 
-import { assert, expect, use } from "chai";
+import { assert, expect } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 import { currentTime, skipTime } from "./utils/time";
-import { join } from "path";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -85,9 +80,10 @@ describe("DepositBoxERC20", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     let communityPool: CommunityPool;
+    let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+    const schainHash = stringKeccak256(schainName);
 
     before(async () => {
         [deployer, schainOwner, user, user2, richGuy] = await ethers.getSigners();
@@ -125,6 +121,7 @@ describe("DepositBoxERC20", () => {
         await messageProxy.registerExtraContractForAll(depositBoxERC20.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
         await messageProxy.registerExtraContract(schainName, linker.address);
+        messages = await deployMessages();
     });
 
     describe("tests with `ERC20`", async () => {
@@ -182,6 +179,32 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, 1);
+            });
+
+            it("should invoke `depositERC20Direct` without mistakes", async () => {
+                // preparation
+                // mint some quantity of ERC20 tokens for `deployer` address
+                const amount = 10;
+                await erc20.connect(deployer).mint(deployer.address, amount);
+                await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
+                // execution
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20Direct(schainName, erc20.address, 1, user.address).should.be.eventually.rejectedWith("Whitelist is enabled");
+                await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
+                const data1 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20.address, user.address, 1, amount, { name: "D2-token", symbol: "D2", decimals: 18 });
+                const data2 = await messages.encodeTransferErc20AndTotalSupplyMessage(erc20.address, user.address, 1, amount);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20Direct(schainName, erc20.address, 1, user.address)
+                    .should.emit(messageProxy, "OutgoingMessage")
+                    .withArgs(schainHash, 0, depositBoxERC20.address, deployer.address, data1);
+
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20Direct(schainName, erc20.address, 1, user.address)
+                    .should.emit(messageProxy, "OutgoingMessage")
+                    .withArgs(schainHash, 1, depositBoxERC20.address, deployer.address, data2);
             });
 
             it("should rejected with `Amount is incorrect`", async () => {
@@ -272,16 +295,10 @@ describe("DepositBoxERC20", () => {
     describe("tests for `postMessage` function", async () => {
         let erc20: ERC20OnChain;
         let erc20Clone: ERC20OnChain;
-        let eRC721OnChain: ERC721OnChain;
-        let eRC1155OnChain: ERC1155OnChain;
-        let messages: MessagesTester;
 
         beforeEach(async () => {
             erc20 = await deployERC20OnChain("D2-token", "D2",);
             erc20Clone = await deployERC20OnChain("Token", "T",);
-            eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
-            eRC1155OnChain = await deployERC1155OnChain("New ERC1155 Token");
-            messages = await deployMessages();
         });
 
         it("should transfer ERC20 token", async () => {

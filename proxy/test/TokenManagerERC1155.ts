@@ -34,11 +34,11 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerERC1155 } from "./utils/deploy/schain/tokenManagerERC1155";
 import { deployERC1155OnChain } from "./utils/deploy/erc1155OnChain";
@@ -47,7 +47,7 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
@@ -60,13 +60,13 @@ describe("TokenManagerERC1155", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
-    const schainId = stringValue(web3.utils.soliditySha3(schainName));
+    const schainId = stringKeccak256(schainName);
     const id = 1;
     const amount = 4;
     const ids = [1, 2, 3, 4];
     const amounts = [4, 3, 2, 1];
     const mainnetName = "Mainnet";
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const mainnetId = stringKeccak256("Mainnet");
     let to: string;
     let token: ERC1155OnChain;
     let fakeDepositBox: string;
@@ -79,8 +79,6 @@ describe("TokenManagerERC1155", () => {
     let communityLocker: CommunityLocker;
     let token2: ERC1155OnChain;
     let tokenClone2: ERC1155OnChain;
-    let token3: ERC1155OnChain;
-    let tokenClone3: ERC1155OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -112,8 +110,6 @@ describe("TokenManagerERC1155", () => {
         token = await deployERC1155OnChain("ELVIS Multi Token");
         tokenClone2 = await deployERC1155OnChain("ELVIS2 Multi Token");
         token2 = await deployERC1155OnChain("ELVIS2 Multi Token");
-        tokenClone3 = await deployERC1155OnChain("ELVIS3 Multi Token");
-        token3 = await deployERC1155OnChain("ELVIS3 Multi Token");
 
         to = user.address;
 
@@ -203,7 +199,7 @@ describe("TokenManagerERC1155", () => {
         let tokenManagerERC11552: TokenManagerERC1155;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = stringKeccak256(newSchainName);
 
         beforeEach(async () => {
             erc1155OnOriginChain = await deployERC1155OnChain("NewToken");
@@ -216,6 +212,7 @@ describe("TokenManagerERC1155", () => {
             tokenManagerERC11552 = await deployTokenManagerERC1155(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
             await erc1155OnTargetChain.connect(deployer).grantRole(await erc1155OnTargetChain.MINTER_ROLE(), tokenManagerERC11552.address);
             await tokenManagerLinker2.registerTokenManager(tokenManagerERC11552.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerERC11552.address);
         });
 
         it("should invoke `transferToSchainERC1155` without mistakes", async () => {
@@ -626,13 +623,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
 
             data = await messages.encodeTransferErc1155Message(
@@ -715,13 +705,6 @@ describe("TokenManagerERC1155", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
-
-            await tokenManagerERC11552
-                .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)
@@ -812,13 +795,6 @@ describe("TokenManagerERC1155", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
             await targetErc1155OnChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
-
-            await tokenManagerERC11552
-                .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)
@@ -975,13 +951,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
 
             data = await messages.encodeTransferErc1155Message(
@@ -1066,8 +1035,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer X->Y->Z", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -1109,27 +1076,21 @@ describe("TokenManagerERC1155", () => {
 
             expect((await erc1155OnTargetChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
 
-            let erc1155OnTargetZChain: ERC1155OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC1155Z: TokenManagerERC1155;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
+            const erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc1155OnTargetZChain.connect(deployer).grantRole(await erc1155OnTargetZChain.MINTER_ROLE(), tokenManagerERC1155Z.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC1155Z.address);
 
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
 
-            await messageProxyForSchain2.registerExtraContract(newSchainNameZ, tokenManagerERC11552.address);
             await tokenManagerERC11552.addTokenManager(newSchainNameZ, tokenManagerERC1155Z.address);
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
@@ -1146,8 +1107,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -1205,8 +1164,6 @@ describe("TokenManagerERC1155", () => {
                 .exitToMainERC1155(erc1155OnTargetChain.address, id, amount)
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
 
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
             await tokenManagerERC11552
                 .connect(user)
                 .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
@@ -1245,7 +1202,7 @@ describe("TokenManagerERC1155", () => {
         let tokenManagerERC11552: TokenManagerERC1155;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = stringKeccak256(newSchainName);
 
         beforeEach(async () => {
             erc1155OnOriginChain = await deployERC1155OnChain("NewToken");
@@ -1258,6 +1215,7 @@ describe("TokenManagerERC1155", () => {
             tokenManagerERC11552 = await deployTokenManagerERC1155(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
             await erc1155OnTargetChain.connect(deployer).grantRole(await erc1155OnTargetChain.MINTER_ROLE(), tokenManagerERC11552.address);
             await tokenManagerLinker2.registerTokenManager(tokenManagerERC11552.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerERC11552.address);
         });
 
         it("should invoke `transferToSchainERC1155` without mistakes", async () => {
@@ -1435,7 +1393,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1499,7 +1457,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1525,7 +1483,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -1587,7 +1545,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1613,7 +1571,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -1677,7 +1635,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1701,13 +1659,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
 
             data = await messages.encodeTransferErc1155BatchMessage(
@@ -1721,7 +1672,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1798,13 +1749,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
 
             data = await messages.encodeTransferErc1155BatchMessage(
@@ -1818,7 +1762,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1883,7 +1827,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1907,13 +1851,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
 
             data = await messages.encodeTransferErc1155BatchMessage(
@@ -1927,7 +1864,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1949,7 +1886,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -1975,7 +1912,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await targetErc1155OnChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -1997,7 +1934,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2017,7 +1954,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -2094,13 +2031,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
 
             data = await messages.encodeTransferErc1155BatchMessage(
@@ -2114,7 +2044,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2136,7 +2066,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2162,7 +2092,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -2184,7 +2114,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2204,7 +2134,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amountsSum);
@@ -2212,8 +2142,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer X->Y->Z", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -2255,32 +2183,26 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
 
-            let erc1155OnTargetZChain: ERC1155OnChain;
-            let messageProxyForSchainZ: MessageProxyForSchainTester;
-            let tokenManagerLinkerZ: TokenManagerLinker;
-            let tokenManagerERC1155Z: TokenManagerERC1155;
-            let communityLockerZ: CommunityLocker;
             const newSchainNameZ = "NewChainZ";
 
-            erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
+            const erc1155OnTargetZChain = await deployERC1155OnChain("NewTokenZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
-            tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
-            communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
-            tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ.address, newSchainNameZ);
+            const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
+            const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ.address, tokenManagerLinkerZ, fakeCommunityPool);
+            const tokenManagerERC1155Z = await deployTokenManagerERC1155(newSchainNameZ, messageProxyForSchainZ.address, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
             await erc1155OnTargetZChain.connect(deployer).grantRole(await erc1155OnTargetZChain.MINTER_ROLE(), tokenManagerERC1155Z.address);
             await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC1155Z.address);
 
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
 
-            await messageProxyForSchain2.registerExtraContract(newSchainNameZ, tokenManagerERC11552.address);
             await tokenManagerERC11552.addTokenManager(newSchainNameZ, tokenManagerERC1155Z.address);
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
@@ -2297,8 +2219,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -2340,7 +2260,7 @@ describe("TokenManagerERC1155", () => {
 
             let balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             let balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2361,8 +2281,6 @@ describe("TokenManagerERC1155", () => {
                 .exitToMainERC1155Batch(erc1155OnTargetChain.address, ids, amounts)
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
 
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
             await tokenManagerERC11552
                 .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
@@ -2378,7 +2296,7 @@ describe("TokenManagerERC1155", () => {
 
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2461,7 +2379,7 @@ describe("TokenManagerERC1155", () => {
 
             const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);
@@ -2484,7 +2402,7 @@ describe("TokenManagerERC1155", () => {
             const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
             const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
             const balanceIdsNumber: number[] = [];
-            balanceIds.forEach((element: any) => {
+            balanceIds.forEach((element) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
             expect(balanceIdsNumber).to.deep.equal(amounts);

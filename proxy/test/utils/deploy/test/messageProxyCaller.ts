@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { MessageProxyCaller } from "../../../../typechain/MessageProxyCaller";
+import { MessageProxyCaller } from "../../../../typechain";
 
 const name = "MessageProxyCaller";
 

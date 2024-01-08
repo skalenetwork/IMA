@@ -258,6 +258,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             );
         }
         emit ERC20TokenReceived(fromChainHash, token, address(contractOnSchain), amount);
+        messageProxy.topUpReceiverBalance(payable(receiver));
         return receiver;
     }
 

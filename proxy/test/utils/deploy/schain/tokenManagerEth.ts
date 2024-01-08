@@ -1,5 +1,5 @@
 import { ethers, upgrades } from "hardhat";
-import { TokenManagerEth, MessageProxyForSchain, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
+import { TokenManagerEth, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
 
 const name = "TokenManagerEth";
 

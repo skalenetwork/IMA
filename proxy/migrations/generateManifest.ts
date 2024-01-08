@@ -1,7 +1,6 @@
 import { ethers } from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
-import { constants } from 'fs';
 import {
     getVersion,
     getStorageLayout,
@@ -12,7 +11,7 @@ import {
     StorageLayout,
     isCurrentValidationData
 } from "@openzeppelin/upgrades-core";
-import { getVersion as version } from "./tools/version";
+import { getVersion as version } from "@skalenetwork/upgrade-tools";
 import { ValidationsCacheNotFound, ValidationsCacheOutdated } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
 type Addresses = {
@@ -83,8 +82,8 @@ async function readValidations() {
             throw new ValidationsCacheOutdated();
         }
         return data;
-    } catch (e: any) {
-        if (e.code === 'ENOENT') {
+    } catch (e) {
+        if ( e instanceof Error && (e as NodeJS.ErrnoException).code === 'ENOENT') {
             throw new ValidationsCacheNotFound();
         } else {
             throw e;

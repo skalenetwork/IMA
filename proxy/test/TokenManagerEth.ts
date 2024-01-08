@@ -33,11 +33,10 @@ import {
     TokenManagerEth,
     TokenManagerLinker,
 } from "../typechain";
-import { gasMultiplier } from "./utils/command_line";
-import { stringValue } from "./utils/helper";
+import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use(chaiAsPromised);
 
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";
@@ -45,16 +44,16 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployEthErc20 } from "./utils/deploy/schain/ethErc20";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
-const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+const schainHash = stringKeccak256(schainName);
 
 describe("TokenManagerEth", () => {
     let deployer: SignerWithAddress;
@@ -66,9 +65,9 @@ describe("TokenManagerEth", () => {
     let messages: MessagesTester;
     let ethERC20: EthErc20;
     let communityLocker: CommunityLocker;
-    let fakeDepositBox: any;
-    let fakeCommunityPool: any;
-    const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
+    let fakeDepositBox: string;
+    let fakeCommunityPool: string;
+    const mainnetHash = stringKeccak256("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -142,7 +141,7 @@ describe("TokenManagerEth", () => {
         await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).
             should.be.rejectedWith("Token Manager is already set");
 
-        const storedDepositBox = await tokenManagerEth.tokenManagers(stringValue(web3.utils.soliditySha3(schainName2)));
+        const storedDepositBox = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
         expect(storedDepositBox).to.equal(tokenManagerAddress);
     });
 
@@ -181,7 +180,7 @@ describe("TokenManagerEth", () => {
         // execution
         await tokenManagerEth.connect(deployer).removeTokenManager(schainName2);
         // expectation
-        const getMapping = await tokenManagerEth.tokenManagers(stringValue(web3.utils.soliditySha3(schainName2)));
+        const getMapping = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
         expect(getMapping).to.equal(nullAddress);
     });
 
@@ -197,7 +196,6 @@ describe("TokenManagerEth", () => {
         const amount = BigNumber.from("60");
         const amountAfter = BigNumber.from("54");
         const amountTo = BigNumber.from("6");
-        const to = user.address;
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerEth.address);
 
         await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
@@ -255,9 +253,6 @@ describe("TokenManagerEth", () => {
         });
 
         it("should be Error event with message `null`", async () => {
-            //  preparation
-            const error = "Invalid data";
-            const amount = 10;
             // for `Invalid data` message bytesData should be `0x`
             const bytesData = "0x";
             const sender = deployer.address;
@@ -277,16 +272,15 @@ describe("TokenManagerEth", () => {
 
         it("should transfer eth", async () => {
             //  preparation
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth.address);
             const fromSchainName = "fromSchainName";
-            const fromSchainId = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainId = stringKeccak256(fromSchainName);
             const amount = "10";
             const sender = deployer.address;
             const to = user.address;
             // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
             const bytesData = await messages.encodeTransferEthMessage(to, amount);
-            // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
-            // to avoid `Not a sender` error
-            tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
+
             // add schain to avoid the `Receiver chain is incorrect` error
             await tokenManagerEth
                 .connect(deployer)
@@ -294,19 +288,26 @@ describe("TokenManagerEth", () => {
             await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), tokenManagerEth.address);
             await ethERC20.connect(deployer).grantRole(await ethERC20.BURNER_ROLE(), tokenManagerEth.address);
             // execution
-            await tokenManagerEth
-                .connect(deployer)
-                .postMessage(fromSchainId, sender, bytesData)
-                .should.be.eventually.rejectedWith("Receiver chain is incorrect");
+            await messageProxyForSchain.postMessage(
+                tokenManagerEth.address,
+                fromSchainId,
+                sender,
+                bytesData
+            ).should.be.eventually.rejectedWith("Receiver chain is incorrect");
 
-            await tokenManagerEth
-                .connect(deployer)
-                .postMessage(mainnetHash, sender, bytesData)
-                .should.be.eventually.rejectedWith("Receiver chain is incorrect");
+            await messageProxyForSchain.postMessage(
+                tokenManagerEth.address,
+                mainnetHash,
+                sender,
+                bytesData
+            ).should.be.eventually.rejectedWith("Receiver chain is incorrect");
 
-            await tokenManagerEth
-                .connect(deployer)
-                .postMessage(mainnetHash, fakeDepositBox, bytesData);
+            await messageProxyForSchain.postMessage(
+                tokenManagerEth.address,
+                mainnetHash,
+                fakeDepositBox,
+                bytesData
+            );
             // expectation
             expect(parseInt((BigNumber.from(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(parseInt(amount, 10));
