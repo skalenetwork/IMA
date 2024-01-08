@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
+import { networkNames } from "@openzeppelin/upgrades-core";
 import { promises as fs } from "fs";
 import {
     getVersion,
@@ -134,7 +135,8 @@ export async function importAddresses(manifest: ManifestData, abi: {[ key in str
 
 export async function manifestSetup(pathToManifest: string) {
     const chainId = (await ethers.provider.getNetwork()).chainId;
-    const correctManifestPath = `.openzeppelin/unknown-${chainId}.json`;
+    const manifestName = networkNames[chainId] ?? `unknown-${chainId}`;
+    const correctManifestPath = `.openzeppelin/${manifestName}.json`;
     if (pathToManifest === "" || pathToManifest === correctManifestPath) {
         await fs.access(correctManifestPath);
         console.log("Current Manifest file detected - will use this one");
