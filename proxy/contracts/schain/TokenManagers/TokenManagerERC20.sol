@@ -157,25 +157,29 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     /**
      * @dev Allows Schain owner to register an ERC20 token clone in the TokenManager.
+     *      Runs on destination chain.
      */
     function addERC20TokenByOwner(
-        string calldata targetChainName,
-        address erc20OnMainChain,
-        address erc20OnSchain
+        string calldata originChainName,
+        address erc20OnOriginChain,
+        address newErc20OnSchain
      )
         external
         override
         onlyTokenRegistrar
     {
-        require(messageProxy.isConnectedChain(targetChainName), "Chain is not connected");
-        require(erc20OnSchain.isContract(), "Given address is not a contract");
-        require(ERC20OnChain(erc20OnSchain).totalSupply() == 0, "TotalSupply is not zero");
-        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
-        require(address(clonesErc20[targetChainHash][erc20OnMainChain]) == address(0), "Could not relink clone");
-        require(!addedClones[ERC20OnChain(erc20OnSchain)], "Clone was already added");
-        clonesErc20[targetChainHash][erc20OnMainChain] = ERC20OnChain(erc20OnSchain);
-        addedClones[ERC20OnChain(erc20OnSchain)] = true;
-        emit ERC20TokenAdded(targetChainHash, erc20OnMainChain, erc20OnSchain);
+        bytes32 originChainHash = keccak256(abi.encodePacked(originChainName));
+        ERC20OnChain erc20OnSchain = clonesErc20[originChainHash][erc20OnOriginChain];
+        require(messageProxy.isConnectedChain(originChainName), "Chain is not connected");
+        require(newErc20OnSchain.isContract(), "Given address is not a contract");
+        require(ERC20OnChain(newErc20OnSchain).totalSupply() == 0, "Total supply of a new token is not zero");
+        if (address(erc20OnSchain) != address(0)) {
+            require(erc20OnSchain.totalSupply() == 0, "Total supply of a previous token is not zero");
+        }
+        require(!addedClones[ERC20OnChain(newErc20OnSchain)], "Clone was already added");
+        clonesErc20[originChainHash][erc20OnOriginChain] = ERC20OnChain(newErc20OnSchain);
+        addedClones[ERC20OnChain(newErc20OnSchain)] = true;
+        emit ERC20TokenAdded(originChainHash, erc20OnOriginChain, newErc20OnSchain);
     }
 
     /**
