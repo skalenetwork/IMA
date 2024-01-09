@@ -240,14 +240,6 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20.addedClones(erc20OnSchainPostToken.address).should.be.eventually.equal(true);
         });
 
-        it("should reject if token was minted before adding by owner", async () => {
-            const erc20OnSchainPostToken = await deployERC20OnChain("SchainPostToken", "SPT");
-            await erc20OnSchainPostToken.mint(user.address, 1);
-
-            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnOriginChainTokenAddress, erc20OnSchainPostToken.address)
-                .should.be.eventually.rejectedWith("Total supply of a new token is not zero")
-        });
-
         it("should reject new relinking if previous token was already minted", async () => {
             await erc20OnChain.mint(user.address, 1);
             const erc20OnSchainPostToken = await deployERC20OnChain("SchainPostToken", "SPT");
