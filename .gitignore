@@ -52,16 +52,9 @@ proxy/predeployed/test/genesis.json
 
 # Dependency directories
 node_modules
-agent/node_modules
 proxy/node_modules
 test/node_modules
 test-tokens/node_modules
-npms/skale-cc/node_modules
-npms/skale-ima/node_modules
-npms/skale-log/node_modules
-npms/skale-observer/node_modules
-npms/skale-owasp/node_modules
-npms/skale-cool-socket/node_modules
 
 # TypeScript v1 declaration files
 typings/
