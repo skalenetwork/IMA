@@ -158,22 +158,22 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * @dev Allows Schain owner to register an ERC721 token clone in the token manager.
      */
     function addERC721TokenByOwner(
-        string calldata targetChainName,
-        address erc721OnMainChain,
-        address erc721OnSchain
+        string calldata originChainName,
+        address erc721OnOriginChain,
+        address newErc721OnSchain
     )
         external
         override
         onlyTokenRegistrar
     {
-        require(messageProxy.isConnectedChain(targetChainName), "Chain is not connected");
-        require(erc721OnSchain.isContract(), "Given address is not a contract");
-        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
-        require(address(clonesErc721[targetChainHash][erc721OnMainChain]) == address(0), "Could not relink clone");
-        require(!addedClones[ERC721OnChain(erc721OnSchain)], "Clone was already added");
-        clonesErc721[targetChainHash][erc721OnMainChain] = ERC721OnChain(erc721OnSchain);
-        addedClones[ERC721OnChain(erc721OnSchain)] = true;
-        emit ERC721TokenAdded(targetChainHash, erc721OnMainChain, erc721OnSchain);
+        bytes32 originChainHash = keccak256(abi.encodePacked(originChainName));
+        require(messageProxy.isConnectedChain(originChainName), "Chain is not connected");
+        require(newErc721OnSchain.isContract(), "Given address is not a contract");
+        require(address(clonesErc721[originChainHash][erc721OnOriginChain]) == address(0), "Could not relink clone");
+        require(!addedClones[ERC721OnChain(newErc721OnSchain)], "Clone was already added");
+        clonesErc721[originChainHash][erc721OnOriginChain] = ERC721OnChain(newErc721OnSchain);
+        addedClones[ERC721OnChain(newErc721OnSchain)] = true;
+        emit ERC721TokenAdded(originChainHash, erc721OnOriginChain, newErc721OnSchain);
     }
 
     /**
