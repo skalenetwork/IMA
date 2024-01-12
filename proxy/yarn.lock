@@ -1402,10 +1402,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-0.1.2.tgz#88e543c8cc298cd0cc9559892d746d2d74786da8"
   integrity sha512-gapSQJahwWMlTB/xp/kMzB6k+9+Skx/N0fvEloiW4CUrkGkSa8+fj16YmUXX45p1hOc45W+JydiJPNgZtx32Dg==
 
-"@skalenetwork/upgrade-tools@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/upgrade-tools/-/upgrade-tools-2.0.1.tgz#fa5d71c4ea0bb60285c13e2f1958b4980df1a3ff"
-  integrity sha512-pp+T5Ghj9yd4Xg0rmOM0PpQIuaN8+8+9yjxCTeykZqBQzx/waTq8CDpcwdREYvskKRIS5DSO8rxxeFQo+dBYQQ==
+"@skalenetwork/upgrade-tools@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/upgrade-tools/-/upgrade-tools-2.0.2.tgz#533a2d43d43706fc1898e003523464cee49ec11e"
+  integrity sha512-by5I3TM7RBi4G8FsicwxQE13rqx+XbPYf75x+CJnTELAFxg5UqMaPArG+YlHT2kBjl6O5OsESkCRtwbPcbIjsg==
   dependencies:
     "@openzeppelin/contracts-upgradeable" "^4.4.2"
     "@safe-global/safe-core-sdk" "^3.3.2"
