@@ -10,82 +10,65 @@ on:
     branches-ignore:
       - 'docs-v*'
 
+env:
+  NODE_VERSION: 20
+  PYTHON_VERSION: 3.8
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
     runs-on: ubuntu-latest
 
-    env:
-      working-directory: ./proxy
+    defaults:
+      run:
+        working-directory: proxy
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
-          submodules: recursive
-
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-
-    - uses: actions/cache@v2
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
-
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        submodules: true
 
     - name: Install PYTHON
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
 
     - name: Install NODE JS
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
 
     - name: Install project
-      working-directory: ${{env.working-directory}}
       run: |
         yarn install
 
     - name: Install slither
-      working-directory: ${{env.working-directory}}
       run: pip3 install -r scripts/requirements.txt
 
     - name: Lint solidity
-      working-directory: ${{env.working-directory}}
       run: yarn lint
 
     - name: Compile typescript
-      working-directory: ${{env.working-directory}}
       run: yarn tsc
 
     - name: Lint typescript
-      working-directory: ${{env.working-directory}}
       run: yarn eslint
 
     - name: Slither checks
-      working-directory: ${{env.working-directory}}
       run: yarn slither
 
     - name: Gas calculation test
-      working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
 
+    - name: Test deploy
+      run: bash ./scripts/test_deploy.sh
+
     - name: Test upgrade
-      run: bash ./proxy/scripts/test_upgrade.sh
+      run: bash ./scripts/test_upgrade.sh
 
     - name: Run tests
-      working-directory: ${{env.working-directory}}
       run: |
         npx hardhat coverage --solcoverjs .solcover.js
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
@@ -98,38 +81,21 @@ jobs:
         working-directory: proxy
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
-          submodules: recursive
-
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-
-    - uses: actions/cache@v2
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
-
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        submodules: true
 
     - name: Install PYTHON
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
 
     - name: Install NODE JS
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
 
     - name: Install project
       run: |

@@ -63,7 +63,6 @@ const config: HardhatUserConfig = {
     },
     schain: {
       url: getCustomUrl(process.env.URL_W3_S_CHAIN),
-      gas: 12000000,
       accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_FOR_SCHAIN),
     }
   },
