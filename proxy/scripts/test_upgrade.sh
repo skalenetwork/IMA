@@ -22,7 +22,13 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
 ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
-npx ganache-cli --gasLimit 9000000 --quiet --allowUnlimitedContractSize --account_keys_path "$ACCOUNTS_FILENAME" &
+GANACHE=$(npx ganache-cli \
+    --😈 \
+    --miner.blockGasLimit 9000000 \
+    --logging.quiet \
+    --chain.allowUnlimitedContractSize \
+    --wallet.accountKeysPath "$ACCOUNTS_FILENAME" \
+)
 
 cd "$DEPLOYED_DIR"
 yarn install
@@ -66,4 +72,4 @@ ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
 npx hardhat run migrations/upgradeSchain.ts --network localhost
 
-npx kill-port 8545
+npx ganache instances stop $GANACHE
