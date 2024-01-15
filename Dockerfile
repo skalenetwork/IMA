@@ -5,7 +5,7 @@ RUN mkdir /app
 COPY VERSION /app
 COPY proxy /app
 
-WORKDIR /app/proxy
+WORKDIR /app
 
 RUN yarn install
 
