@@ -12,8 +12,6 @@ then
     GITHUB_REPOSITORY="skalenetwork/IMA"
 fi
 
-echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-
 
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
@@ -31,8 +29,6 @@ GANACHE=$(npx ganache \
     --chain.allowUnlimitedContractSize \
     --wallet.accountKeysPath "$ACCOUNTS_FILENAME" \
 )
-
-echo "Ganache: $GANACHE"
 
 cd "$DEPLOYED_DIR"
 yarn install
