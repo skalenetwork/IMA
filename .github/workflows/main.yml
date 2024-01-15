@@ -66,7 +66,8 @@ jobs:
       run: bash ./scripts/test_deploy.sh
 
     - name: Test upgrade
-      run: bash ./scripts/test_upgrade.sh
+      working-directory: /
+      run: bash ./proxy/scripts/test_upgrade.sh
 
     - name: Run tests
       run: |
