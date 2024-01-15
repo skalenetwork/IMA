@@ -108,40 +108,49 @@ jobs:
         mkdir data
         python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.VERSION }}
-        release_name: ${{ env.VERSION }}
-        draft: false
-        prerelease: ${{ env.PRERELEASE }}
+        #  - name: Create Release
+        #    id: create_release
+        #    uses: actions/create-release@v1
+        #    env:
+        #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #    with:
+        #      tag_name: ${{ env.VERSION }}
+        #      release_name: ${{ env.VERSION }}
+        #      draft: false
+        #      prerelease: ${{ env.PRERELEASE }}
 
-    - name: Upload Release Assets
-      id: upload-release-assets
-      uses: dwenegar/upload-release-assets@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: proxy/predeployed/dist/
+        #  - name: Upload Release Assets
+        #    id: upload-release-assets
+        #    uses: dwenegar/upload-release-assets@v1
+        #    env:
+        #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #    with:
+        #      release_id: ${{ steps.create_release.outputs.id }}
+        #      assets_path: proxy/predeployed/dist/
 
-    - name: Upload Release Assets
-      id: upload-static-data
-      uses: dwenegar/upload-release-assets@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: proxy/predeployed/data/
+        #  - name: Upload Release Assets
+        #    id: upload-static-data
+        #    uses: dwenegar/upload-release-assets@v1
+        #    env:
+        #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #    with:
+        #      release_id: ${{ steps.create_release.outputs.id }}
+        #      assets_path: proxy/predeployed/data/
 
-    - name: Upload Release Assets
-      id: upload-manifest-data
-      uses: dwenegar/upload-release-assets@v1
+        #  - name: Upload Release Assets
+        #    id: upload-manifest-data
+        #    uses: dwenegar/upload-release-assets@v1
+        #    env:
+        #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #    with:
+        #      release_id: ${{ steps.create_release.outputs.id }}
+        #      assets_path: proxy/data/ima-schain-*-manifest.json
+
+    - name: Build and publish image
+      id: build-publish-image
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: proxy/data/ima-schain-*-manifest.json
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        PROXY_DIR: "proxy"
+      run: scripts/build-and-publish-image.sh
