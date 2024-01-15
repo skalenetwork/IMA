@@ -12,6 +12,8 @@ then
     GITHUB_REPOSITORY="skalenetwork/IMA"
 fi
 
+echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+
 
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
@@ -22,13 +24,15 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
 ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
-GANACHE=$(npx ganache-cli \
+GANACHE=$(npx ganache \
     --😈 \
     --miner.blockGasLimit 9000000 \
     --logging.quiet \
     --chain.allowUnlimitedContractSize \
     --wallet.accountKeysPath "$ACCOUNTS_FILENAME" \
 )
+
+echo "Ganache: $GANACHE"
 
 cd "$DEPLOYED_DIR"
 yarn install
