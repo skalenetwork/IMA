@@ -24,6 +24,7 @@ then
     fi
 fi
 
+echo $DOCKER_USERNAME
 if [[ ! -z "$DOCKER_USERNAME" ]]
 then
     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
