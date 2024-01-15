@@ -5,8 +5,6 @@ then
     echo "No VERSION provided, exiting"
     exit 1
 fi
-DOCKER_USERNAME=$1
-DOCKER_PASSWORD=$2
 
 NAME=ima-contracts
 REPO_NAME=skalenetwork/$NAME
