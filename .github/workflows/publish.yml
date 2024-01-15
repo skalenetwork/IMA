@@ -64,15 +64,15 @@ jobs:
           #   run: |
           #     yarn install
 
-          # - name: Calculate version
-          #   run: |
-          #     export BRANCH=${GITHUB_REF##*/}
-          #     echo "Branch $BRANCH"
-          #     export VERSION=$(bash ./scripts/calculate_version.sh)
-          #     echo "VERSION=$VERSION" >> $GITHUB_ENV
-          #     echo "Version $VERSION"
-          #     ( test $BRANCH = "stable" && export PRERELEASE=false ) || export PRERELEASE=true
-          #     echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+          - name: Calculate version
+            run: |
+              export BRANCH=${GITHUB_REF##*/}
+              echo "Branch $BRANCH"
+              export VERSION=$(bash ./scripts/calculate_version.sh)
+              echo "VERSION=$VERSION" >> $GITHUB_ENV
+              echo "Version $VERSION"
+              ( test $BRANCH = "stable" && export PRERELEASE=false ) || export PRERELEASE=true
+              echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
 
           # - name: Generate Manifest
           #   working-directory: ${{env.PROXY_DIR}}
