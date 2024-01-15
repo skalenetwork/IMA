@@ -153,4 +153,4 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         PROXY_DIR: "proxy"
-      run: scripts/build-and-publish-image.sh
+      run: scripts/build_and_publish_image.sh
