@@ -181,34 +181,6 @@ async function main() {
     deployed.set( "TokenManagerEth", { address: tokenManagerEth.address, interface: tokenManagerEth.interface } );
     console.log("Contract TokenManagerEth deployed to", tokenManagerEth.address);
 
-    // /*
-    // In the moment of this code was written
-    // ganache had a bug
-    // that prevented proper execution
-    // of estimateGas function
-    // during deployment of smart contract
-    // that exceed 24KB limit.
-
-    // In addition to this problem
-    // upgrade-hardhat library
-    // did not supported
-    // manual gas limit configuration.
-
-    // TODO: in case of any one or both issues fixed
-    // please remove this crazy workaround below
-    // */
-    // if (network.config.gas === "auto") {
-    //     throw Error("Can't use auto because of problems with gas estimations");
-    // }
-    // if (!process.env.PRIVATE_KEY_FOR_SCHAIN) {
-    //     throw Error("PRIVATE_KEY_FOR_SCHAIN is not set");
-    // }
-    // const key = process.env.PRIVATE_KEY_FOR_SCHAIN;
-    // const signerWithFixedGasEstimation = new ethers.Wallet(key, ethers.provider);
-    // signerWithFixedGasEstimation.estimateGas = async() => {
-    //     return ethers.BigNumber.from(network.config.gas as number);
-    // }
-
     console.log("Deploy TokenManagerERC20");
     const tokenManagerERC20Factory = await ethers.getContractFactory("TokenManagerERC20");
     const tokenManagerERC20 = await upgrades.deployProxy(tokenManagerERC20Factory, [
