@@ -181,19 +181,6 @@ async function main() {
     deployed.set( "TokenManagerEth", { address: tokenManagerEth.address, interface: tokenManagerEth.interface } );
     console.log("Contract TokenManagerEth deployed to", tokenManagerEth.address);
 
-    console.log("Deploy TokenManagerERC20");
-    const tokenManagerERC20Factory = await ethers.getContractFactory("TokenManagerERC20");
-    const tokenManagerERC20 = await upgrades.deployProxy(tokenManagerERC20Factory, [
-        schainName,
-        messageProxy.address,
-        tokenManagerLinker.address,
-        communityLocker.address,
-        depositBoxERC20Address
-    ]) as TokenManagerERC20;
-    await tokenManagerERC20.deployTransaction.wait();
-    deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface } );
-    console.log("Contract TokenManagerERC20 deployed to", tokenManagerERC20.address);
-
     /*
     In the moment of this code was written
     ganache had a bug
@@ -221,6 +208,19 @@ async function main() {
     signerWithFixedGasEstimation.estimateGas = async() => {
         return ethers.BigNumber.from(network.config.gas as number);
     }
+
+    console.log("Deploy TokenManagerERC20");
+    const tokenManagerERC20Factory = await ethers.getContractFactory("TokenManagerERC20", signerWithFixedGasEstimation);
+    const tokenManagerERC20 = await upgrades.deployProxy(tokenManagerERC20Factory, [
+        schainName,
+        messageProxy.address,
+        tokenManagerLinker.address,
+        communityLocker.address,
+        depositBoxERC20Address
+    ]) as TokenManagerERC20;
+    await tokenManagerERC20.deployTransaction.wait();
+    deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface } );
+    console.log("Contract TokenManagerERC20 deployed to", tokenManagerERC20.address);
 
     // The end of TODO:
 
