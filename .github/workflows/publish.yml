@@ -145,3 +145,10 @@ jobs:
       with:
         release_id: ${{ steps.create_release.outputs.id }}
         assets_path: proxy/data/ima-schain-*-manifest.json
+
+    - name: Build and publish image
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: scripts/build_and_publish_image.sh
