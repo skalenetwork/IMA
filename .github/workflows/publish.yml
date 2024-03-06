@@ -58,7 +58,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ env.PYTHON_VERSION }}    
+        python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Prepare for pip package building
       run: |
@@ -155,6 +155,13 @@ jobs:
       with:
         release_id: ${{ steps.create_release.outputs.id }}
         assets_path: data/*-abi.json
+
+    - name: Commit ABI
+      uses: EndBug/add-and-commit@v9
+      with:
+        default_author: github_actions
+        message: "Add ABI for version ${{ env.VERSION }}"
+        add: "data/*-abi.json"
 
     - name: Build and publish image
       env:
