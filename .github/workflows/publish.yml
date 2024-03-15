@@ -58,7 +58,7 @@ jobs:
 
     - name: Calculate version
       id: version
-      working-directory: /
+      working-directory: ./
       run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
