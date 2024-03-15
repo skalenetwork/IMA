@@ -61,7 +61,7 @@ jobs:
       run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
-        export VERSION=$(bash ./scripts/calculate_version.sh)
+        export VERSION=$(bash ../scripts/calculate_version.sh)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
         echo "Version $VERSION"
@@ -100,7 +100,8 @@ jobs:
         mkdir data
         python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
-    - uses: actions/upload-artifact@v4
+    - name: Store artifacts
+      uses: actions/upload-artifact@v4
       with:
         path: data
 
@@ -124,10 +125,6 @@ jobs:
     needs:
       build
 
-    defaults:
-      run:
-        working-directory: typescript/ethers-v5
-
     env:
       VERSION: ${{ needs.build.outputs.version }}
 
@@ -136,7 +133,8 @@ jobs:
         with:
           ref: abi
 
-      - uses: actions/download-artifact@v4
+      - name: Load artifacts
+        uses: actions/download-artifact@v4
 
       - name: Commit ABI
         uses: EndBug/add-and-commit@v9
