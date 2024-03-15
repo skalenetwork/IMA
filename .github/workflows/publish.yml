@@ -104,7 +104,7 @@ jobs:
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
-        path: data
+        path: proxy/data
 
     - name: Create Release
       uses: ncipollo/release-action@v1
@@ -114,6 +114,7 @@ jobs:
         artifacts: "predeployed/dist/,predeployed/data/,data/ima-schain-*-manifest.json,data/*-abi.json"
 
     - name: Build and publish image
+      working-directory: ./
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
