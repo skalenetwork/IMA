@@ -58,10 +58,11 @@ jobs:
 
     - name: Calculate version
       id: version
+      working-directory: /
       run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
-        export VERSION=$(bash ../scripts/calculate_version.sh)
+        export VERSION=$(bash ./scripts/calculate_version.sh)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
         echo "Version $VERSION"
