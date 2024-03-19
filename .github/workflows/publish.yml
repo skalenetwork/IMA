@@ -112,8 +112,8 @@ jobs:
       with:
         tag: ${{ env.VERSION }}
         prerelease: ${{ env.PRERELEASE }}
-        artifacts: "proxy/predeployed/dist/,\
-                    proxy/predeployed/data/,\
+        artifacts: "proxy/predeployed/dist/*,\
+                    proxy/predeployed/data/*,\
                     proxy/data/ima-schain-*-manifest.json,\
                     proxy/data/*-abi.json"
 
