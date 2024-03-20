@@ -4,7 +4,6 @@ import { promises as fs } from "fs";
 import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
 import { contracts } from "./deployMainnet";
-import { manifestSetup } from "./generateManifest";
 import { MessageProxyForMainnet } from "../typechain";
 
 class ImaMainnetUpgrader extends Upgrader {
@@ -65,8 +64,6 @@ async function getImaMainnetAbiAndAddress(): Promise<SkaleABIFile> {
 }
 
 async function main() {
-    const pathToManifest: string = process.env.MANIFEST || "";
-    await manifestSetup(pathToManifest);
     const upgrader = new ImaMainnetUpgrader(
         "1.5.0",
         await getImaMainnetAbiAndAddress(),

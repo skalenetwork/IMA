@@ -18,8 +18,8 @@ jobs:
           result-encoding: string
           script: |
             const members = await github.paginate(
-              github.rest.orgs.listMembers,
-              { org: "skalenetwork" },
+            github.rest.orgs.listMembers,
+            { org: "skalenetwork" },
             );
             return members.map(m => m.login).join(",");
       - name: "CLA Assistant"
