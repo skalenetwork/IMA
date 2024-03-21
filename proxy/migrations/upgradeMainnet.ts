@@ -3,8 +3,10 @@ import { ethers } from "hardhat";
 import { promises as fs } from "fs";
 import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
-import { contracts } from "./deployMainnet";
+import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deployMainnet";
 import { MessageProxyForMainnet } from "../typechain";
+import { Interface } from "@ethersproject/abi";
+
 
 class ImaMainnetUpgrader extends Upgrader {
 
@@ -44,7 +46,69 @@ class ImaMainnetUpgrader extends Upgrader {
 
     // deployNewContracts = () => { };
 
-    // initialize = async () => { };
+    initialize = async () => {
+        const contractManagerAddress = await (await this.getMessageProxyForMainnet()).contractManagerOfSkaleManager();
+        const contractManagerInterface = new Interface([{
+            "type": "function",
+            "name": "getContract",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "name"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": "contractAddress"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "setContractsAddress",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "contractsName"
+                },
+                {
+                    "type": "address",
+                    "name": "newContractsAddress"
+                }
+            ],
+            "outputs": []
+        }]);
+        const contractManager = new ethers.Contract(
+            contractManagerAddress,
+            contractManagerInterface,
+            ethers.provider
+        )
+        for (const contractName of contractsToDeploy) {
+            try {
+                const contractAddress = await contractManager.getContract(contractName);
+                console.log(`Address of ${contractName} is set to ${contractAddress}`);
+            } catch {
+                // getContract failed because the contract is not set
+                const contractAddress = this.abi[`${getContractKeyInAbiFile(contractName)}_address`] as string;
+                this.transactions.push(
+                    {
+                        to: contractManager.address,
+                        data: contractManager.interface.encodeFunctionData(
+                            "setContractsAddress",
+                            [contractAddress]
+                        )
+                    }
+                )
+                console.log(`Set ${contractName} address to ${contractAddress}`);
+            }
+        }
+    };
 
     _getContractKeyInAbiFile(contract: string) {
         if (contract === "MessageProxyForMainnet") {
