@@ -68,7 +68,7 @@ async function main() {
     const pathToManifest: string = process.env.MANIFEST || "";
     await manifestSetup(pathToManifest);
     const upgrader = new ImaSchainUpgrader(
-        "1.5.0",
+        "2.1.0",
         await getImaSchainAbiAndAddress(),
         contracts
     );
