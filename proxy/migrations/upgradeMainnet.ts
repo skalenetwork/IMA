@@ -65,7 +65,7 @@ async function getImaMainnetAbiAndAddress(): Promise<SkaleABIFile> {
 
 async function main() {
     const upgrader = new ImaMainnetUpgrader(
-        "1.5.0",
+        "2.1.0",
         await getImaMainnetAbiAndAddress(),
         contracts
     );

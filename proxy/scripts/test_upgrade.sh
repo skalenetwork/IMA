@@ -24,7 +24,7 @@ git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "
 ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
 GANACHE=$(npx ganache \
     --😈 \
-    --miner.blockGasLimit 9000000 \
+    --miner.blockGasLimit 12000000 \
     --logging.quiet \
     --chain.allowUnlimitedContractSize \
     --wallet.accountKeysPath "$ACCOUNTS_FILENAME" \
@@ -35,9 +35,20 @@ yarn install
 cd proxy
 PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
 PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[9].value')
-CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
+URL_W3_S_CHAIN="http://127.0.0.1:8545"
+
+CHAIN_NAME_SCHAIN="Test" \
+VERSION="$DEPLOYED_VERSION" \
+PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
-CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost
+
+CHAIN_NAME_SCHAIN="Test" \
+VERSION="$DEPLOYED_VERSION" \
+URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/deploySchain.ts --network schain
 
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 ABI="data/$ABI_FILENAME_SCHAIN" \
@@ -70,6 +81,8 @@ MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 CHAIN_NAME_SCHAIN="Test" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
-npx hardhat run migrations/upgradeSchain.ts --network localhost
+URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/upgradeSchain.ts --network schain
 
 npx ganache instances stop "$GANACHE"
