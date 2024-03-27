@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "@nomiclabs/hardhat-ethers": "^2.1.0",
-        "@openzeppelin/contracts-upgradeable": "^4.7.1",
+        "@openzeppelin/contracts-upgradeable": "^4.9.6",
         "@openzeppelin/hardhat-upgrades": "^1.14.0",
         "@skalenetwork/etherbase-interfaces": "^0.0.1-develop.20",
         "@skalenetwork/ima-interfaces": "2.0.0",
