@@ -194,8 +194,6 @@ async function main() {
     deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface } );
     console.log("Contract TokenManagerERC20 deployed to", tokenManagerERC20.address);
 
-    // The end of TODO:
-
     console.log("Deploy TokenManagerERC721");
     const tokenManagerERC721Factory = await ethers.getContractFactory("TokenManagerERC721");
     const tokenManagerERC721 = await upgrades.deployProxy(tokenManagerERC721Factory, [
