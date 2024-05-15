@@ -21,6 +21,7 @@
 
 pragma solidity 0.8.16;
 
+import "@skalenetwork/ima-interfaces/IMessages.sol";
 
 /**
  * @title Messages
@@ -47,7 +48,18 @@ library Messages {
         TRANSFER_ERC1155_BATCH,
         TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO,
         TRANSFER_ERC721_WITH_METADATA,
-        TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO
+        TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO,
+        TRANSFER_ERC20_CALLBACK,
+        TRANSFER_ERC20_AND_TOTAL_SUPPLY_CALLBACK,
+        TRANSFER_ERC20_AND_TOKEN_INFO_CALLBACK,
+        TRANSFER_ERC721_CALLBACK,
+        TRANSFER_ERC721_AND_TOKEN_INFO_CALLBACK,
+        TRANSFER_ERC1155_CALLBACK,
+        TRANSFER_ERC1155_AND_TOKEN_INFO_CALLBACK,
+        TRANSFER_ERC1155_BATCH_CALLBACK,
+        TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO_CALLBACK,
+        TRANSFER_ERC721_WITH_METADATA_CALLBACK,
+        TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO_CALLBACK
     }
 
     /**
@@ -124,7 +136,7 @@ library Messages {
     /**
      * @dev Structure for describing base ERC721 with metadata.
      */
-    struct TransferErc721MessageWithMetadata {
+    struct TransferErc721WithMetadataMessage {
         TransferErc721Message erc721message;
         string tokenURI;
     }
@@ -149,7 +161,7 @@ library Messages {
      * @dev Structure for describing additional data for ERC721 token with metadata.
      */
     struct TransferErc721WithMetadataAndTokenInfoMessage {
-        TransferErc721MessageWithMetadata baseErc721transferWithMetadata;
+        TransferErc721WithMetadataMessage baseErc721transferWithMetadata;
         Erc721TokenInfo tokenInfo;
     }
 
@@ -206,6 +218,93 @@ library Messages {
         Erc1155TokenInfo tokenInfo;
     }
 
+    /**
+     * @dev Structure for describing ERC20 token.
+     */
+    struct TransferErc20CallbackMessage {
+        TransferErc20Message baseErc20transfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing ERC20 with token supply.
+     */
+    struct TransferErc20AndTotalSupplyCallbackMessage {
+        TransferErc20AndTotalSupplyMessage baseErc20AndTotalSupplytransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing ERC20 with token info.
+     */
+    struct TransferErc20AndTokenInfoCallbackMessage {
+        TransferErc20AndTokenInfoMessage baseErc20AndTokenInfotransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing base ERC721.
+     */
+    struct TransferErc721CallbackMessage {
+        TransferErc721Message baseErc721transfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing base ERC721 with metadata.
+     */
+    struct TransferErc721WithMetadataCallbackMessage {
+        TransferErc721WithMetadataMessage baseErc721WithMetadatatransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing additional data for ERC721 token.
+     */
+    struct TransferErc721AndTokenInfoCallbackMessage {
+        TransferErc721AndTokenInfoMessage baseErc721AndTokenInfoCallbacktransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing additional data for ERC721 token with metadata.
+     */
+    struct TransferErc721WithMetadataAndTokenInfoCallbackMessage {
+        TransferErc721WithMetadataAndTokenInfoMessage baseErc721WithMetadataAndTokenInfotransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing whether interchain connection is allowed.
+     */
+    struct TransferErc1155CallbackMessage {
+        TransferErc1155Message baseErc1155transfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing ERC1155 token in batches.
+     */
+    struct TransferErc1155BatchCallbackMessage {
+        TransferErc1155BatchMessage baseErc1155Callbacktransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing message for transferring ERC1155 token with info.
+     */
+    struct TransferErc1155AndTokenInfoCallbackMessage {
+        TransferErc1155AndTokenInfoMessage baseErc1155AndTokenInfotransfer;
+        IMessages.Callback callback;
+    }
+
+    /**
+     * @dev Structure for describing message for transferring ERC1155 token in batches with info.
+     */
+    struct TransferErc1155BatchAndTokenInfoCallbackMessage {
+        TransferErc1155BatchAndTokenInfoMessage baseErc1155BatchAndTokenInfotransfer;
+        IMessages.Callback callback;
+    }
 
     /**
      * @dev Returns type of message for encoded data.
@@ -410,13 +509,13 @@ library Messages {
      * @dev Encodes message for transferring ERC721. 
      * Returns encoded message.
      */
-    function encodeTransferErc721MessageWithMetadata(
+    function encodeTransferErc721WithMetadataMessage(
         address token,
         address receiver,
         uint256 tokenId,
         string memory tokenURI
     ) internal pure returns (bytes memory) {
-        TransferErc721MessageWithMetadata memory message = TransferErc721MessageWithMetadata(
+        TransferErc721WithMetadataMessage memory message = TransferErc721WithMetadataMessage(
             TransferErc721Message(
                 BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA),
                 token,
@@ -430,16 +529,16 @@ library Messages {
 
     /**
      * @dev Decodes message for transferring ERC721. 
-     * Returns structure `TransferErc721MessageWithMetadata`.
+     * Returns structure `TransferErc721WithMetadataMessage`.
      */
-    function decodeTransferErc721MessageWithMetadata(
+    function decodeTransferErc721WithMetadataMessage(
         bytes calldata data
-    ) internal pure returns (TransferErc721MessageWithMetadata memory) {
+    ) internal pure returns (TransferErc721WithMetadataMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA,
             "Message type is not ERC721 transfer"
         );
-        return abi.decode(data, (TransferErc721MessageWithMetadata));
+        return abi.decode(data, (TransferErc721WithMetadataMessage));
     }
 
     /**
@@ -454,7 +553,7 @@ library Messages {
         Erc721TokenInfo memory tokenInfo
     ) internal pure returns (bytes memory) {
         TransferErc721WithMetadataAndTokenInfoMessage memory message = TransferErc721WithMetadataAndTokenInfoMessage(
-            TransferErc721MessageWithMetadata(
+            TransferErc721WithMetadataMessage(
                 TransferErc721Message(
                     BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO),
                     token,
@@ -672,6 +771,433 @@ library Messages {
             "Message type is not ERC1155BatchAndTokenInfo transfer"
         );
         return abi.decode(data, (TransferErc1155BatchAndTokenInfoMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ETH. Returns encoded message.
+     */
+    function encodeTransferErc20CallbackMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc20CallbackMessage memory message = TransferErc20CallbackMessage(
+            TransferErc20Message(
+                BaseMessage(MessageType.TRANSFER_ERC20_CALLBACK),
+                token,
+                receiver,
+                amount
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC20 with total supply. Returns encoded message.
+     */
+    function encodeTransferErc20AndTotalSupplyCallbackMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        uint256 totalSupply,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc20AndTotalSupplyCallbackMessage memory message = TransferErc20AndTotalSupplyCallbackMessage(
+            TransferErc20AndTotalSupplyMessage(
+                TransferErc20Message(
+                    BaseMessage(MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY_CALLBACK),
+                    token,
+                    receiver,
+                    amount
+                ),
+                totalSupply
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC20. Returns structure `TransferErc20Message`.
+     */
+    function decodeTransferErc20CallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc20CallbackMessage memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC20_CALLBACK, "Message type is not ERC20 transfer");
+        return abi.decode(data, (TransferErc20CallbackMessage));
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC20 with total supply. 
+     * Returns structure `TransferErc20AndTotalSupplyMessage`.
+     */
+    function decodeTransferErc20AndTotalSupplyCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc20AndTotalSupplyCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY_CALLBACK,
+            "Message type is not ERC20 transfer and total supply"
+        );
+        return abi.decode(data, (TransferErc20AndTotalSupplyCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC20 with token info. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc20AndTokenInfoCallbackMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        uint256 totalSupply,
+        Erc20TokenInfo memory tokenInfo,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc20AndTokenInfoCallbackMessage memory message = TransferErc20AndTokenInfoCallbackMessage(
+            TransferErc20AndTokenInfoMessage(
+                TransferErc20Message(
+                    BaseMessage(MessageType.TRANSFER_ERC20_AND_TOKEN_INFO_CALLBACK),
+                    token,
+                    receiver,
+                    amount
+                ),
+                totalSupply,
+                tokenInfo
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC20 with token info. 
+     * Returns structure `TransferErc20AndTokenInfoMessage`.
+     */
+    function decodeTransferErc20AndTokenInfoCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc20AndTokenInfoCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO_CALLBACK,
+            "Message type is not ERC20 transfer with token info"
+        );
+        return abi.decode(data, (TransferErc20AndTokenInfoCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC721. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc721CallbackMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc721CallbackMessage memory message = TransferErc721CallbackMessage(
+            TransferErc721Message(
+                BaseMessage(MessageType.TRANSFER_ERC721_CALLBACK),
+                token,
+                receiver,
+                tokenId
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC721. 
+     * Returns structure `TransferErc721Message`.
+     */
+    function decodeTransferErc721CallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc721CallbackMessage memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC721_CALLBACK, "Message type is not ERC721 transfer");
+        return abi.decode(data, (TransferErc721CallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC721 with token info. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc721AndTokenInfoCallbackMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        Erc721TokenInfo memory tokenInfo,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc721AndTokenInfoCallbackMessage memory message = TransferErc721AndTokenInfoCallbackMessage(
+            TransferErc721AndTokenInfoMessage(
+                TransferErc721Message(
+                    BaseMessage(MessageType.TRANSFER_ERC721_AND_TOKEN_INFO_CALLBACK),
+                    token,
+                    receiver,
+                    tokenId
+                ),
+                tokenInfo
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC721 with token info. 
+     * Returns structure `TransferErc721AndTokenInfoMessage`.
+     */
+    function decodeTransferErc721AndTokenInfoCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc721AndTokenInfoCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC721_AND_TOKEN_INFO_CALLBACK,
+            "Message type is not ERC721 transfer with token info"
+        );
+        return abi.decode(data, (TransferErc721AndTokenInfoCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC721. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc721WithMetadataCallbackMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc721WithMetadataCallbackMessage memory message = TransferErc721WithMetadataCallbackMessage(
+            TransferErc721WithMetadataMessage(
+                TransferErc721Message(
+                    BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA_CALLBACK),
+                    token,
+                    receiver,
+                    tokenId
+                ),
+                tokenURI
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC721. 
+     * Returns structure `TransferErc721WithMetadataMessage`.
+     */
+    function decodeTransferErc721WithMetadataCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc721WithMetadataCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA_CALLBACK,
+            "Message type is not ERC721 transfer"
+        );
+        return abi.decode(data, (TransferErc721WithMetadataCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC721 with token info. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc721WithMetadataAndTokenInfoCallbackMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI,
+        Erc721TokenInfo memory tokenInfo,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc721WithMetadataAndTokenInfoCallbackMessage memory message = 
+            TransferErc721WithMetadataAndTokenInfoCallbackMessage(
+                TransferErc721WithMetadataAndTokenInfoMessage(
+                    TransferErc721WithMetadataMessage(
+                        TransferErc721Message(
+                            BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO_CALLBACK),
+                            token,
+                            receiver,
+                            tokenId
+                        ),
+                        tokenURI
+                    ),
+                    tokenInfo
+                ),
+                callback
+            );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC721 with token info. 
+     * Returns structure `TransferErc721WithMetadataAndTokenInfoMessage`.
+     */
+    function decodeTransferErc721WithMetadataAndTokenInfoCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc721WithMetadataAndTokenInfoCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO_CALLBACK,
+            "Message type is not ERC721 transfer with token info"
+        );
+        return abi.decode(data, (TransferErc721WithMetadataAndTokenInfoCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC1155 token.
+     * Returns encoded message.
+     */
+    function encodeTransferErc1155CallbackMessage(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc1155CallbackMessage memory message = TransferErc1155CallbackMessage(
+            TransferErc1155Message(
+                BaseMessage(MessageType.TRANSFER_ERC1155_CALLBACK),
+                token,
+                receiver,
+                id,
+                amount
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC1155 token.
+     * Returns structure `TransferErc1155Message`.
+     */
+    function decodeTransferErc1155CallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155CallbackMessage memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC1155_CALLBACK, "Message type is not ERC1155 transfer");
+        return abi.decode(data, (TransferErc1155CallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC1155 with token info.
+     * Returns encoded message.
+     */
+    function encodeTransferErc1155AndTokenInfoCallbackMessage(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount,
+        Erc1155TokenInfo memory tokenInfo,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc1155AndTokenInfoCallbackMessage memory message = TransferErc1155AndTokenInfoCallbackMessage(
+            TransferErc1155AndTokenInfoMessage(
+                TransferErc1155Message(
+                    BaseMessage(MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO_CALLBACK),
+                    token,
+                    receiver,
+                    id,
+                    amount
+                ),
+                tokenInfo
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC1155 with token info.
+     * Returns structure `TransferErc1155AndTokenInfoMessage`.
+     */
+    function decodeTransferErc1155AndTokenInfoCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155AndTokenInfoCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO_CALLBACK,
+            "Message type is not ERC1155AndTokenInfo transfer"
+        );
+        return abi.decode(data, (TransferErc1155AndTokenInfoCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC1155 token in batches.
+     * Returns encoded message.
+     */
+    function encodeTransferErc1155BatchCallbackMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc1155BatchCallbackMessage memory message = TransferErc1155BatchCallbackMessage(
+            TransferErc1155BatchMessage(
+                BaseMessage(MessageType.TRANSFER_ERC1155_BATCH_CALLBACK),
+                token,
+                receiver,
+                ids,
+                amounts
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC1155 token in batches.
+     * Returns structure `TransferErc1155BatchMessage`.
+     */
+    function decodeTransferErc1155BatchCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155BatchCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH_CALLBACK,
+            "Message type is not ERC1155Batch transfer"
+        );
+        return abi.decode(data, (TransferErc1155BatchCallbackMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC1155 token in batches with token info.
+     * Returns encoded message.
+     */
+    function encodeTransferErc1155BatchAndTokenInfoCallbackMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        Erc1155TokenInfo memory tokenInfo,
+        IMessages.Callback memory callback
+    ) internal pure returns (bytes memory) {
+        TransferErc1155BatchAndTokenInfoCallbackMessage memory message = TransferErc1155BatchAndTokenInfoCallbackMessage(
+            TransferErc1155BatchAndTokenInfoMessage(
+                TransferErc1155BatchMessage(
+                    BaseMessage(MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO_CALLBACK),
+                    token,
+                    receiver,
+                    ids,
+                    amounts
+                ),
+                tokenInfo
+            ),
+            callback
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC1155 token in batches with token info.
+     * Returns structure `TransferErc1155BatchAndTokenInfoMessage`.
+     */
+    function decodeTransferErc1155BatchAndTokenInfoCallbackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155BatchAndTokenInfoCallbackMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO_CALLBACK,
+            "Message type is not ERC1155BatchAndTokenInfo transfer"
+        );
+        return abi.decode(data, (TransferErc1155BatchAndTokenInfoCallbackMessage));
     }
 
     /**

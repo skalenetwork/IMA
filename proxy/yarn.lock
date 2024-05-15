@@ -1385,22 +1385,22 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0.tgz#93cb73a5200f7d9753a44c1be3e15156e7ceaf9c"
-  integrity sha512-Kqm45GHQl56H4pqdWHIcTUfFrE60LAUKI3j2CecebN0T9rKa0DDokvE42VDa3PfK2z6XIJxh7SkF+i6NsLbpjA==
+"@skalenetwork/ima-interfaces@2.0.0-callback-interfaces.1":
+  version "2.0.0-callback-interfaces.1"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-callback-interfaces.1.tgz#2367392837d8f9c1e4bc4f6dddee0e6195f827c8"
+  integrity sha512-CRsTPXtr5YyZkNnrBUVTU78YX+8RlVF/qKgRiWbRM/T6MdzIjymNCNjWuKNUSpl4LmQLnuxz7vtXlahaW/xP1A==
   dependencies:
-    "@skalenetwork/skale-manager-interfaces" "^0.1.2"
+    "@skalenetwork/skale-manager-interfaces" "^2.0.0"
 
 "@skalenetwork/skale-manager-interfaces@2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-2.0.0.tgz#afb63131e5c498cfa69219567f9f52b85f0856c9"
   integrity sha512-Pge3p4vpeNaXHjwntX+8b38NEcT81a67I32bbnU+l1uSo4kmyXd0VblHMO84H1Azr9TzF3ZmNCG+GI2yntSx2w==
 
-"@skalenetwork/skale-manager-interfaces@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-0.1.2.tgz#88e543c8cc298cd0cc9559892d746d2d74786da8"
-  integrity sha512-gapSQJahwWMlTB/xp/kMzB6k+9+Skx/N0fvEloiW4CUrkGkSa8+fj16YmUXX45p1hOc45W+JydiJPNgZtx32Dg==
+"@skalenetwork/skale-manager-interfaces@^2.0.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-2.1.0.tgz#baf3a5cb60aeb9c1583fbf6f422275291a65c2c1"
+  integrity sha512-tIaV/55lsCFGjus3MJ0HCpmX1HOi6KRpPM6GgUjT+6DoVflHALpsH+RmK9dzdvKd79dggieJc2GFzjwhMrsTEw==
 
 "@skalenetwork/upgrade-tools@^2.0.2":
   version "2.0.2"

@@ -112,7 +112,7 @@ contract TokenManagerERC1155 is
         override
     {
         communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount, _getCallback("", ""));
     }
 
     /**
@@ -129,7 +129,7 @@ contract TokenManagerERC1155 is
         override
     {
         communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
-        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
+        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts, _getCallback("", ""));
     }
 
     /**
@@ -150,7 +150,52 @@ contract TokenManagerERC1155 is
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount, _getCallback("", ""));
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC1155To(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 id,
+        uint256 amount,
+        address receiver
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, id, amount, _getCallback("", ""));
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC1155Callback(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 id,
+        uint256 amount,
+        address receiver,
+        IMessages.Callback calldata callback
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, id, amount, callback);
     }
 
     /**
@@ -171,7 +216,52 @@ contract TokenManagerERC1155 is
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts, _getCallback("", ""));
+    }
+
+    /**
+     * @dev Move batch of tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC1155BatchTo(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        address receiver
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, ids, amounts, _getCallback("", ""));
+    }
+
+    /**
+     * @dev Move batch of tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC1155BatchCallback(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        address receiver,
+        IMessages.Callback calldata callback
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(keccak256(abi.encodePacked(targetSchainName)), msg.sender);
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, ids, amounts, callback);
     }
 
     /**
@@ -421,7 +511,8 @@ contract TokenManagerERC1155 is
         address contractOnMainChain,
         address to,
         uint256 id,
-        uint256 amount
+        uint256 amount,
+        IMessages.Callback memory callback
     )
         private
     {
@@ -434,7 +525,15 @@ contract TokenManagerERC1155 is
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainChain, to, id, amount);
+        bytes memory data = _isCallbackEmpty(callback) ?
+            Messages.encodeTransferErc1155Message(contractOnMainChain, to, id, amount) :
+            Messages.encodeTransferErc1155CallbackMessage(
+                contractOnMainChain,
+                to,
+                id,
+                amount,
+                callback
+            );
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC1155(
@@ -442,7 +541,8 @@ contract TokenManagerERC1155 is
                 address(contractOnSchain),
                 msg.sender,
                 id,
-                amount
+                amount,
+                callback
             );
             _saveTransferredAmount(
                 chainHash,
@@ -466,7 +566,8 @@ contract TokenManagerERC1155 is
         address contractOnMainChain,
         address to,
         uint256[] calldata ids,
-        uint256[] calldata amounts
+        uint256[] calldata amounts,
+        IMessages.Callback memory callback
     )
         private
     {
@@ -479,7 +580,15 @@ contract TokenManagerERC1155 is
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainChain, to, ids, amounts);
+        bytes memory data = _isCallbackEmpty(callback) ?
+            Messages.encodeTransferErc1155BatchMessage(contractOnMainChain, to, ids, amounts) :
+            Messages.encodeTransferErc1155BatchCallbackMessage(
+                contractOnMainChain,
+                to,
+                ids,
+                amounts,
+                callback
+            );
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC1155Batch(
@@ -487,7 +596,8 @@ contract TokenManagerERC1155 is
                 address(contractOnSchain),
                 msg.sender,
                 ids,
-                amounts
+                amounts,
+                callback
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), ids, amounts);
             contractOnSchain.safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
@@ -539,7 +649,8 @@ contract TokenManagerERC1155 is
         address erc1155OnMainChain,
         address to,
         uint256 id,
-        uint256 amount
+        uint256 amount,
+        IMessages.Callback memory callback
     )
         private
         returns (bytes memory data)
@@ -547,15 +658,33 @@ contract TokenManagerERC1155 is
         bool isERC1155AddedToSchain = _schainToERC1155[chainHash].contains(erc1155OnMainChain);
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(chainHash, erc1155OnMainChain);
-            data = Messages.encodeTransferErc1155AndTokenInfoMessage(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc1155AndTokenInfoMessage(
                 erc1155OnMainChain,
                 to,
                 id,
                 amount,
                 _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainChain))
+            ) : Messages.encodeTransferErc1155AndTokenInfoCallbackMessage(
+                erc1155OnMainChain,
+                to,
+                id,
+                amount,
+                _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainChain)),
+                callback
             );
         } else {
-            data = Messages.encodeTransferErc1155Message(erc1155OnMainChain, to, id, amount);
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc1155Message(
+                erc1155OnMainChain,
+                to,
+                id,
+                amount
+            ) : Messages.encodeTransferErc1155CallbackMessage(
+                erc1155OnMainChain,
+                to,
+                id,
+                amount,
+                callback
+            );
         }
         
         emit ERC1155TokenReady(chainHash, erc1155OnMainChain, _asSingletonArray(id), _asSingletonArray(amount));
@@ -575,23 +704,43 @@ contract TokenManagerERC1155 is
         address erc1155OnMainChain,
         address to,
         uint256[] calldata ids,
-        uint256[] calldata amounts
+        uint256[] calldata amounts,
+        IMessages.Callback memory callback
     )
         private
         returns (bytes memory data)
     {
         bool isERC1155AddedToSchain = _schainToERC1155[chainHash].contains(erc1155OnMainChain);
+        // bool callback = beforeData.length > 0 || afterData.length > 0;
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(chainHash, erc1155OnMainChain);
-            data = Messages.encodeTransferErc1155BatchAndTokenInfoMessage(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc1155BatchAndTokenInfoMessage(
                 erc1155OnMainChain,
                 to,
                 ids,
                 amounts,
                 _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainChain))
+            ) : Messages.encodeTransferErc1155BatchAndTokenInfoCallbackMessage(
+                erc1155OnMainChain,
+                to,
+                ids,
+                amounts,
+                _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainChain)),
+                callback
             );
         } else {
-            data = Messages.encodeTransferErc1155BatchMessage(erc1155OnMainChain, to, ids, amounts);
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc1155BatchMessage(
+                erc1155OnMainChain,
+                to,
+                ids,
+                amounts
+            ) : Messages.encodeTransferErc1155BatchCallbackMessage(
+                erc1155OnMainChain,
+                to,
+                ids,
+                amounts,
+                callback
+            );
         }
         emit ERC1155TokenReady(chainHash, erc1155OnMainChain, ids, amounts);
     }
@@ -623,6 +772,18 @@ contract TokenManagerERC1155 is
         returns (Messages.Erc1155TokenInfo memory)
     {
         return Messages.Erc1155TokenInfo({uri: erc1155.uri(0)});
+    }
+
+    function _getCallback(bytes memory beforeData, bytes memory afterData)
+        private
+        pure
+        returns (IMessages.Callback memory)
+    {
+        return IMessages.Callback(beforeData, afterData);
+    }
+
+    function _isCallbackEmpty(IMessages.Callback memory callback) private pure returns (bool) {
+        return callback.beforeData.length == 0 && callback.afterData.length == 0;
     }
 
     /**

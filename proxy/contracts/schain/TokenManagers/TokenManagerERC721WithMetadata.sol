@@ -83,8 +83,8 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
         string memory tokenURI;
         ERC721OnChain contractOnSchain;
         if (messageType == Messages.MessageType.TRANSFER_ERC721_WITH_METADATA) {
-            Messages.TransferErc721MessageWithMetadata memory message =
-                Messages.decodeTransferErc721MessageWithMetadata(data);
+            Messages.TransferErc721WithMetadataMessage memory message =
+                Messages.decodeTransferErc721WithMetadataMessage(data);
             receiver = message.erc721message.receiver;
             token = message.erc721message.token;
             tokenId = message.erc721message.tokenId;
@@ -132,7 +132,8 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
         address messageReceiver,
         address contractOnMainChain,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        IMessages.Callback memory callback
     )
         internal
         override
@@ -146,11 +147,17 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        bytes memory data = Messages.encodeTransferErc721MessageWithMetadata(
+        bytes memory data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc721WithMetadataMessage(
             contractOnMainChain,
             to,
             tokenId,
             _getTokenURI(IERC721MetadataUpgradeable(contractOnSchain), tokenId)
+        ) : Messages.encodeTransferErc721WithMetadataCallbackMessage(
+            contractOnMainChain,
+            to,
+            tokenId,
+            _getTokenURI(IERC721MetadataUpgradeable(contractOnSchain), tokenId),
+            callback
         );
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
@@ -158,7 +165,8 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
                 chainHash,
                 address(contractOnSchain),
                 msg.sender,
-                tokenId
+                tokenId,
+                callback
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
             contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
@@ -182,7 +190,8 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
         bytes32 chainHash,
         address erc721OnMainChain,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        IMessages.Callback memory callback
     )
         internal
         override
@@ -191,19 +200,32 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
         bool isERC721AddedToSchain = _isERC721AddedToSchain(chainHash, erc721OnMainChain);
         if (!isERC721AddedToSchain) {
             _addERC721ForSchain(chainHash, erc721OnMainChain);
-            data = Messages.encodeTransferErc721WithMetadataAndTokenInfoMessage(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc721WithMetadataAndTokenInfoMessage(
                 erc721OnMainChain,
                 to,
                 tokenId,
                 _getTokenURI(IERC721MetadataUpgradeable(erc721OnMainChain), tokenId),
                 _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainChain))
+            ) : Messages.encodeTransferErc721WithMetadataAndTokenInfoCallbackMessage(
+                erc721OnMainChain,
+                to,
+                tokenId,
+                _getTokenURI(IERC721MetadataUpgradeable(erc721OnMainChain), tokenId),
+                _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainChain)),
+                callback
             );
         } else {
-            data = Messages.encodeTransferErc721MessageWithMetadata(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc721WithMetadataMessage(
                 erc721OnMainChain,
                 to,
                 tokenId,
                 _getTokenURI(IERC721MetadataUpgradeable(erc721OnMainChain), tokenId)
+            ) : Messages.encodeTransferErc721WithMetadataCallbackMessage(
+                erc721OnMainChain,
+                to,
+                tokenId,
+                _getTokenURI(IERC721MetadataUpgradeable(erc721OnMainChain), tokenId),
+                callback
             );
         }
         emit ERC721TokenReady(chainHash, erc721OnMainChain, tokenId);

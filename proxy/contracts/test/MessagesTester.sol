@@ -56,7 +56,7 @@ interface IMessagesTester {
         uint256 tokenId,
         Messages.Erc721TokenInfo memory tokenInfo
     ) external pure returns (bytes memory);
-    function encodeTransferErc721MessageWithMetadata(
+    function encodeTransferErc721WithMetadataMessage(
         address token,
         address receiver,
         uint256 tokenId,
@@ -151,13 +151,13 @@ contract MessagesTester is IMessagesTester {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
     }
 
-    function encodeTransferErc721MessageWithMetadata(
+    function encodeTransferErc721WithMetadataMessage(
         address token,
         address receiver,
         uint256 tokenId,
         string memory tokenURI
     ) external pure override returns (bytes memory) {
-        return Messages.encodeTransferErc721MessageWithMetadata(token, receiver, tokenId, tokenURI);
+        return Messages.encodeTransferErc721WithMetadataMessage(token, receiver, tokenId, tokenURI);
     }
 
     function encodeTransferErc721WithMetadataAndTokenInfoMessage(

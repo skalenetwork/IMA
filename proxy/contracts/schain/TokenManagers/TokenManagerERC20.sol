@@ -100,7 +100,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
     {
         communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount, _getCallback("", ""));
     }
 
     /**
@@ -120,7 +120,38 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount, _getCallback("", ""));
+    }
+
+    function transferToSchainERC20To(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 amount,
+        address receiver
+    )
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount, _getCallback("", ""));
+    }
+
+    function transferToSchainERC20Callback(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 amount,
+        address receiver,
+        IMessages.Callback calldata callback
+    )
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount, callback);
     }
 
     /**
@@ -270,7 +301,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         address messageReceiver,
         address contractOnMainChain,
         address to,
-        uint256 amount
+        uint256 amount,
+        IMessages.Callback memory callback
     )
         private
     {
@@ -290,14 +322,24 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
+        bytes memory data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc20Message(
+            address(contractOnMainChain),
+            to,
+            amount
+        ) : Messages.encodeTransferErc20CallbackMessage(
+            address(contractOnMainChain),
+            to,
+            amount,
+            callback
+        );
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
-                amount
+                to,
+                amount,
+                callback
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
             require(
@@ -346,7 +388,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         bytes32 chainHash,
         address erc20OnMainChain,
         address to,
-        uint256 amount
+        uint256 amount,
+        IMessages.Callback memory callback
     )
         private
         returns (bytes memory data)
@@ -357,19 +400,32 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         bool isERC20AddedToSchain = _schainToERC20[chainHash].contains(erc20OnMainChain);
         if (!isERC20AddedToSchain) {
             _addERC20ForSchain(chainHash, erc20OnMainChain);
-            data = Messages.encodeTransferErc20AndTokenInfoMessage(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc20AndTokenInfoMessage(
                 erc20OnMainChain,
                 to,
                 amount,
                 _getErc20TotalSupply(erc20),
                 _getErc20TokenInfo(erc20)
+            ) : Messages.encodeTransferErc20AndTokenInfoCallbackMessage(
+                erc20OnMainChain,
+                to,
+                amount,
+                _getErc20TotalSupply(erc20),
+                _getErc20TokenInfo(erc20),
+                callback
             );
         } else {
-            data = Messages.encodeTransferErc20AndTotalSupplyMessage(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc20AndTotalSupplyMessage(
                 erc20OnMainChain,
                 to,
                 amount,
                 _getErc20TotalSupply(erc20)
+            ) : Messages.encodeTransferErc20AndTotalSupplyCallbackMessage(
+                erc20OnMainChain,
+                to,
+                amount,
+                _getErc20TotalSupply(erc20),
+                callback
             );
         }
         emit ERC20TokenReady(chainHash, erc20OnMainChain, amount);
@@ -407,6 +463,18 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             decimals: erc20Token.decimals(),
             symbol: erc20Token.symbol()
         });
+    }
+
+    function _getCallback(bytes memory beforeData, bytes memory afterData)
+        private
+        pure
+        returns (IMessages.Callback memory)
+    {
+        return IMessages.Callback(beforeData, afterData);
+    }
+
+    function _isCallbackEmpty(IMessages.Callback memory callback) private pure returns (bool) {
+        return callback.beforeData.length == 0 && callback.afterData.length == 0;
     }
 
 

@@ -99,7 +99,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         override
     {
         communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId, _getCallback("", ""));
     }
 
     /**
@@ -119,7 +119,50 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId, _getCallback("", ""));
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
+     */
+    function transferToSchainERC721To(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 tokenId,
+        address receiver
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, tokenId, _getCallback("", ""));
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
+     */
+    function transferToSchainERC721Callback(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 tokenId,
+        address receiver,
+        IMessages.Callback calldata callback
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, tokenId, callback);
     }
 
     /**
@@ -271,7 +314,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         bytes32 chainHash,
         address erc721OnMainChain,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        IMessages.Callback memory callback
     )
         internal
         virtual
@@ -280,14 +324,29 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         bool isERC721AddedToSchain = _schainToERC721[chainHash].contains(erc721OnMainChain);
         if (!isERC721AddedToSchain) {
             _addERC721ForSchain(chainHash, erc721OnMainChain);
-            data = Messages.encodeTransferErc721AndTokenInfoMessage(
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc721AndTokenInfoMessage(
                 erc721OnMainChain,
                 to,
                 tokenId,
                 _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainChain))
+            ) : Messages.encodeTransferErc721AndTokenInfoCallbackMessage(
+                erc721OnMainChain,
+                to,
+                tokenId,
+                _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainChain)),
+                callback
             );
         } else {
-            data = Messages.encodeTransferErc721Message(erc721OnMainChain, to, tokenId);
+            data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc721Message(
+                erc721OnMainChain,
+                to,
+                tokenId
+            ) : Messages.encodeTransferErc721CallbackMessage(
+                erc721OnMainChain,
+                to,
+                tokenId,
+                callback
+            );
         }
         emit ERC721TokenReady(chainHash, erc721OnMainChain, tokenId);
     }
@@ -316,7 +375,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         address messageReceiver,
         address contractOnMainChain,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        IMessages.Callback memory callback
     )
         internal
         virtual
@@ -330,14 +390,24 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
+        bytes memory data = _isCallbackEmpty(callback) ? Messages.encodeTransferErc721Message(
+            contractOnMainChain,
+            to,
+            tokenId
+        ) : Messages.encodeTransferErc721CallbackMessage(
+            contractOnMainChain,
+            to,
+            tokenId,
+            callback
+        );
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC721(
                 chainHash,
                 address(contractOnSchain),
                 msg.sender,
-                tokenId
+                tokenId,
+                callback
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
             contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
@@ -368,5 +438,17 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
 
     function _isERC721AddedToSchain(bytes32 chainHash, address erc721OnMainChain) internal view returns (bool) {
         return _schainToERC721[chainHash].contains(erc721OnMainChain);
+    }
+
+    function _getCallback(bytes memory beforeData, bytes memory afterData)
+        internal
+        pure
+        returns (IMessages.Callback memory)
+    {
+        return IMessages.Callback(beforeData, afterData);
+    }
+
+    function _isCallbackEmpty(IMessages.Callback memory callback) internal pure returns (bool) {
+        return callback.beforeData.length == 0 && callback.afterData.length == 0;
     }
 }

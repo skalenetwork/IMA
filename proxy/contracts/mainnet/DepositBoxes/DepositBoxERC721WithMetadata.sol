@@ -56,8 +56,8 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
     {
-        Messages.TransferErc721MessageWithMetadata memory message =
-            Messages.decodeTransferErc721MessageWithMetadata(data);
+        Messages.TransferErc721WithMetadataMessage memory message =
+            Messages.decodeTransferErc721WithMetadataMessage(data);
         require(message.erc721message.token.isContract(), "Given address is not a contract");
         require(
             IERC721Upgradeable(message.erc721message.token).ownerOf(message.erc721message.tokenId) == address(this),
@@ -89,8 +89,8 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
         checkReceiverChain(schainHash, sender)
         returns (address)
     {
-        Messages.TransferErc721MessageWithMetadata memory message =
-            Messages.decodeTransferErc721MessageWithMetadata(data);
+        Messages.TransferErc721WithMetadataMessage memory message =
+            Messages.decodeTransferErc721WithMetadataMessage(data);
         return message.erc721message.receiver;
     }
 
@@ -125,7 +125,7 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
                 _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainnet))
             );
         } else {
-            data = Messages.encodeTransferErc721MessageWithMetadata(
+            data = Messages.encodeTransferErc721WithMetadataMessage(
                 erc721OnMainnet,
                 to,
                 tokenId,

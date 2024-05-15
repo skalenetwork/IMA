@@ -25,7 +25,7 @@
         "@openzeppelin/contracts-upgradeable": "^4.7.1",
         "@openzeppelin/hardhat-upgrades": "^1.14.0",
         "@skalenetwork/etherbase-interfaces": "^0.0.1-develop.20",
-        "@skalenetwork/ima-interfaces": "2.0.0",
+        "@skalenetwork/ima-interfaces": "2.0.0-callback-interfaces.1",
         "@skalenetwork/skale-manager-interfaces": "2.0.0",
         "@skalenetwork/upgrade-tools": "^2.0.2",
         "axios": "^0.21.4",
