@@ -219,6 +219,7 @@ async function main() {
                     try {
                         await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);
                         await contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);
+                        await contractManagerInst.setContractsAddress( "Linker", deployed.get( "Linker" )?.address);
                         for (const contractName of contractsToDeploy) {
                             const contractAddress = deployed.get(contractName);
                             if (contractAddress === undefined) {

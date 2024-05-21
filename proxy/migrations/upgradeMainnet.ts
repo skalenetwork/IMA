@@ -89,7 +89,7 @@ class ImaMainnetUpgrader extends Upgrader {
             contractManagerInterface,
             ethers.provider
         )
-        for (const contractName of contractsToDeploy) {
+        for (const contractName of contractsToDeploy.concat(["Linker"])) {
             try {
                 const contractAddress = await contractManager.getContract(contractName);
                 console.log(`Address of ${contractName} is set to ${contractAddress}`);
