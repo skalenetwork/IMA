@@ -104,6 +104,24 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     }
 
     /**
+     * @dev Move tokens from schain to mainnet.
+     * Notice - unlike this exitToMainERC20, this can be called by a contract on behalf of a user.
+     * 
+     * {contractOnMainnet} tokens are burned from {tx.origin} address on schain and
+     * unlocked on mainnet for {tx.origin} address.
+     */
+    function exitToMainFromOriginERC20(
+        address contractOnMainnet,
+        uint256 amount
+    )
+        external
+        override
+    {
+        communityLocker.checkAllowedToSendMessage(tx.origin);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, tx.origin, amount);
+    }
+
+    /**
      * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
@@ -121,6 +139,26 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * Notice - unlike this exitToMainERC20, this can be called by a contract on behalf of a user.
+     * 
+     * {contractOnMainnet} tokens are burned from {tx.origin} address on origin schain
+     * and are minted on {targetSchainName} schain for {tx.origin} address.
+     */
+    function transferToSchainFromOriginERC20(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 amount
+    )
+        external
+        override
+        rightTransaction(targetSchainName, tx.origin)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, tx.origin, amount);
     }
 
     /**
@@ -282,10 +320,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
+        require(contractOnSchain.balanceOf(to) >= amount, "Insufficient funds");
         require(
             contractOnSchain.allowance(
-                msg.sender,
+                to,
                 address(this)
             ) >= amount,
             "Transfer is not approved by token holder"
@@ -296,17 +334,17 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
             require(
-                contractOnSchain.transferFrom(msg.sender, address(this), amount),
+                contractOnSchain.transferFrom(to, address(this), amount),
                 "Transfer was failed"
             );
         } else {
             require(
-                contractOnSchain.transferFrom(msg.sender, address(this), amount),
+                contractOnSchain.transferFrom(to, address(this), amount),
                 "Transfer was failed"
             );
             contractOnSchain.burn(amount);
