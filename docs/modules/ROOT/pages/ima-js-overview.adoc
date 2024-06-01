@@ -39,7 +39,7 @@ Import and init single IMA-JS object:
 import { IMA } from '@skalenetwork/ima-js';
 
 import mainnetAbi from './mainnetAbi.json'; // your local sources
-import schainAbi from './schainAbi.json'; // your local sources
+import sChainAbi from './schainAbi.json'; // your local sources
 
 const MAINNET_ENDPOINT = '[YOUR_ETHEREUM_MAINNET_ENDPOINT]';
 const SCHAIN_ENDPOINT = '[YOUR_SCHAIN_ENDPOINT]';
