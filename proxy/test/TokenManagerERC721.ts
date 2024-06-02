@@ -162,6 +162,24 @@ describe("TokenManagerERC721", () => {
         outgoingMessagesCounterMainnet.should.be.deep.equal(BigNumber.from(1));
     });
 
+    it("should send token if TokenManager was approved for all transfers by user", async () => {
+        await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  token.address, tokenClone.address);
+        await tokenClone.connect(deployer).mint(user.address, tokenId);
+        await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerERC721.address);
+
+        await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
+            .should.be.eventually.rejectedWith("Not allowed ERC721 Token");
+
+        await tokenClone.connect(user).setApprovalForAll(tokenManagerERC721.address, true);
+
+        await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId);
+
+        const outgoingMessagesCounterMainnet = BigNumber.from(
+            await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet")
+        );
+        outgoingMessagesCounterMainnet.should.be.deep.equal(BigNumber.from(1));
+    });
+
     it("should be rejected when call exitToMainERC721 if remove contract for all chains", async () => {
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mint(user.address, tokenId);
