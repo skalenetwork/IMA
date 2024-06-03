@@ -62,6 +62,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     uint256 public gasLimit;
 
+    uint256 public messageBytesLength;
+
     /**
      * @dev Emitted for every outgoing message to schain.
      */
@@ -109,6 +111,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     event ExtraContractRemoved(
         bytes32 indexed chainHash,
         address contractAddress
+    );
+
+    event MessageBytesLengthChanged(
+        uint256 oldValue,
+        uint256 newValue
     );
 
     /**
@@ -205,6 +212,18 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         require(_getRegistryContracts()[bytes32(0)].contains(extraContract), "Extra contract is not registered");
         _getRegistryContracts()[bytes32(0)].remove(extraContract);
         emit ExtraContractRemoved(bytes32(0), extraContract);
+    }
+
+    /**
+     * @dev Sets messageBytesLength to a new value.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
+    function setMessageBytesLength(uint256 newMessageBytesLength) external override onlyConstantSetter {
+        emit GasLimitWasChanged(messageBytesLength, newMessageBytesLength);
+        messageBytesLength = newMessageBytesLength;
     }
 
     /**
@@ -316,6 +335,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         virtual
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
+        require(data.length <= messageBytesLength, "Message is too long");
         _authorizeOutgoingMessageSender(targetChainHash);
 
         uint outgoingMessageCounter = connectedChains[targetChainHash].outgoingMessageCounter;
