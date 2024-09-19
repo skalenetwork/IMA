@@ -26,10 +26,6 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-    defaults:
-      run:
-        working-directory: proxy
-
     outputs:
       version: ${{ steps.version.outputs.version }}
 
@@ -39,16 +35,17 @@ jobs:
           submodules: recursive
 
     - name: Install NODE JS
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'yarn'
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
+        cache-dependency-path: predeployed/test/requirements.txt
 
     - name: Prepare for pip package building
       run: |
@@ -60,7 +57,6 @@ jobs:
 
     - name: Calculate version
       id: version
-      working-directory: ./
       run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
@@ -93,7 +89,7 @@ jobs:
       run: npx hardhat run scripts/generateAbi.ts
 
     - name: Generate predeployed ABIs
-      working-directory: proxy/predeployed
+      working-directory: predeployed
       env:
         VERSION: ${{ env.VERSION }}
       run: |
@@ -120,7 +116,6 @@ jobs:
                     proxy/data/*-abi.json"
 
     - name: Build and publish image
-      working-directory: ./
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
