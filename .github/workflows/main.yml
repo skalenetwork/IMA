@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Build and test
+name: test
 
 on:
   push:
@@ -19,23 +19,20 @@ jobs:
   test-contracts:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: proxy
-
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
 
     - name: Install PYTHON
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
+        cache-dependency-path: scripts/requirements.txt
 
     - name: Install NODE JS
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'yarn'
@@ -80,23 +77,20 @@ jobs:
   test-predeployed:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: proxy
-
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
 
     - name: Install PYTHON
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
+        cache-dependency-path: predeployed/test/requirements.txt
 
     - name: Install NODE JS
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'yarn'
@@ -104,7 +98,7 @@ jobs:
     - name: Install project
       run: |
         yarn install
-        npm run compile
+        yarn compile
 
     - name: Install python testing staff
       run: pip3 install -r predeployed/test/requirements.txt
