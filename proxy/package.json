@@ -28,7 +28,7 @@
         "@skalenetwork/ima-interfaces": "2.0.0",
         "@skalenetwork/skale-manager-interfaces": "2.0.0",
         "@skalenetwork/upgrade-tools": "^2.0.2",
-        "axios": "^0.21.4",
+        "axios": "^1.7.7",
         "dotenv": "^16.0.0",
         "ethers": "^5.7.2",
         "hardhat": "2.11.0 - 2.16.1"
