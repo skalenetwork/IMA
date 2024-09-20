@@ -9,21 +9,32 @@
     "constantinopleBlock": 0,
     "petersburgBlock": 0,
     "istanbulBlock": 0,
+    "muirGlacierBlock": 0,
     "berlinBlock": 0,
-    "clique": {
-      "period": 5,
-      "epoch": 30000
-    }
+    "londonBlock": 0,
+    "arrowGlacierBlock": 0,
+    "grayGlacierBlock": 0,
+    "shanghaiTime": 0,
+    "cancunTime": 0,
+    "terminalTotalDifficulty": 0,
+    "terminalTotalDifficultyPassed": true
   },
-  "nonce": "0x0000000000000033",
+  "nonce": "0x0",
   "timestamp": "0x0",
-  "gasLimit": "0x8000000",
-  "difficulty": "0x100",
+  "extraData": "0x",
+  "gasLimit": "0xaf79e0",
+  "difficulty": "0x0",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "coinbase": "0xd2001DAb6898127Be2F167B548691C87251D13C3",
-  "extradata": "0x0000000000000000000000000000000000000000000000000000000000000000d2001DAb6898127Be2F167B548691C87251D13C30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
   "alloc": {
     "0xd2001DAb6898127Be2F167B548691C87251D13C3": {
       "balance": "1000000000000000000"
     }
-  }
+  },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "baseFeePerGas": "0x3b9aca00",
+  "excessBlobGas": null,
+  "blobGasUsed": null
 }
