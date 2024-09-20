@@ -1,5 +1,7 @@
 name: publish
 
+# cspell:words PYPI_TOKEN ncipollo
+
 on:
   pull_request:
     types: [closed]
@@ -103,17 +105,17 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: data
-        path: proxy/data
+        path: data
 
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ env.VERSION }}
         prerelease: ${{ env.PRERELEASE }}
-        artifacts: "proxy/predeployed/dist/*,\
-                    proxy/predeployed/data/*,\
-                    proxy/data/ima-schain-*-manifest.json,\
-                    proxy/data/*-abi.json"
+        artifacts: "predeployed/dist/*,\
+                    predeployed/data/*,\
+                    data/ima-schain-*-manifest.json,\
+                    data/*-abi.json"
 
     - name: Build and publish image
       env:

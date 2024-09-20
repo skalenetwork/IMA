@@ -16,8 +16,8 @@
         "test": "yarn tsc && npx hardhat test",
         "tsc": "tsc --noEmit",
         "slither": "slither .",
-        "fullcheck": "yarn lint && yarn tsc && yarn eslint && yarn slither",
-        "hooks": "git config core.hooksPath proxy/.githooks",
+        "fullCheck": "yarn lint && yarn tsc && yarn eslint && yarn slither",
+        "hooks": "git config core.hooksPath .githooks",
         "no-hooks": "git config core.hooksPath .git/hooks"
     },
     "dependencies": {
@@ -50,6 +50,7 @@
         "chai": "^4.2.0",
         "chai-almost": "^1.0.1",
         "chai-as-promised": "^7.1.1",
+        "cspell": "^8.14.4",
         "eslint": "^8.46.0",
         "ethereum-waffle": "^4.0.10",
         "ganache": "7.9.2",

@@ -11,6 +11,8 @@ module.exports = {
 
     },
     ignorePatterns: [
-
+        "coverage/**",
+        "typechain-types/**",
+        "**/venv/**"
     ]
   };

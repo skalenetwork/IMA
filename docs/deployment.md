@@ -1,4 +1,5 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+<!-- cspell:words npms privateKey_skalechain ipcpath ipcx -->
 
 # IMA Deployment and Initialization
 
@@ -18,7 +19,7 @@ Deploy process includes:
 
 2)  `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
 
-3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
+3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `data/skaleManagerComponents.json` file like shown in the following example:
 
 ```json
 {
@@ -39,7 +40,7 @@ Deploy process includes:
 6)  Node modules should be initialized in the following folders:
     ```shell
     export IMA_ROOT=.....
-    cd $IMA_ROOT/proxy; npm install
+    cd $IMA_ROOT; npm install
     cd $IMA_ROOT/npms/skale-owasp; npm install
     cd $IMA_ROOT/npms/skale-ima; npm install
     cd $IMA_ROOT/agent; npm install
@@ -49,10 +50,10 @@ Deploy process includes:
 
 ### Configure Truffle
 
-Edit the `$IMA_ROOT/proxy/truffle-config.js` and specify needed networks (`Mainnet` and `SKALE Chain`) and account addresses which will own contracts on these blockchains:
+Edit the `$IMA_ROOT/truffle-config.js` and specify needed networks (`Mainnet` and `SKALE Chain`) and account addresses which will own contracts on these blockchains:
 
 ```shell
-cd $IMA_ROOT/proxy
+cd $IMA_ROOT
 nano ./truffle-config.js
 ```
 
@@ -83,7 +84,7 @@ Initialize required environment variables. Example of `.env` file can be found i
 Build all the contracts once to ensure everything initialized OK:
 
 ```shell
-cd $IMA_ROOT/proxy
+cd $IMA_ROOT
 mkdir -p data || true
 rm -rf ./build
 rm -rf ./data/proxy*
@@ -94,7 +95,7 @@ ls -1 ./data/
 ### Smart contract Deployment for Main Net
 
 ```shell
-cd $IMA_ROOT/proxy
+cd $IMA_ROOT
 npm run deploy-to-mainnet
 ls -1 ./data/
 ```
@@ -104,7 +105,7 @@ You should see **proxyMainnet.json** file listed.
 #### Smart contract Deployment for S-Chain
 
 ```shell
-cd $IMA_ROOT/proxy
+cd $IMA_ROOT
 npm run deploy-to-schain
 ls -1 ./data/
 ```
@@ -126,8 +127,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -143,8 +144,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -162,8 +163,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -210,8 +211,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
 ```
@@ -232,8 +233,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --address-main-net=[ADDRESS] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -253,8 +254,8 @@ node ./main.js --verbose=9 \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
     --id-s-chain=Bob \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY]
 ```
 
@@ -273,8 +274,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY]
 ```
 
@@ -312,8 +313,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -331,8 +332,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -350,8 +351,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
@@ -399,8 +400,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --erc20-main-net=data-mn.json \
     --erc20-s-chain=data-sc.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
@@ -428,8 +429,8 @@ node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --erc20-main-net=data-mn.json \
     --erc20-s-chain=data-sc.json \
     --address-main-net=[ADDRESS] \
@@ -536,8 +537,8 @@ reset; node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY] \
     --sign-messages \
@@ -553,8 +554,8 @@ reset; node ./main.js --verbose=9 \
     --id-s-chain=Bob \
     --cid-main-net=-4 \
     --cid-s-chain=-4 \
-    --abi-main-net=../proxy/data/proxyMainnet.json \
-    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --abi-main-net=../data/proxyMainnet.json \
+    --abi-s-chain=../data/proxySchain_Bob.json \
     --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
     --key-s-chain=[YOUR_PRIVATE_KEY] \
     --sign-messages \
