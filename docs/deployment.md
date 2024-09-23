@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
-<!-- cspell:words npms privateKey_skalechain ipcpath ipcx -->
+<!-- cspell:words privateKey_skalechain ipcpath ipcx -->
 
 # IMA Deployment and Initialization
 
@@ -26,25 +26,6 @@ Deploy process includes:
     "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
 }
 ```
-
-4)  `libBLS` command utilities
-
-5)  Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
-
-    ```shell
-    sudo npm uninstall -g truffle
-    sudo npm install -g truffle@5.0.12
-    truffle --version
-    ```
-
-6)  Node modules should be initialized in the following folders:
-    ```shell
-    export IMA_ROOT=.....
-    cd $IMA_ROOT; npm install
-    cd $IMA_ROOT/npms/skale-owasp; npm install
-    cd $IMA_ROOT/npms/skale-ima; npm install
-    cd $IMA_ROOT/agent; npm install
-    ```
 
 ## Smart Contracts Installation
 
