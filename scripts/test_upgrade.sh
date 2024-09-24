@@ -13,7 +13,7 @@ then
 fi
 
 
-DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
+DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
 DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
@@ -55,15 +55,14 @@ MANIFEST=".openzeppelin/unknown-1337.json" \
 VERSION="$DEPLOYED_VERSION" \
 npx hardhat run migrations/changeManifest.ts --network localhost
 
-cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin"
-cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/"
-cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/proxy/data/"
+cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/.openzeppelin"
+cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/data/"
+cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
 ABI_FILENAME_MAINNET="proxyMainnet.json"
-cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/proxy/data"
-cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/proxy/data"
+cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/data"
+cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
 cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
-cd proxy
 
 ABI="data/$ABI_FILENAME_MAINNET" \
 TEST_UPGRADE=true \

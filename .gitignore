@@ -1,20 +1,20 @@
 # artifacts
-proxy/artifacts/
+artifacts/
 test-tokens/artifacts/
-proxy/cache/
+cache/
 test-tokens/cache/
-proxy/typechain
+typechain
 test-tokens/typechain
 
 # openzeppelin
-proxy/.openzeppelin/dev-*.json
-proxy/.openzeppelin/unknown-*.json
-proxy/.openzeppelin/.session
+.openzeppelin/dev-*.json
+.openzeppelin/unknown-*.json
+.openzeppelin/.session
 
 # predeployed generator artificats
-proxy/predeployed/test/additional.json
-proxy/predeployed/version.txt
-proxy/data/proxySchain_Bob.json.saved_copy
+predeployed/test/additional.json
+predeployed/version.txt
+data/proxySchain_Bob.json.saved_copy
 
 # idea
 .DS_Store
@@ -34,25 +34,24 @@ pids
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
-proxy/coverageEnv
-proxy/coverage/
-proxy/coverage.json
+coverageEnv
+coverage/
+coverage.json
 
 # tmp file after precompiled contracts generation
-proxy/data/precompiled.json.file
+data/precompiled.json.file
 
-proxy/predeployed/build
-proxy/predeployed/dist
-proxy/predeployed/src/ima_predeployed/artifacts
+predeployed/build
+predeployed/dist
+predeployed/src/ima_predeployed/artifacts
 *.egg-info
-proxy/predeployed/test/genesis.json
+predeployed/test/genesis.json
 
 # nyc test coverage
 .nyc_output
 
 # Dependency directories
 node_modules
-proxy/node_modules
 test/node_modules
 test-tokens/node_modules
 
@@ -84,8 +83,8 @@ wallet*.json
 __pycache__/
 **/*.bak
 
-proxy/proxy.json
-proxy/data/*.json
+proxy.json
+data/*.json
 test-tokens/data/*.json
 ima_data.json
 
