@@ -262,8 +262,8 @@ contract CommunityPool is Twin, ICommunityPool {
         override
         returns (uint256)
     {
-        require(tx.gasprice != 0, "Gas price is zero");
-        uint256 currentValue = _multiplyOnAdaptedBaseFee(minTransactionGas);
+        require(tx.gasprice != 0, "Gas price is not set");
+        uint256 currentValue = _multiplyOnAdaptedBaseFee();
         if (currentValue  <= _userWallets[receiver][schainHash]) {
             return 0;
         }
@@ -277,7 +277,7 @@ contract CommunityPool is Twin, ICommunityPool {
         return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
     }
 
-    function _multiplyOnAdaptedBaseFee(uint256 value) private view returns (uint256) {
-        return value * tx.gasprice * multiplierNumerator / multiplierDivider;
+    function _multiplyOnAdaptedBaseFee() private view returns (uint256) {
+        return minTransactionGas * tx.gasprice * multiplierNumerator / multiplierDivider;
     }
 }
