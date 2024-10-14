@@ -6,6 +6,7 @@ on:
 jobs:
   check-linked-issues:
     name: Check if pull request has linked issues
+    if:  ${{ !startsWith(github.head_ref, 'dependabot/') }}
     runs-on: ubuntu-latest
     steps:
       - name: Get issues
@@ -15,5 +16,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: PR has not linked issues
         if: join(steps.get-issues.outputs.issues) == ''
-        run: 
+        run:
           exit 1

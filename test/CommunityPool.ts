@@ -159,6 +159,18 @@ describe("CommunityPool", () => {
                     .should.be.eventually.rejectedWith("Not enough ETH for transaction");
             });
 
+            it("should revert if gasprice was not set for getRecommendedRechargeAmount call", async () => {
+                await communityPool.getRecommendedRechargeAmount(ethers.utils.id(schainName), user.address)
+                    .should.be.eventually.rejectedWith("Gas price is not set");
+            });
+
+            it("should get recommended recharge amount if gasprice was set", async () => {
+                const multiplierNumerator = await communityPool.multiplierNumerator();
+                const multiplierDivider = await communityPool.multiplierDivider();
+                const amount = await communityPool.getRecommendedRechargeAmount(ethers.utils.id(schainName), user.address, { gasPrice });
+                expect(amount).to.be.equal(minTransactionGas.mul(gasPrice).mul(multiplierNumerator).div(multiplierDivider));
+            });
+
             it("should recharge wallet if user passed enough money", async () => {
                 const amount = minTransactionGas.mul(gasPrice);
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice });

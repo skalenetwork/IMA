@@ -13,7 +13,7 @@ then
 fi
 
 
-DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
+DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
 DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
@@ -24,7 +24,7 @@ git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "
 ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
 GANACHE=$(npx ganache \
     --😈 \
-    --miner.blockGasLimit 9000000 \
+    --miner.blockGasLimit 12000000 \
     --logging.quiet \
     --chain.allowUnlimitedContractSize \
     --wallet.accountKeysPath "$ACCOUNTS_FILENAME" \
@@ -34,9 +34,20 @@ cd "$DEPLOYED_DIR/proxy"
 yarn install
 PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
 PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[9].value')
-CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
+URL_W3_S_CHAIN="http://127.0.0.1:8545"
+
+CHAIN_NAME_SCHAIN="Test" \
+VERSION="$DEPLOYED_VERSION" \
+PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
-CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost
+
+CHAIN_NAME_SCHAIN="Test" \
+VERSION="$DEPLOYED_VERSION" \
+URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/deploySchain.ts --network schain
 
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 ABI="data/$ABI_FILENAME_SCHAIN" \
@@ -44,15 +55,14 @@ MANIFEST=".openzeppelin/unknown-1337.json" \
 VERSION="$DEPLOYED_VERSION" \
 npx hardhat run migrations/changeManifest.ts --network localhost
 
-cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin"
-cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/"
-cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/proxy/data/"
+cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/.openzeppelin"
+cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/data/"
+cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
 ABI_FILENAME_MAINNET="proxyMainnet.json"
-cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/proxy/data"
-cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/proxy/data"
+cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/data"
+cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
 cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
-cd proxy
 
 ABI="data/$ABI_FILENAME_MAINNET" \
 TEST_UPGRADE=true \
@@ -69,6 +79,8 @@ MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 CHAIN_NAME_SCHAIN="Test" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
-npx hardhat run migrations/upgradeSchain.ts --network localhost
+URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/upgradeSchain.ts --network schain
 
 npx ganache instances stop "$GANACHE"

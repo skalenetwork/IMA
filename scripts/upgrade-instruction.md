@@ -10,7 +10,7 @@ git clone https://github.com/skalenetwork/IMA.git && cd IMA/ && yarn install
 
 ## Prepare environment
 
- Create `.env` file by path `IMA/proxy/`. Now you need to create new account. You can generate it in Metamask. Next export private key and put it in `.env` as `PRIVATE_KEY` without 0x. Also put endpoint of your chain as `ENDPOINT` to the `.env`. Also you need to add this account to your Gnosis Wallet as one of the Safe owners. Open Gnosis app, go to "Settings", click "Add new owner" and then sign transaction. Example of `.env` file:
+ Create `.env` file by path `IMA/`. Now you need to create new account. You can generate it in Metamask. Next export private key and put it in `.env` as `PRIVATE_KEY` without 0x. Also put endpoint of your chain as `ENDPOINT` to the `.env`. Also you need to add this account to your Gnosis Wallet as one of the Safe owners. Open Gnosis app, go to "Settings", click "Add new owner" and then sign transaction. Example of `.env` file:
 
 ```bash
 ENDPOINT="http://127.0.0.1:8545"
@@ -35,16 +35,16 @@ git checkout stable && yarn install
 
 ## Run upgrade script
 
-*  `DEPLOYED_VERSION` - current version of your IMA contracts. Example: `DEPLOYED_VERSION="1.1.3-beta.0"`
-*  `SCHAIN_ID` - chainId of SKALE chain.
-*  `SCHAIN_NAME` - name of SKALE chain.
-*  `SAFE_ADDRESS` - address of gnosis safe wallet on mainnet.
-*  `MAINNET_CHAIN_ID` - chainId, use 1 for Ethereum mainnet or 5 for Goerli.
-*  `MESSAGE_PROXY_MAINNET_ADDRESS` - address of MessageProxyForMainnet contract. Optional parameter. Required only if you have deployed IMA on Goerli Testnet.
-*  `ALLOW_NOT_ATOMIC_UPGRADE` - means that the transaction on the chain will not be executed atomically. That is, for example, if you send two transactions, there is a non-zero probability that they will be written to different blocks. Enter "OK" if you agree.
-*  `VERSION` - version to upgrade to. Optional parametr. Leave this parameter empty if you are not sure which version you are updating to, the script will automatically take the correct version.
+* `DEPLOYED_VERSION` - current version of your IMA contracts. Example: `DEPLOYED_VERSION="1.1.3-beta.0"`
+* `SCHAIN_ID` - chainId of SKALE chain.
+* `SCHAIN_NAME` - name of SKALE chain.
+* `SAFE_ADDRESS` - address of gnosis safe wallet on mainnet.
+* `MAINNET_CHAIN_ID` - chainId, use 1 for Ethereum mainnet or 5 for Goerli.
+* `MESSAGE_PROXY_MAINNET_ADDRESS` - address of MessageProxyForMainnet contract. Optional parameter. Required only if you have deployed IMA on Goerli Testnet.
+* `ALLOW_NOT_ATOMIC_UPGRADE` - means that the transaction on the chain will not be executed atomically. That is, for example, if you send two transactions, there is a non-zero probability that they will be written to different blocks. Enter "OK" if you agree.
+* `VERSION` - version to upgrade to. Optional parameter. Leave this parameter empty if you are not sure which version you are updating to, the script will automatically take the correct version.
 
-Run the upgrade script in `IMA/proxy/` with the above parameters.
+Run the upgrade script in `IMA/` with the above parameters.
 
 ```bash
 ./scripts/magic_upgrade.sh
