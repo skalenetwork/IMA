@@ -111,6 +111,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ env.VERSION }}
+        commit: "$GITHUB_SHA"
         prerelease: ${{ env.PRERELEASE }}
         artifacts: "predeployed/dist/*,\
                     predeployed/data/*,\
