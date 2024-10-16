@@ -30,7 +30,7 @@ Proxy is a library with smart contracts for the SKALE Interchain Messaging Agent
 
 - Smart contract language: Solidity 0.8.16
 - NodeJS version: v18
-- NPM version: 6.9.0
+- Yarn Classic
 
 ### Message Proxy system
 
