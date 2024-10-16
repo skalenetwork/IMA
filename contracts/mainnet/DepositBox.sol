@@ -20,11 +20,12 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/mainnet/IDepositBox.sol";
 
 import "./Twin.sol";
+import "./Linker.sol";
 
 
 /**
@@ -35,7 +36,7 @@ abstract contract DepositBox is IDepositBox, Twin {
 
     ILinker public linker;
 
-    // schainHash => true if automatic deployment tokens on schain was enabled 
+    // schainHash => true if automatic deployment tokens on schain was enabled
     mapping(bytes32 => bool) private _automaticDeploy;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
@@ -43,7 +44,7 @@ abstract contract DepositBox is IDepositBox, Twin {
     /**
      * @dev Modifier for checking whether schain was not killed.
      */
-    modifier whenNotKilled(bytes32 schainHash) {
+    modifier whenNotKilled(SchainHash schainHash) {
         require(linker.isNotKilled(schainHash), "Schain is killed");
         _;
     }
@@ -51,13 +52,13 @@ abstract contract DepositBox is IDepositBox, Twin {
     /**
      * @dev Modifier for checking whether schain was killed.
      */
-    modifier whenKilled(bytes32 schainHash) {
+    modifier whenKilled(SchainHash schainHash) {
         require(!linker.isNotKilled(schainHash), "Schain is not killed");
         _;
     }
 
     /**
-     * @dev Modifier for checking whether schainName is not equal to `Mainnet` 
+     * @dev Modifier for checking whether schainName is not equal to `Mainnet`
      * and address of receiver is not equal to null before transferring funds from mainnet to schain.
      */
     modifier rightTransaction(string memory schainName, address to) {
@@ -70,12 +71,12 @@ abstract contract DepositBox is IDepositBox, Twin {
     }
 
     /**
-     * @dev Modifier for checking whether schainHash is not equal to `Mainnet` 
+     * @dev Modifier for checking whether schainHash is not equal to `Mainnet`
      * and sender contract was added as contract processor on schain.
      */
-    modifier checkReceiverChain(bytes32 schainHash, address sender) {
+    modifier checkReceiverChain(SchainHash schainHash, address sender) {
         require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
+            schainHash != SchainHash.wrap(keccak256(abi.encodePacked("Mainnet"))) &&
             sender == schainLinks[schainHash],
             "Receiver chain is incorrect"
         );

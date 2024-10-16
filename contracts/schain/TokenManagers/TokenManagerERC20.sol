@@ -19,12 +19,13 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
+import {SchainHash} from "@skalenetwork/ima-interfaces/DomainTypes.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -44,29 +45,29 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     // address of ERC20 on Mainnet => ERC20 on Schain
     mapping(address => ERC20OnChain) public deprecatedClonesErc20;
-    
+
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
 
     // address clone on schain => added or not
     mapping(ERC20OnChain => bool) public addedClones;
 
-    mapping(bytes32 => mapping(address => ERC20OnChain)) public clonesErc20;
+    mapping(SchainHash => mapping(address => ERC20OnChain)) public clonesErc20;
 
-    mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
+    mapping(SchainHash => mapping(address => uint256)) public transferredAmount;
 
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
-    event ERC20TokenAdded(bytes32 indexed chainHash, address indexed erc20OnMainChain, address indexed erc20OnSchain);
+    event ERC20TokenAdded(SchainHash indexed chainHash, address indexed erc20OnMainChain, address indexed erc20OnSchain);
 
     /**
      * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.
      */
     event ERC20TokenCreated(
-        bytes32 indexed chainHash,
+        SchainHash indexed chainHash,
         address indexed erc20OnMainChain,
         address indexed erc20OnSchain
     );
@@ -75,7 +76,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * @dev Emitted when someone sends tokens from mainnet to schain.
      */
     event ERC20TokenReceived(
-        bytes32 indexed chainHash,
+        SchainHash indexed chainHash,
         address indexed erc20OnMainChain,
         address indexed erc20OnSchain,
         uint256 amount
@@ -85,11 +86,11 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * @dev Emitted when token is received by TokenManager and is ready to be cloned
      * or transferred on SKALE chain.
      */
-    event ERC20TokenReady(bytes32 indexed chainHash, address indexed contractOnMainnet, uint256 amount);
+    event ERC20TokenReady(SchainHash indexed chainHash, address indexed contractOnMainnet, uint256 amount);
 
     /**
      * @dev Move tokens from schain to mainnet.
-     * 
+     *
      * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC20(
@@ -105,7 +106,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     /**
      * @dev Move tokens from schain to schain.
-     * 
+     *
      * {contractOnMainnet} tokens are burned on origin schain
      * and are minted on {targetSchainName} schain for {msg.sender} address.
      */
@@ -118,7 +119,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         rightTransaction(targetSchainName, msg.sender)
     {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
     }
@@ -128,12 +129,12 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * or SKALE chains.
      *
      * Requirements:
-     * 
+     *
      * - MessageProxy must be the sender.
      * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
-        bytes32 fromChainHash,
+        SchainHash fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -168,7 +169,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         onlyTokenRegistrar
     {
-        bytes32 originChainHash = keccak256(abi.encodePacked(originChainName));
+        SchainHash originChainHash = SchainHash.wrap(keccak256(abi.encodePacked(originChainName)));
         ERC20OnChain erc20OnSchain = clonesErc20[originChainHash][erc20OnOriginChain];
         require(messageProxy.isConnectedChain(originChainName), "Chain is not connected");
         require(newErc20OnSchain.isContract(), "Given address is not a contract");
@@ -193,7 +194,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         address newDepositBox
     )
         external
-        override        
+        override
     {
         TokenManager.initializeTokenManager(
             newChainName,
@@ -208,11 +209,11 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
-     *  
+     *
      * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(bytes32 fromChainHash, bytes calldata data) private returns (address) {        
+    function _sendERC20(SchainHash fromChainHash, bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         (address receiver, address token, uint256 amount) = _decodeErc20Message(data);
         ERC20OnChain contractOnSchain;
@@ -266,7 +267,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * @dev Burn tokens on schain and send message to unlock them on target chain.
      */
     function _exit(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address messageReceiver,
         address contractOnMainChain,
         address to,
@@ -321,29 +322,29 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Saves amount of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 chainHash, address erc20Token, uint256 amount) private {
+    function _saveTransferredAmount(SchainHash chainHash, address erc20Token, uint256 amount) private {
         transferredAmount[chainHash][erc20Token] += amount;
     }
 
     /**
      * @dev Removes amount of tokens that was transferred from schain.
      */
-    function _removeTransferredAmount(bytes32 chainHash, address erc20Token, uint256 amount) private {
+    function _removeTransferredAmount(SchainHash chainHash, address erc20Token, uint256 amount) private {
         transferredAmount[chainHash][erc20Token] -= amount;
     }
 
     /**
      * @dev Allows DepositBoxERC20 to receive ERC20 tokens.
-     * 
+     *
      * Emits an {ERC20TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Amount must be less than or equal to the total supply of the ERC20 contract.
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC20.
      */
     function _receiveERC20(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address erc20OnMainChain,
         address to,
         uint256 amount
@@ -377,14 +378,14 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     /**
      * @dev Adds an ERC20 token to DepositBoxERC20.
-     * 
+     *
      * Emits an {ERC20TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Given address should be contract.
      */
-    function _addERC20ForSchain(bytes32 chainHash, address erc20OnMainChain) private {
+    function _addERC20ForSchain(SchainHash chainHash, address erc20OnMainChain) private {
         require(erc20OnMainChain.isContract(), "Given address is not a contract");
         require(!_schainToERC20[chainHash].contains(erc20OnMainChain), "ERC20 Token was already added");
         _schainToERC20[chainHash].add(erc20OnMainChain);

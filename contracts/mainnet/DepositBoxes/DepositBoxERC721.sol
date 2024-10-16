@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -43,9 +43,9 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     // schainHash => address of ERC on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
-    mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC721;
-    mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC721;
+    mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC721;
+    mapping(address => mapping(uint256 => SchainHash)) public transferredAmount;
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC721;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC721.
@@ -60,9 +60,9 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
 
     /**
      * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their token for DepositBoxERC721 address.
      */
@@ -79,15 +79,15 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
 
     /**
      * @dev Allows MessageProxyForMainnet contract to execute transferring ERC721 token from schain to mainnet.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain from which the tokens came should not be killed.
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      * - DepositBoxERC721 contract should own token.
      */
     function postMessage(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -107,11 +107,11 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
 
     /**
      * @dev Allows Schain owner to add an ERC721 token to DepositBoxERC721.
-     * 
+     *
      * Emits an {ERC721TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain should not be killed.
      * - Only owner of the schain able to run function.
      */
@@ -119,18 +119,18 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         external
         override
         onlySchainOwner(schainName)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
         _addERC721ForSchain(schainName, erc721OnMainnet);
     }
 
     /**
      * @dev Allows Schain owner to return each user their tokens.
-     * The Schain owner decides which tokens to send to which address, 
+     * The Schain owner decides which tokens to send to which address,
      * since the contract on mainnet does not store information about which tokens belong to whom.
      *
      * Requirements:
-     * 
+     *
      * - DepositBoxERC721 contract should own such token.
      * - msg.sender should be an owner of schain
      * - IMA transfers Mainnet <-> schain should be killed
@@ -139,9 +139,9 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         external
         override
         onlySchainOwner(schainName)
-        whenKilled(keccak256(abi.encodePacked(schainName)))
+        whenKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(transferredAmount[erc721OnMainnet][tokenId] == schainHash, "Incorrect tokenId");
         _removeTransferredAmount(erc721OnMainnet, tokenId);
         IERC721Upgradeable(erc721OnMainnet).transferFrom(address(this), receiver, tokenId);
@@ -155,7 +155,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      */
     function gasPayer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -171,15 +171,15 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     }
 
     /**
-     * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
+     * @dev Should return length of a set of all mapped tokens which were added by Schain owner
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC721Length(string calldata schainName) external view override returns (uint256) {
-        return _schainToERC721[keccak256(abi.encodePacked(schainName))].length();
+        return _schainToERC721[_schainHash(schainName)].length();
     }
 
     /**
-     * @dev Should return an array of range of tokens were added by Schain owner 
+     * @dev Should return an array of range of tokens were added by Schain owner
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC721(
@@ -193,12 +193,12 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         returns (address[] memory tokensInRange)
     {
         require(
-            from < to && to - from <= 10 && to <= _schainToERC721[keccak256(abi.encodePacked(schainName))].length(),
+            from < to && to - from <= 10 && to <= _schainToERC721[_schainHash(schainName)].length(),
             "Range is incorrect"
         );
         tokensInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
-            tokensInRange[i - from] = _schainToERC721[keccak256(abi.encodePacked(schainName))].at(i);
+            tokensInRange[i - from] = _schainToERC721[_schainHash(schainName)].at(i);
         }
     }
 
@@ -206,7 +206,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      * @dev Creates a new DepositBoxERC721 contract.
      */
     function initialize(
-        IContractManager contractManagerOfSkaleManagerValue,        
+        IContractManager contractManagerOfSkaleManagerValue,
         ILinker linkerValue,
         IMessageProxyForMainnet messageProxyValue
     )
@@ -219,9 +219,9 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
 
     /**
      * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain to specified receiver.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their token for DepositBoxERC721 address.
      */
@@ -234,9 +234,9 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         public
         override
         rightTransaction(schainName, receiver)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
@@ -259,7 +259,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     }
 
     /**
-     * @dev Should return true if token was added by Schain owner or 
+     * @dev Should return true if token was added by Schain owner or
      * automatically added after sending to schain if whitelist was turned off.
      */
     function getSchainToERC721(
@@ -271,23 +271,23 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         override
         returns (bool)
     {
-        return _schainToERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
+        return _schainToERC721[_schainHash(schainName)].contains(erc721OnMainnet);
     }
 
     /**
      * @dev Removes the ids of tokens that was transferred from schain.
      */
     function _removeTransferredAmount(address erc721Token, uint256 tokenId) internal {
-        transferredAmount[erc721Token][tokenId] = bytes32(0);
+        transferredAmount[erc721Token][tokenId] = SchainHash.wrap(bytes32(0));
     }
 
     /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
-     * 
+     *
      * Emits an {ERC721TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
      */
     function _receiveERC721(
@@ -300,7 +300,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         virtual
         returns (bytes memory data)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         bool isERC721AddedToSchain = _schainToERC721[schainHash].contains(erc721OnMainnet);
         if (!isERC721AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
@@ -319,15 +319,15 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
 
     /**
      * @dev Adds an ERC721 token to DepositBoxERC721.
-     * 
+     *
      * Emits an {ERC721TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Given address should be contract.
      */
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) internal {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         require(!_schainToERC721[schainHash].contains(erc721OnMainnet), "ERC721 Token was already added");
         _schainToERC721[schainHash].add(erc721OnMainnet);
@@ -347,7 +347,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     /**
      * @dev Saves the ids of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
+    function _saveTransferredAmount(SchainHash schainHash, address erc721Token, uint256 tokenId) private {
         transferredAmount[erc721Token][tokenId] = schainHash;
     }
 }

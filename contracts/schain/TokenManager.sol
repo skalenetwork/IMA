@@ -19,10 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/schain/ITokenManager.sol";
 import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
+import {SchainHash} from "@skalenetwork/ima-interfaces/DomainTypes.sol";
 
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
@@ -32,7 +33,7 @@ import "./CommunityLocker.sol";
 /**
  * @title TokenManager
  * @dev Base contract for all token managers.
- * 
+ *
  * Runs on SKALE Chains, accepts messages from mainnet, creates clones of tokens.
  * TokenManager mints tokens when user locks tokens on mainnet and burn them when user exits.
  */
@@ -46,7 +47,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
     /**
      * @dev Keccak256 hash of mainnet name.
      */
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    SchainHash constant public MAINNET_HASH = SchainHash.wrap(keccak256(abi.encodePacked(MAINNET_NAME)));
 
     /**
      * @dev id of a role that allows turning on and turning off of automatic token clones deployment.
@@ -57,7 +58,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * @dev id of a role that allows to register deployed token clone.
      */
     bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
-    
+
     /**
      * @dev Address of MessageProxyForSchain.
      */
@@ -76,7 +77,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
     /**
      * @dev Keccak256 hash of schain name.
      */
-    bytes32 public schainHash;
+    SchainHash public schainHash;
 
     /**
      * @dev Address of corresponding deposit box on mainnet.
@@ -92,7 +93,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * @dev Addresses of corresponding token manager on other SKALE chains.
      */
     //   schainHash => TokenManager
-    mapping(bytes32 => address) public tokenManagers;    
+    mapping(SchainHash => address) public tokenManagers;
 
     /**
      * @dev Emitted when deposit box address was changed.
@@ -131,7 +132,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * a message does not aim mainnet, target SKALE chain has token manager and receiver is set.
      */
     modifier rightTransaction(string memory targetSchainName, address to) {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
         require(
             targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
@@ -145,7 +146,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * @dev Modifier to make a function callable only if
      * sender is deposit box on mainnet or token manager on other SKALE chain.
      */
-    modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
+    modifier checkReceiverChain(SchainHash fromChainHash, address sender) {
         require(fromChainHash != schainHash && _checkSender(fromChainHash, sender), "Receiver chain is incorrect");
         _;
     }
@@ -153,9 +154,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
 
     /**
      * @dev Turn on automatic deploy on schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
      */
     function enableAutomaticDeploy() external override onlyAutomaticDeploy {
@@ -164,9 +165,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
 
     /**
      * @dev Turn off automatic deploy on schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
      */
     function disableAutomaticDeploy() external onlyAutomaticDeploy {
@@ -187,7 +188,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash newSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
         require(tokenManagers[newSchainHash] == address(0), "Token Manager is already set");
         require(newTokenManager != address(0), "Incorrect Token Manager address");
         tokenManagers[newSchainHash] = newTokenManager;
@@ -206,7 +207,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash newSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
         require(tokenManagers[newSchainHash] != address(0), "Token Manager is not set");
         delete tokenManagers[newSchainHash];
     }
@@ -231,7 +232,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * @dev Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
      */
     function hasTokenManager(string calldata schainName) external view override returns (bool) {
-        return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
+        return tokenManagers[SchainHash.wrap(keccak256(abi.encodePacked(schainName)))] != address(0);
     }
 
     /**
@@ -255,10 +256,10 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
         _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
         _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
 
-        schainHash = keccak256(abi.encodePacked(newSchainName));
+        schainHash = SchainHash.wrap(keccak256(abi.encodePacked(newSchainName)));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
-        communityLocker = newCommunityLocker;        
+        communityLocker = newCommunityLocker;
         depositBox = newDepositBox;
 
         emit DepositBoxWasChanged(address(0), newDepositBox);
@@ -267,7 +268,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
     /**
      * @dev Checks whether sender contract is DepositBox or TokenManager depending on chainHash.
      */
-    function _checkSender(bytes32 fromChainHash, address sender) internal view virtual returns (bool) {
+    function _checkSender(SchainHash fromChainHash, address sender) internal view virtual returns (bool) {
         return fromChainHash == MAINNET_HASH ? sender == depositBox : sender == tokenManagers[fromChainHash];
     }
 }

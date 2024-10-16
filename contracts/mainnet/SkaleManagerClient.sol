@@ -19,13 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ISkaleManagerClient.sol";
+import {SchainHash} from "@skalenetwork/ima-interfaces/DomainTypes.sol";
 
 
 /**
@@ -50,7 +51,7 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     /**
      * @dev Modifier for checking whether caller is owner of SKALE chain.
      */
-    modifier onlySchainOwnerByHash(bytes32 schainHash) {
+    modifier onlySchainOwnerByHash(SchainHash schainHash) {
         require(
             isSchainOwner(msg.sender, schainHash),
             "Sender is not an Schain owner"
@@ -78,17 +79,17 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     /**
      * @dev Checks whether sender is owner of SKALE chain
      */
-    function isSchainOwner(address sender, bytes32 schainHash) public view override returns (bool) {
+    function isSchainOwner(address sender, SchainHash schainHash) public view override returns (bool) {
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, SchainHash.unwrap(schainHash));
     }
 
-    function isAgentAuthorized(bytes32 schainHash, address sender) public view override returns (bool) {
+    function isAgentAuthorized(SchainHash schainHash, address sender) public view override returns (bool) {
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isNodeAddressesInGroup(schainHash, sender);
+        return ISchainsInternal(skaleChainsInternal).isNodeAddressesInGroup(SchainHash.unwrap(schainHash), sender);
     }
 
-    function _schainHash(string memory schainName) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(schainName));
+    function _schainHash(string memory schainName) internal virtual pure returns (SchainHash) {
+        return SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
     }
 }
