@@ -61,7 +61,11 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
-    event ERC20TokenAdded(SchainHash indexed chainHash, address indexed erc20OnMainChain, address indexed erc20OnSchain);
+    event ERC20TokenAdded(
+        SchainHash indexed chainHash,
+        address indexed erc20OnMainChain,
+        address indexed erc20OnSchain
+    );
 
     /**
      * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.

@@ -548,7 +548,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         return _registryContracts;
     }
 
-    function _schainHash(string memory schainName) internal pure override(MessageProxy, SkaleManagerClient) returns (SchainHash) {
+    function _schainHash(
+        string memory schainName
+    )
+        internal
+        pure
+        override(MessageProxy, SkaleManagerClient)
+        returns (SchainHash)
+    {
         return SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
     }
 

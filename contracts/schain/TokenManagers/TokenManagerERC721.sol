@@ -352,7 +352,10 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * @dev Saves the ids of tokens that was transferred to schain.
      */
     function _saveTransferredAmount(SchainHash chainHash, address erc721Token, uint256 tokenId) internal {
-        require(transferredAmount[erc721Token][tokenId] == SchainHash.wrap(bytes32(0)), "Token was already transferred to chain");
+        require(
+            transferredAmount[erc721Token][tokenId] == SchainHash.wrap(bytes32(0)),
+            "Token was already transferred to chain"
+        );
         transferredAmount[erc721Token][tokenId] = chainHash;
     }
 

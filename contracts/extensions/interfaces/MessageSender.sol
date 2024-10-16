@@ -30,6 +30,10 @@ abstract contract MessageSender is MessageProxyClient {
         address targetContract,
         bytes memory data
     ) internal {
-        messageProxy.postOutgoingMessage(SchainHash.wrap(keccak256(abi.encodePacked(targetChainName))), targetContract, data);
+        messageProxy.postOutgoingMessage(
+            SchainHash.wrap(keccak256(abi.encodePacked(targetChainName))),
+            targetContract,
+            data
+        );
     }
 }

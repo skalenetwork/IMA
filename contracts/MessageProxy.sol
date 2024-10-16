@@ -188,7 +188,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      */
     function registerExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
-        require(!_getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract), "Extra contract is already registered");
+        require(
+            !_getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract),
+            "Extra contract is already registered"
+        );
         _getRegistryContracts()[SchainHash.wrap(bytes32(0))].add(extraContract);
         emit ExtraContractRegistered(SchainHash.wrap(bytes32(0)), extraContract);
     }
@@ -202,7 +205,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      */
     function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
-        require(_getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract), "Extra contract is not registered");
+        require(
+            _getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract),
+            "Extra contract is not registered"
+        );
         _getRegistryContracts()[SchainHash.wrap(bytes32(0))].remove(extraContract);
         emit ExtraContractRemoved(SchainHash.wrap(bytes32(0)), extraContract);
     }
@@ -526,7 +532,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      */
     function _authorizeOutgoingMessageSender(SchainHash targetChainHash) internal view virtual {
         require(
-            isContractRegistered(SchainHash.wrap(bytes32(0)), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
+            isContractRegistered(SchainHash.wrap(bytes32(0)), msg.sender) ||
+                isContractRegistered(targetChainHash, msg.sender),
             "Sender contract is not registered"
         );
     }
@@ -569,6 +576,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         return hash;
     }
 
+    function _schainHash(string memory schainName) internal virtual pure returns (SchainHash) {
+        return SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
+    }
+
     function _getSlice(bytes memory text, uint end) private pure returns (bytes memory) {
         uint slicedEnd = end < text.length ? end : text.length;
         bytes memory sliced = new bytes(slicedEnd);
@@ -576,9 +587,5 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             sliced[i] = text[i];
         }
         return sliced;
-    }
-
-    function _schainHash(string memory schainName) internal virtual pure returns (SchainHash) {
-        return SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
     }
 }
