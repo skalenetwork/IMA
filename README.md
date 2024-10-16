@@ -28,9 +28,9 @@ SKALE Interchain Messaging Smart Contracts
 
 Proxy is a library with smart contracts for the SKALE Interchain Messaging Agent. This system allows transferring ETH, ERC20 and ERC721 and is based on the Message Proxy system.
 
-Smart contract language - Solidity 0.5.10
-NodeJS version - 10.16.0
-NPM version - 6.9.0
+- Smart contract language: Solidity 0.8.16
+- NodeJS version: v18
+- Yarn Classic
 
 ### Message Proxy system
 
