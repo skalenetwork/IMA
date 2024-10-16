@@ -21,7 +21,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/mainnet/ITwin.sol";
 
@@ -36,7 +36,7 @@ import "./SkaleManagerClient.sol";
 abstract contract Twin is SkaleManagerClient, ITwin {
 
     IMessageProxyForMainnet public messageProxy;
-    mapping(bytes32 => address) public schainLinks;
+    mapping(SchainHash => address) public schainLinks;
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 
     /**
@@ -57,7 +57,7 @@ abstract contract Twin is SkaleManagerClient, ITwin {
      * - Address of contract on schain must be non-zero.
      */
     function addSchainContract(string calldata schainName, address contractReceiver) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(
             hasRole(LINKER_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash), "Not authorized caller"
@@ -76,7 +76,7 @@ abstract contract Twin is SkaleManagerClient, ITwin {
      * - SKALE chain must already be set.
      */
     function removeSchainContract(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(
             hasRole(LINKER_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash), "Not authorized caller"
@@ -89,9 +89,9 @@ abstract contract Twin is SkaleManagerClient, ITwin {
      * @dev Returns true if mainnet contract and schain contract are connected together for transferring messages.
      */
     function hasSchainContract(string calldata schainName) external view override returns (bool) {
-        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
+        return schainLinks[_schainHash(schainName)] != address(0);
     }
-    
+
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
         IMessageProxyForMainnet newMessageProxy
@@ -104,7 +104,7 @@ abstract contract Twin is SkaleManagerClient, ITwin {
         messageProxy = newMessageProxy;
     }
 
-    function getSchainContract(bytes32 schainHash) public override view returns (address) {
+    function getSchainContract(SchainHash schainHash) public override view returns (address) {
         require(
             schainLinks[schainHash] != address(0),
             "Destination contract must be defined"

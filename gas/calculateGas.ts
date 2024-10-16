@@ -52,7 +52,7 @@ import {
     TokenManagerLinker,
     Wallets,
     Linker,
-    IMessageProxy,
+    IMessageListener,
 } from "../typechain";
 
 chai.should();
@@ -561,7 +561,7 @@ describe("Gas calculation", () => {
             hashB: "15163860114293529009901628456926790077787470245128337652112878212941459329347",
         };
 
-        async function postIncomingMessages(startingCounter: number, arrayOfMessages: IMessageProxy.MessageStruct[], action: string) {
+        async function postIncomingMessages(startingCounter: number, arrayOfMessages: IMessageListener.MessageStruct[], action: string) {
             const res = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
                 schainName,
                 startingCounter,

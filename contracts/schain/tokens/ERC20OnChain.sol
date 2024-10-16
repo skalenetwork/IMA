@@ -20,7 +20,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
@@ -52,9 +52,9 @@ contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgrad
 
     /**
      * @dev Mint tokens.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - sender must be granted with {MINTER_ROLE}.
      */
     function mint(address account, uint256 value) external override {

@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
@@ -46,9 +46,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
     // schainHash => address of ERC on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
-    mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC1155;
-    mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC1155;
+    mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC1155;
+    mapping(SchainHash => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC1155;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -63,9 +63,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows `msg.sender` to send ERC1155 token from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
      */
@@ -83,9 +83,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
      */
@@ -103,15 +103,15 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows MessageProxyForMainnet contract to execute transferring ERC1155 token from schain to mainnet.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain from which the tokens came should not be killed.
      * - Sender contract should be added to DepositBoxERC1155 and schain name cannot be `Mainnet`.
      * - Amount of tokens on DepositBoxERC1155 should be equal or more than transferred amount.
      */
     function postMessage(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -154,11 +154,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows Schain owner to add an ERC1155 token to DepositBoxERC1155.
-     * 
+     *
      * Emits an {ERC1155TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain should not be killed.
      * - Only owner of the schain able to run function.
      */
@@ -169,18 +169,18 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         external
         override
         onlySchainOwner(schainName)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
         _addERC1155ForSchain(schainName, erc1155OnMainnet);
     }
 
     /**
      * @dev Allows Schain owner to return each user their tokens.
-     * The Schain owner decides which tokens to send to which address, 
+     * The Schain owner decides which tokens to send to which address,
      * since the contract on mainnet does not store information about which tokens belong to whom.
      *
      * Requirements:
-     * 
+     *
      * - Amount of tokens on schain should be equal or more than transferred amount.
      * - msg.sender should be an owner of schain
      * - IMA transfers Mainnet <-> schain should be killed
@@ -195,9 +195,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         external
         override
         onlySchainOwner(schainName)
-        whenKilled(keccak256(abi.encodePacked(schainName)))
+        whenKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++) {
             require(transferredAmount[schainHash][erc1155OnMainnet][ids[i]] >= amounts[i], "Incorrect amount");
@@ -220,7 +220,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      */
     function gasPayer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -282,7 +282,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
     }
 
     /**
-     * @dev Should return true if token was added by Schain owner or 
+     * @dev Should return true if token was added by Schain owner or
      * added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToERC1155(
@@ -294,19 +294,19 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         override
         returns (bool)
     {
-        return _schainToERC1155[keccak256(abi.encodePacked(schainName))].contains(erc1155OnMainnet);
+        return _schainToERC1155[_schainHash(schainName)].contains(erc1155OnMainnet);
     }
 
     /**
-     * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
+     * @dev Should return length of a set of all mapped tokens which were added by Schain owner
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC1155Length(string calldata schainName) external view override returns (uint256) {
-        return _schainToERC1155[keccak256(abi.encodePacked(schainName))].length();
+        return _schainToERC1155[_schainHash(schainName)].length();
     }
 
     /**
-     * @dev Should return an array of tokens were added by Schain owner or 
+     * @dev Should return an array of tokens were added by Schain owner or
      * added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC1155(
@@ -320,12 +320,12 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         returns (address[] memory tokensInRange)
     {
         require(
-            from < to && to - from <= 10 && to <= _schainToERC1155[keccak256(abi.encodePacked(schainName))].length(),
+            from < to && to - from <= 10 && to <= _schainToERC1155[_schainHash(schainName)].length(),
             "Range is incorrect"
         );
         tokensInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
-            tokensInRange[i - from] = _schainToERC1155[keccak256(abi.encodePacked(schainName))].at(i);
+            tokensInRange[i - from] = _schainToERC1155[_schainHash(schainName)].at(i);
         }
     }
 
@@ -333,7 +333,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      * @dev Creates a new DepositBoxERC1155 contract.
      */
     function initialize(
-        IContractManager contractManagerOfSkaleManagerValue,        
+        IContractManager contractManagerOfSkaleManagerValue,
         ILinker linkerValue,
         IMessageProxyForMainnet messageProxyValue
     )
@@ -347,9 +347,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows `msg.sender` to send ERC1155 token from mainnet to schain to specified receiver.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
      */
@@ -363,9 +363,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         public
         override
         rightTransaction(schainName, receiver)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
@@ -390,9 +390,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to schain to specified receiver.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
      */
@@ -406,9 +406,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         public
         override
         rightTransaction(schainName, receiver)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
@@ -450,7 +450,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      * @dev Saves amount of tokens that was transferred to schain.
      */
     function _saveTransferredAmount(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address erc1155Token,
         uint256[] memory ids,
         uint256[] memory amounts
@@ -465,7 +465,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      * @dev Removes amount of tokens that was transferred from schain.
      */
     function _removeTransferredAmount(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address erc1155Token,
         uint256[] memory ids,
         uint256[] memory amounts
@@ -478,11 +478,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Allows DepositBoxERC1155 to receive ERC1155 tokens.
-     * 
+     *
      * Emits an {ERC1155TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155.
      */
     function _receiveERC1155(
@@ -495,7 +495,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         private
         returns (bytes memory data)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         bool isERC1155AddedToSchain = _schainToERC1155[schainHash].contains(erc1155OnMainnet);
         if (!isERC1155AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
@@ -510,17 +510,17 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         } else {
             data = Messages.encodeTransferErc1155Message(erc1155OnMainnet, to, id, amount);
         }
-        
+
         emit ERC1155TokenReady(erc1155OnMainnet, _asSingletonArray(id), _asSingletonArray(amount));
     }
 
     /**
      * @dev Allows DepositBoxERC1155 to receive ERC1155 tokens.
-     * 
+     *
      * Emits an {ERC1155TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155.
      */
     function _receiveERC1155Batch(
@@ -533,7 +533,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         private
         returns (bytes memory data)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         bool isERC1155AddedToSchain = _schainToERC1155[schainHash].contains(erc1155OnMainnet);
         if (!isERC1155AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
@@ -553,15 +553,15 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
     /**
      * @dev Adds an ERC1155 token to DepositBoxERC1155.
-     * 
+     *
      * Emits an {ERC1155TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Given address should be contract.
      */
     function _addERC1155ForSchain(string calldata schainName, address erc1155OnMainnet) private {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
         require(!_schainToERC1155[schainHash].contains(erc1155OnMainnet), "ERC1155 Token was already added");
         _schainToERC1155[schainHash].add(erc1155OnMainnet);
