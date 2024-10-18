@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
@@ -27,7 +27,6 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "@skalenetwork/ima-interfaces/mainnet/IMessageProxyForMainnet.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
-
 
 import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
@@ -77,15 +76,15 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     // disable detector until slither will fix this issue
     // https://github.com/crytic/slither/issues/456
     // slither-disable-next-line uninitialized-state
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
     string public version;
     bool public override messageInProgress;
 
     // schainHash   => Pause structure
-    mapping(bytes32 => Pause) public pauseInfo;
+    mapping(SchainHash => Pause) public pauseInfo;
 
     //   schainHash => Set of addresses of reimbursed contracts
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _reimbursedContracts;
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _reimbursedContracts;
 
     /**
      * @dev Emitted when gas cost for message header was changed.
@@ -107,21 +106,21 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Emitted when the schain is paused
      */
     event SchainPaused(
-        bytes32 indexed schainHash
+        SchainHash indexed schainHash
     );
 
     /**
      * @dev Emitted when the schain is resumed
      */
     event SchainResumed(
-        bytes32 indexed schainHash
+        SchainHash indexed schainHash
     );
 
     /**
      * @dev Emitted when reimbursed contract was added
      */
     event ReimbursedContractAdded(
-        bytes32 indexed schainHash,
+        SchainHash indexed schainHash,
         address contractAddress
     );
 
@@ -129,7 +128,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Emitted when reimbursed contract was removed
      */
     event ReimbursedContractRemoved(
-        bytes32 indexed schainHash,
+        SchainHash indexed schainHash,
         address contractAddress
     );
 
@@ -146,7 +145,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     /**
      * @dev Modifier to make a function callable only when IMA is active.
      */
-    modifier whenNotPaused(bytes32 schainHash) {
+    modifier whenNotPaused(SchainHash schainHash) {
         require(!isPaused(schainHash), "IMA is paused");
         _;
     }
@@ -159,10 +158,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - Schain name must not be `Mainnet`.
      */
     function addConnectedChain(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(ISchainsInternal(
             contractManagerOfSkaleManager.getContract("SchainsInternal")
-        ).isSchainExist(schainHash), "SKALE chain must exist");
+        ).isSchainExist(SchainHash.unwrap(schainHash)), "SKALE chain must exist");
         _addConnectedChain(schainHash);
     }
 
@@ -188,7 +187,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - Schain name must not be `Mainnet`.
      */
     function registerExtraContract(string memory schainName, address extraContract) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -208,7 +207,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - Schain name must not be `Mainnet`.
      */
     function removeExtraContract(string memory schainName, address extraContract) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -224,16 +223,16 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     /**
      * @dev Allows `msg.sender` to add reimbursed contract for being able to reimburse gas amount from CommunityPool
      * during message transfers from custom contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
      * - Schain name must not be `Mainnet`.
      * - `reimbursedContract` should be registered as extra contract
      */
     function addReimbursedContract(string memory schainName, address reimbursedContract) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");        
+        SchainHash schainHash = _schainHash(schainName);
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -250,14 +249,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Allows `msg.sender` to remove reimbursed contract,
      * thus `reimbursedContract` will no longer be available to reimburse gas amount from CommunityPool during
      * message transfers from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
      * - Schain name must not be `Mainnet`.
      */
     function removeReimbursedContract(string memory schainName, address reimbursedContract) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -285,12 +284,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         Signature calldata sign
     )
         external
-        override(IMessageProxy, MessageProxy)
+        override(IMessageListener, MessageProxy)
         messageInProgressLocker
-        whenNotPaused(keccak256(abi.encodePacked(fromSchainName)))
+        whenNotPaused(_schainHash(fromSchainName))
     {
         uint256 gasTotal = gasleft();
-        bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
+        SchainHash fromSchainHash = _schainHash(fromSchainName);
         require(isAgentAuthorized(fromSchainHash, msg.sender), "Agent is not authorized");
         require(_checkSchainBalance(fromSchainHash), "Schain wallet has not enough funds");
         require(connectedChains[fromSchainHash].inited, "Chain is not initialized");
@@ -371,7 +370,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - Sender should be PAUSABLE_ROLE
      */
     function pause(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(hasRole(PAUSABLE_ROLE, msg.sender), "Incorrect sender");
         require(!pauseInfo[schainHash].paused, "Already paused");
         pauseInfo[schainHash].paused = true;
@@ -387,7 +386,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - Sender should be DEFAULT_ADMIN_ROLE or schain owner
      */
     function resume(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash), "Incorrect sender");
         require(pauseInfo[schainHash].paused, "Already unpaused");
         pauseInfo[schainHash].paused = false;
@@ -397,18 +396,18 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     /**
      * @dev Should return length of reimbursed contracts by schainHash.
      */
-    function getReimbursedContractsLength(bytes32 schainHash) external view override returns (uint256) {
+    function getReimbursedContractsLength(SchainHash schainHash) external view override returns (uint256) {
         return _reimbursedContracts[schainHash].length();
     }
 
     /**
      * @dev Should return a range of reimbursed contracts by schainHash.
-     * 
+     *
      * Requirements:
      * range should be less or equal 10 contracts
      */
     function getReimbursedContractsRange(
-        bytes32 schainHash,
+        SchainHash schainHash,
         uint256 from,
         uint256 to
     )
@@ -441,12 +440,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev PostOutgoingMessage function with whenNotPaused modifier
      */
     function postOutgoingMessage(
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes memory data
     )
         public
-        override(IMessageProxy, MessageProxy)
+        override(IMessageListener, MessageProxy)
         whenNotPaused(targetChainHash)
     {
         super.postOutgoingMessage(targetChainHash, targetContract, data);
@@ -470,31 +469,31 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         override(IMessageProxy, MessageProxy)
         returns (bool)
     {
-        require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
+        require(_schainHash(schainName) != MAINNET_HASH, "Schain id can not be equal Mainnet");
         return super.isConnectedChain(schainName);
     }
 
     /**
      * @dev Returns true if IMA to schain is paused.
      */
-    function isPaused(bytes32 schainHash) public view override returns (bool) {
+    function isPaused(SchainHash schainHash) public view override returns (bool) {
         return pauseInfo[schainHash].paused;
     }
 
     /**
      * @dev Returns true if message to the contract should be reimbursed from CommunityPool.
      */
-    function isReimbursedContract(bytes32 schainHash, address contractAddress) public view override returns (bool) {
+    function isReimbursedContract(SchainHash schainHash, address contractAddress) public view override returns (bool) {
         return
-            isContractRegistered(bytes32(0), contractAddress) ||
+            isContractRegistered(SchainHash.wrap(bytes32(0)), contractAddress) ||
             _reimbursedContracts[schainHash].contains(contractAddress);
     }
 
     // private
 
-    function _authorizeOutgoingMessageSender(bytes32 targetChainHash) internal view override {
+    function _authorizeOutgoingMessageSender(SchainHash targetChainHash) internal view override {
         require(
-            isContractRegistered(bytes32(0), msg.sender)
+            isContractRegistered(SchainHash.wrap(bytes32(0)), msg.sender)
                 || isContractRegistered(targetChainHash, msg.sender)
                 || isSchainOwner(msg.sender, targetChainHash),
             "Sender contract is not registered"
@@ -531,10 +530,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Checks whether balance of schain wallet is sufficient for
      * for reimbursement custom message.
      */
-    function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
+    function _checkSchainBalance(SchainHash schainHash) internal view returns (bool) {
         return IWallets(
             payable(contractManagerOfSkaleManager.getContract("Wallets"))
-        ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
+        ).getSchainBalance(SchainHash.unwrap(schainHash)) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 
     /**
@@ -544,13 +543,23 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         internal
         view
         override
-        returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
+        returns (mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) storage)
     {
         return _registryContracts;
     }
 
+    function _schainHash(
+        string memory schainName
+    )
+        internal
+        pure
+        override(MessageProxy, SkaleManagerClient)
+        returns (SchainHash)
+    {
+        return SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
+    }
 
-    function _removeReimbursedContract(bytes32 schainHash, address reimbursedContract) private {
+    function _removeReimbursedContract(SchainHash schainHash, address reimbursedContract) private {
         _reimbursedContracts[schainHash].remove(reimbursedContract);
         emit ReimbursedContractRemoved(schainHash, reimbursedContract);
     }

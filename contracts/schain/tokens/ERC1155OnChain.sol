@@ -20,7 +20,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
@@ -52,9 +52,9 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
 
     /**
      * @dev Mint tokens.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - sender must be granted with {MINTER_ROLE}.
      */
     function mint(
@@ -72,9 +72,9 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
 
     /**
      * @dev Mint batch of tokens.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - sender must be granted with {MINTER_ROLE}.
      */
     function mintBatch(
@@ -92,7 +92,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
 
     /**
      * @dev Check if contract support {interfaceId} interface.
-     * 
+     *
      * See https://eips.ethereum.org/EIPS/eip-165 for more details.
      */
     function supportsInterface(

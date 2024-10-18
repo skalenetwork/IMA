@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "../schain/KeyStorage.sol";
 
@@ -32,7 +32,7 @@ interface IKeyStorageMock is IKeyStorage {
 
 
 contract KeyStorageMock is KeyStorage, IKeyStorageMock {
-    
+
     IFieldOperations.G2Point public blsCommonPublicKey;
     mapping (bytes32 => IFieldOperations.G2Point) public blsCommonPublicKeys;
     string public hello = "Hello";
@@ -40,7 +40,7 @@ contract KeyStorageMock is KeyStorage, IKeyStorageMock {
     function setBlsCommonPublicKey(IFieldOperations.G2Point calldata key) external override {
         // TODO: remove when update compiler will be updated
         IFieldOperations.G2Point memory _key = key;
-        blsCommonPublicKey = _key;        
+        blsCommonPublicKey = _key;
     }
 
     function setBlsCommonPublicKeyForSchain(

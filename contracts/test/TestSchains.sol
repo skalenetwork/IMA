@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "./TestContractManager.sol";
 import "./KeyStorageMock.sol";

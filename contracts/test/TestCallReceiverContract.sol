@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
@@ -29,7 +29,7 @@ contract TestCallReceiverContract is IMessageReceiver {
     event Error(uint error);
 
     function postMessage(
-        bytes32,
+        SchainHash,
         address,
         bytes calldata data
     )

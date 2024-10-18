@@ -19,14 +19,14 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 /**
  * @title Precompiled
  * @dev This library is a wrapper to call precompiled contracts
- * 
+ *
  * Defined calls:
- * 
+ *
  * - bn256Pairing
  */
 library Precompiled {

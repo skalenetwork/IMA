@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/ITokenManagerLinker.sol";
@@ -80,9 +80,9 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
 
     /**
      * @dev Register new token manager.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
     function initialize(IMessageProxyForSchain newMessageProxyAddress, address linker)
@@ -95,12 +95,12 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);
-        messageProxy = newMessageProxyAddress;    
+        messageProxy = newMessageProxyAddress;
 	    linkerAddress = linker;
 
         // fake usage of variable
         delete _interchainConnections;
-    }  
+    }
 
     /**
      * @dev Adds new TokenManager.
@@ -111,9 +111,9 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
 
     /**
      * @dev Cancel registration of token manager.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
     function removeTokenManager(ITokenManager tokenManagerAddress) external override onlyRegistrar {
@@ -134,9 +134,9 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
 
     /**
      * @dev Register new SKALE chain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      * - Direct messaging between SKALE chains must be allowed.
      * - Amount of token managers on target SKALE chain must be equal to the amount on current one.
@@ -156,9 +156,9 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
 
     /**
      * @dev Cancel registration of linked SKALE chain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
     function disconnectSchain(string calldata schainName) external override onlyRegistrar {

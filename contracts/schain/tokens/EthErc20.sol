@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
@@ -44,9 +44,9 @@ contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeabl
 
     /**
      * @dev Mint tokens.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - sender must be granted with {MINTER_ROLE}.
      */
     function mint(address account, uint256 amount) external override {
@@ -56,9 +56,9 @@ contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeabl
 
     /**
      * @dev Burn tokens for any account.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - sender must be granted with {BURNER_ROLE}.
      */
     function forceBurn(address account, uint256 amount) external override {
@@ -76,7 +76,7 @@ contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeabl
     {
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         ERC20Upgradeable.__ERC20_init("ERC20 Ether Clone", "ETHC");
-        ERC20BurnableUpgradeable.__ERC20Burnable_init();        
+        ERC20BurnableUpgradeable.__ERC20Burnable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, tokenManagerEthAddress);
         _setupRole(BURNER_ROLE, tokenManagerEthAddress);

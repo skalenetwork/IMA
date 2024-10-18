@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -43,12 +43,12 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
      * or SKALE chains.
      *
      * Requirements:
-     * 
+     *
      * - MessageProxy must be the sender.
      * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
-        bytes32 fromChainHash,
+        SchainHash fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -71,11 +71,11 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
 
     /**
      * @dev Allows TokenManager to send ERC721 tokens.
-     *  
+     *
      * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC721(bytes32 fromChainHash, bytes calldata data) internal override returns (address) {
+    function _sendERC721(SchainHash fromChainHash, bytes calldata data) internal override returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -100,7 +100,7 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
             contractOnSchain = clonesErc721[fromChainHash][token];
             if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
-                contractOnSchain = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);           
+                contractOnSchain = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
                 clonesErc721[fromChainHash][token] = contractOnSchain;
                 addedClones[contractOnSchain] = true;
                 emit ERC721TokenCreated(fromChainHash, token, address(contractOnSchain));
@@ -128,7 +128,7 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
      * @dev Burn tokens on schain and send message to unlock them on target chain.
      */
     function _exit(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address messageReceiver,
         address contractOnMainChain,
         address to,
@@ -171,15 +171,15 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
 
     /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
-     * 
+     *
      * Emits an {ERC721TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
      */
     function _receiveERC721(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address erc721OnMainChain,
         address to,
         uint256 tokenId

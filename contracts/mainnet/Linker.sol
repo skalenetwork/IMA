@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -47,8 +47,8 @@ contract Linker is Twin, ILinker {
     mapping(bytes32 => bool) private _interchainConnections;
     //
 
-    // schainHash => schain status of killing process 
-    mapping(bytes32 => KillProcess) public statuses;
+    // schainHash => schain status of killing process
+    mapping(SchainHash => KillProcess) public statuses;
 
     /**
      * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}.
@@ -60,9 +60,9 @@ contract Linker is Twin, ILinker {
 
     /**
      * @dev Allows Linker to register external mainnet contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Contract must be not registered.
      */
     function registerMainnetContract(address newMainnetContract) external override onlyLinker {
@@ -71,9 +71,9 @@ contract Linker is Twin, ILinker {
 
     /**
      * @dev Allows Linker to remove external mainnet contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Contract must be registered.
      */
     function removeMainnetContract(address mainnetContract) external override onlyLinker {
@@ -82,9 +82,9 @@ contract Linker is Twin, ILinker {
 
     /**
      * @dev Allows Linker to connect mainnet contracts with their receivers on schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Numbers of mainnet contracts and schain contracts must be equal.
      * - Mainnet contract must implement method `addSchainContract`.
      */
@@ -104,15 +104,15 @@ contract Linker is Twin, ILinker {
     }
 
     /**
-     * @dev Allows Schain owner and contract deployer to kill schain. 
+     * @dev Allows Schain owner and contract deployer to kill schain.
      * To kill the schain, both entities must call this function, and the order is not important.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Interchain connection should be turned off.
      */
     function kill(string calldata schainName) override external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         if (statuses[schainHash] == KillProcess.NotKilled) {
             if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
                 statuses[schainHash] = KillProcess.PartiallyKilledByContractOwner;
@@ -139,9 +139,9 @@ contract Linker is Twin, ILinker {
     /**
      * @dev Allows Linker disconnect schain from the network. This will remove all receiver contracts on schain.
      * Thus, messages will not go from the mainnet to the schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Mainnet contract should implement method `removeSchainContract`.
      */
     function disconnectSchain(string calldata schainName) external override onlyLinker {
@@ -155,7 +155,7 @@ contract Linker is Twin, ILinker {
     /**
      * @dev Returns true if schain is not killed.
      */
-    function isNotKilled(bytes32 schainHash) external view override returns (bool) {
+    function isNotKilled(SchainHash schainHash) external view override returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
