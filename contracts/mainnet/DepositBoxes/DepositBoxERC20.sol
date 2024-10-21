@@ -594,9 +594,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     /**
-     * @dev Retrive tokens that were unlocked after delay for specified receiver
+     * @dev Retrieve tokens that were unlocked after delay for specified receiver
      */
     function retrieveFor(address receiver) public override {
+        // TODO:
+        // Known issue to fix in further releases.
+        // https://github.com/skalenetwork/IMA/issues/1717
+        // slither-disable-start reentrancy-no-eth
         uint256 transfersAmount = MathUpgradeable.min(
             delayedTransfersByReceiver[receiver].length(),
             _QUEUE_PROCESSING_LIMIT
@@ -611,7 +615,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
-                    // disable detector untill slither fixes false positive
+                    // disable detector until slither fixes false positive
                     // https://github.com/crytic/slither/issues/778
                     // slither-disable-next-line incorrect-equality
                     if (transfer.status == DelayedTransferStatus.DELAYED) {
@@ -647,6 +651,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             }
         }
         require(retrieved, "There are no transfers available for retrieving");
+        // slither-disable-end reentrancy-no-eth
     }
 
     /**
