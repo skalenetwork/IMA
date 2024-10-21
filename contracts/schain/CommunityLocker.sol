@@ -21,7 +21,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
@@ -48,7 +48,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     /**
      * @dev Keccak256 hash of mainnet name.
      */
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    SchainHash constant public MAINNET_HASH = SchainHash.wrap(keccak256(abi.encodePacked(MAINNET_NAME)));
 
     /**
      * @dev id of a role that allows changing of the contract parameters.
@@ -73,7 +73,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     /**
      * @dev Keccak256 hash of schain name.
      */
-    bytes32 public schainHash;
+    SchainHash public schainHash;
 
     // Disable slither check due to variable depreciation
     // and unavailability of making it constant because
@@ -108,20 +108,20 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * when next message cannot be sent.
      */
     // schainHash   => time limit
-    mapping(bytes32 => uint) public timeLimitPerMessage;
+    mapping(SchainHash => uint) public timeLimitPerMessage;
 
     /**
      * @dev Timestamp of previous sent message by user during
      * schain to schain transfers
      */
     // schainHash   =>           user  => timestamp
-    mapping(bytes32 => mapping(address => uint)) public lastMessageTimeStampToSchain;
+    mapping(SchainHash => mapping(address => uint)) public lastMessageTimeStampToSchain;
 
     /**
      * @dev Emitted when a user becomes active.
      */
     event ActivateUser(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address user
     );
 
@@ -129,9 +129,9 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Emitted when a user stops being active.
      */
     event LockUser(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address user
-    ); 
+    );
 
     /**
      * @dev Emitted when constants updated.
@@ -142,7 +142,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         uint newValue
     );
 
-    modifier checkUserBeforeTransfer(bytes32 chainHash, address user) {
+    modifier checkUserBeforeTransfer(SchainHash chainHash, address user) {
         uint256 lastTimestamp = lastMessageTimeStampToSchain[chainHash][user];
         if (chainHash == MAINNET_HASH) {
             require(activeUsers[user], "Recipient must be active");
@@ -160,7 +160,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * or SKALE chains.
      *
      * Requirements:
-     * 
+     *
      * - MessageProxy must be the caller of the function.
      * - CommunityPool must be an origin of the message on mainnet.
      * - The message must come from the mainnet.
@@ -168,7 +168,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * - Status of a user in the message must be different from the current status.
      */
     function postMessage(
-        bytes32 fromChainHash,
+        SchainHash fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -194,13 +194,13 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Reverts if {receiver} is not allowed to send a message.
      *
      * Requirements:
-     * 
+     *
      * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
      * - {receiver} must be an active user.
      * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
      * or there are no messages sent by {receiver}.
      */
-    function checkAllowedToSendMessage(bytes32 chainHash, address receiver)
+    function checkAllowedToSendMessage(SchainHash chainHash, address receiver)
         external
         checkUserBeforeTransfer(chainHash, receiver)
         override
@@ -220,14 +220,14 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Set value of {timeLimitPerMessage} of given chain.
      *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
-     * 
+     *
      * Emits a {ConstantUpdated} event.
      */
     function setTimeLimitPerMessage(string memory chainName, uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        SchainHash chainHash = SchainHash.wrap(keccak256(abi.encodePacked(chainName)));
         require(chainHash != schainHash, "Incorrect chain");
         emit ConstantUpdated(
             keccak256(abi.encodePacked("TimeLimitPerMessage")),
@@ -241,9 +241,9 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Set value of {mainnetGasPrice}.
      *
      * Requirements:
-     * 
+     *
      * - Signature should be verified.
-     * 
+     *
      * Emits a {ConstantUpdated} event.
      */
     function setGasPrice(
@@ -288,7 +288,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
-        schainHash = keccak256(abi.encodePacked(newSchainName));
+        schainHash = SchainHash.wrap(keccak256(abi.encodePacked(newSchainName)));
         timeLimitPerMessage[MAINNET_HASH] = 5 minutes;
         communityPool = newCommunityPool;
     }

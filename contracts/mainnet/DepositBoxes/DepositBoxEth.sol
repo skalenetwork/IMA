@@ -19,10 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
+import {SchainHash} from "@skalenetwork/ima-interfaces/DomainTypes.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
@@ -38,11 +39,11 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
 
     mapping(address => uint256) public approveTransfers;
 
-    mapping(bytes32 => uint256) public transferredAmount;
+    mapping(SchainHash => uint256) public transferredAmount;
 
-    mapping(bytes32 => bool) public activeEthTransfers;
+    mapping(SchainHash => bool) public activeEthTransfers;
 
-    event ActiveEthTransfers(bytes32 indexed schainHash, bool active);
+    event ActiveEthTransfers(SchainHash indexed schainHash, bool active);
 
     receive() external payable override {
         revert("Use deposit function");
@@ -50,9 +51,9 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
 
     /**
      * @dev Allows `msg.sender` to send ETH from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain name must not be `Mainnet`.
      * - Receiver contract should be added as twin contract on schain.
      * - Schain that receives tokens should not be killed.
@@ -67,15 +68,15 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
 
     /**
      * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain from which the eth came should not be killed.
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      * - Amount of eth on DepositBoxEth should be equal or more than transferred amount.
      */
     function postMessage(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -127,10 +128,10 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         external
         override
         onlySchainOwner(schainName)
-        whenKilled(keccak256(abi.encodePacked(schainName)))
+        whenKilled(_schainHash(schainName))
     {
         require(receiver != address(0), "Receiver address has to be set");
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(transferredAmount[schainHash] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, amount);
         receiver.sendValue(amount);
@@ -148,9 +149,9 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         external
         override
         onlySchainOwner(schainName)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(!activeEthTransfers[schainHash], "Active eth transfers enabled");
         emit ActiveEthTransfers(schainHash, true);
         activeEthTransfers[schainHash] = true;
@@ -168,9 +169,9 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         external
         override
         onlySchainOwner(schainName)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         require(activeEthTransfers[schainHash], "Active eth transfers disabled");
         emit ActiveEthTransfers(schainHash, false);
         activeEthTransfers[schainHash] = false;
@@ -184,7 +185,7 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      */
     function gasPayer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -202,7 +203,7 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
      * @dev Creates a new DepositBoxEth contract.
      */
     function initialize(
-        IContractManager contractManagerOfSkaleManagerValue,        
+        IContractManager contractManagerOfSkaleManagerValue,
         ILinker linkerValue,
         IMessageProxyForMainnet messageProxyValue
     )
@@ -215,9 +216,9 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
 
     /**
      * @dev Allows `msg.sender` to send ETH from mainnet to schain to specified receiver.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain name must not be `Mainnet`.
      * - Receiver contract should be added as twin contract on schain.
      * - Schain that receives tokens should not be killed.
@@ -227,9 +228,9 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         payable
         override
         rightTransaction(schainName, receiver)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = _schainHash(schainName);
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         _saveTransferredAmount(schainHash, msg.value);
@@ -243,14 +244,14 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
     /**
      * @dev Saves amount of ETH that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
+    function _saveTransferredAmount(SchainHash schainHash, uint256 amount) private {
         transferredAmount[schainHash] += amount;
     }
 
     /**
      * @dev Removes amount of ETH that was transferred from schain.
      */
-    function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
+    function _removeTransferredAmount(SchainHash schainHash, uint256 amount) private {
         transferredAmount[schainHash] -= amount;
     }
 }

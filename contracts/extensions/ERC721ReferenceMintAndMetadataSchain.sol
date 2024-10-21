@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/extensions/IERC721ReferenceMintAndMetadataSchain.sol";
 
@@ -36,8 +36,8 @@ import "./interfaces/MessageSender.sol";
  */
 contract ERC721ReferenceMintAndMetadataSchain is MessageSender, IERC721ReferenceMintAndMetadataSchain {
 
-    address public erc721ContractOnSchain;
-    address public receiverContractOnMainnet;
+    address public immutable erc721ContractOnSchain;
+    address public immutable receiverContractOnMainnet;
 
     constructor(
         address newMessageProxyAddress,

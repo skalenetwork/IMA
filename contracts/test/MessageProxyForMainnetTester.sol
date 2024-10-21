@@ -19,14 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "../mainnet/MessageProxyForMainnet.sol";
 
 
 interface IMessageProxyForMainnetTester {
     function refundGasByUser(
-        bytes32 fromSchainHash,
+        SchainHash fromSchainHash,
         address payable node,
         address user,
         uint256 gas
@@ -34,10 +34,10 @@ interface IMessageProxyForMainnetTester {
 }
 
 
-contract MessageProxyForMainnetTester is MessageProxyForMainnet, IMessageProxyForMainnetTester {    
+contract MessageProxyForMainnetTester is MessageProxyForMainnet, IMessageProxyForMainnetTester {
 
     function refundGasByUser(
-        bytes32 fromSchainHash,
+        SchainHash fromSchainHash,
         address payable node,
         address user,
         uint256 gas

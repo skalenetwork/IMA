@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/extensions/IERC721ReferenceMintAndMetadataMainnet.sol";
 
@@ -30,11 +30,11 @@ import "./interfaces/MessageReceiver.sol";
 // This contract runs on the main net and accepts deposits
 contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721ReferenceMintAndMetadataMainnet {
 
-    address public erc721ContractOnMainnet;
+    address public immutable erc721ContractOnMainnet;
     address public senderContractOnSchain;
     string public schainName;
 
-    address public owner;
+    address public immutable owner;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Sender is not an owner");
@@ -60,7 +60,7 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721Refere
     }
 
     function postMessage(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -68,7 +68,7 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721Refere
         override
         onlyMessageProxy
     {
-        require(schainHash == keccak256(abi.encodePacked(schainName)), "Incorrect name of schain");
+        require(schainHash == SchainHash.wrap(keccak256(abi.encodePacked(schainName))), "Incorrect name of schain");
         require(sender == senderContractOnSchain, "Incorrect sender contract");
         address to;
         uint256 tokenId;

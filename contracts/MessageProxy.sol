@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -48,7 +48,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         uint256 lastOutgoingMessageBlockId;
     }
 
-    bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
+    SchainHash public constant MAINNET_HASH = SchainHash.wrap(keccak256(abi.encodePacked("Mainnet")));
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
@@ -56,9 +56,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     uint256 public constant REVERT_REASON_LENGTH = 64;
 
     //   schainHash => ConnectedChainInfo
-    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
+    mapping(SchainHash => ConnectedChainInfo) public connectedChains;
     //   schainHash => contract address => allowed
-    mapping(bytes32 => mapping(address => bool)) private _deprecatedRegistryContracts;
+    mapping(SchainHash => mapping(address => bool)) private _deprecatedRegistryContracts;
 
     uint256 public gasLimit;
 
@@ -66,7 +66,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * @dev Emitted for every outgoing message to schain.
      */
     event OutgoingMessage(
-        bytes32 indexed dstChainHash,
+        SchainHash indexed dstChainHash,
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
@@ -99,7 +99,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * @dev Emitted when extra contract was added.
      */
     event ExtraContractRegistered(
-        bytes32 indexed chainHash,
+        SchainHash indexed chainHash,
         address contractAddress
     );
 
@@ -107,7 +107,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * @dev Emitted when extra contract was removed.
      */
     event ExtraContractRemoved(
-        bytes32 indexed chainHash,
+        SchainHash indexed chainHash,
         address contractAddress
     );
 
@@ -188,9 +188,12 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      */
     function registerExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
-        require(!_getRegistryContracts()[bytes32(0)].contains(extraContract), "Extra contract is already registered");
-        _getRegistryContracts()[bytes32(0)].add(extraContract);
-        emit ExtraContractRegistered(bytes32(0), extraContract);
+        require(
+            !_getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract),
+            "Extra contract is already registered"
+        );
+        _getRegistryContracts()[SchainHash.wrap(bytes32(0))].add(extraContract);
+        emit ExtraContractRegistered(SchainHash.wrap(bytes32(0)), extraContract);
     }
 
     /**
@@ -202,15 +205,18 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      */
     function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
-        require(_getRegistryContracts()[bytes32(0)].contains(extraContract), "Extra contract is not registered");
-        _getRegistryContracts()[bytes32(0)].remove(extraContract);
-        emit ExtraContractRemoved(bytes32(0), extraContract);
+        require(
+            _getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract),
+            "Extra contract is not registered"
+        );
+        _getRegistryContracts()[SchainHash.wrap(bytes32(0))].remove(extraContract);
+        emit ExtraContractRemoved(SchainHash.wrap(bytes32(0)), extraContract);
     }
 
     /**
      * @dev Should return length of contract registered by schainHash.
      */
-    function getContractRegisteredLength(bytes32 schainHash) external view override returns (uint256) {
+    function getContractRegisteredLength(SchainHash schainHash) external view override returns (uint256) {
         return _getRegistryContracts()[schainHash].length();
     }
 
@@ -221,7 +227,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * range should be less or equal 10 contracts
      */
     function getContractRegisteredRange(
-        bytes32 schainHash,
+        SchainHash schainHash,
         uint256 from,
         uint256 to
     )
@@ -253,7 +259,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         override
         returns (uint256)
     {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
+        SchainHash dstChainHash = _schainHash(targetSchainName);
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
@@ -263,7 +269,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * @dev Should return block number of the last message transferred to schain
      */
     function getLastOutgoingMessageBlockId(string memory targetSchainName) external view override returns (uint) {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
+        SchainHash dstChainHash = _schainHash(targetSchainName);
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         return connectedChains[dstChainHash].lastOutgoingMessageBlockId;
     }
@@ -281,7 +287,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         override
         returns (uint256)
     {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(fromSchainName));
+        SchainHash srcChainHash = _schainHash(fromSchainName);
         require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
@@ -307,7 +313,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - Target chain must be registered as external contract.
      */
     function postOutgoingMessage(
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes memory data
     )
@@ -343,7 +349,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - `schainName` must be initialized.
      */
     function removeConnectedChain(string memory schainName) public virtual override onlyChainConnector {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        SchainHash schainHash = SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
         require(connectedChains[schainHash].inited, "Chain is not initialized");
         delete connectedChains[schainHash];
     }
@@ -360,14 +366,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         override
         returns (bool)
     {
-        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
+        return connectedChains[SchainHash.wrap(keccak256(abi.encodePacked(schainName)))].inited;
     }
 
     /**
      * @dev Checks whether contract is currently registered as extra contract.
      */
     function isContractRegistered(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address contractAddress
     )
         public
@@ -388,7 +394,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - Extra contract must not be registered for all chains.
      */
     function _registerExtraContract(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address extraContract
     )
         internal
@@ -396,7 +402,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         require(extraContract.isContract(), "Given address is not a contract");
         require(!_getRegistryContracts()[chainHash].contains(extraContract), "Extra contract is already registered");
         require(
-            !_getRegistryContracts()[bytes32(0)].contains(extraContract),
+            !_getRegistryContracts()[SchainHash.wrap(bytes32(0))].contains(extraContract),
             "Extra contract is already registered for all chains"
         );
 
@@ -413,7 +419,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - Extra contract must be registered.
      */
     function _removeExtraContract(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address extraContract
     )
         internal
@@ -431,7 +437,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
      * - SKALE chain must not be connected.
      */
-    function _addConnectedChain(bytes32 schainHash) internal onlyChainConnector {
+    function _addConnectedChain(SchainHash schainHash) internal onlyChainConnector {
         require(!connectedChains[schainHash].inited,"Chain is already connected");
         connectedChains[schainHash] = ConnectedChainInfo({
             incomingMessageCounter: 0,
@@ -446,7 +452,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * Destination contract must implement `postMessage` method.
      */
     function _callReceiverContract(
-        bytes32 schainHash,
+        SchainHash schainHash,
         Message calldata message,
         uint counter
     )
@@ -487,7 +493,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
      * @dev Returns receiver of message.
      */
     function _getGasPayer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         Message calldata message,
         uint counter
     )
@@ -524,9 +530,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Checks whether msg.sender is registered as custom extra contract.
      */
-    function _authorizeOutgoingMessageSender(bytes32 targetChainHash) internal view virtual {
+    function _authorizeOutgoingMessageSender(SchainHash targetChainHash) internal view virtual {
         require(
-            isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
+            isContractRegistered(SchainHash.wrap(bytes32(0)), msg.sender) ||
+                isContractRegistered(targetChainHash, msg.sender),
             "Sender contract is not registered"
         );
     }
@@ -538,7 +545,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         internal
         view
         virtual
-        returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage);
+        returns (mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) storage);
 
     /**
      * @dev Returns hash of message array.
@@ -552,7 +559,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         pure
         returns (bytes32)
     {
-        bytes32 sourceHash = keccak256(abi.encodePacked(fromChainName));
+        SchainHash sourceHash = _schainHash(fromChainName);
         bytes32 hash = keccak256(abi.encodePacked(sourceHash, bytes32(startingCounter)));
         for (uint256 i = 0; i < messages.length; i++) {
             hash = keccak256(
@@ -567,6 +574,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
         }
         return hash;
+    }
+
+    function _schainHash(string memory schainName) internal virtual pure returns (SchainHash) {
+        return SchainHash.wrap(keccak256(abi.encodePacked(schainName)));
     }
 
     function _getSlice(bytes memory text, uint end) private pure returns (bytes memory) {

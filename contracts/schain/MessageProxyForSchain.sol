@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
@@ -73,30 +73,30 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     /**
      * @dev Keccak256 hash of schain name.
      */
-    bytes32 public schainHash;
+    SchainHash public schainHash;
 
     /**
      * @dev Hashed of meta information of outgoing messages.
      */
     //      schainHash  =>      message_id  => MessageData
-    mapping(bytes32 => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
+    mapping(SchainHash => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
 
     /**
      * @dev First unprocessed outgoing message.
      */
     //      schainHash  => head of unprocessed messages
-    mapping(bytes32 => uint) private _idxHead;
+    mapping(SchainHash => uint) private _idxHead;
 
     /**
      * @dev Last unprocessed outgoing message.
      */
     //      schainHash  => tail of unprocessed messages
-    mapping(bytes32 => uint) private _idxTail;
+    mapping(SchainHash => uint) private _idxTail;
 
     // disable detector until slither will fix this issue
     // https://github.com/crytic/slither/issues/456
     // slither-disable-next-line uninitialized-state
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     string public version;
     bool public override messageInProgress;
@@ -141,7 +141,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         override
         onlyExtraContractRegistrar
     {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        SchainHash chainHash = _schainHash(chainName);
         require(chainHash != schainHash, "Destination chain hash cannot be equal to itself");
         _registerExtraContract(chainHash, extraContract);
     }
@@ -163,7 +163,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         override
         onlyExtraContractRegistrar
     {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        SchainHash chainHash = _schainHash(chainName);
         require(chainHash != schainHash, "Destination chain hash cannot be equal to itself");
         _removeExtraContract(chainHash, extraContract);
     }
@@ -179,7 +179,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * - Target chain must be different from the current.
      */
     function addConnectedChain(string calldata chainName) external override {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        SchainHash chainHash = _schainHash(chainName);
         require(chainHash != schainHash, "Schain cannot connect itself");
         _addConnectedChain(chainHash);
     }
@@ -203,10 +203,10 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         Signature calldata signature
     )
         external
-        override(IMessageProxy, MessageProxy)
+        override(IMessageListener, MessageProxy)
         messageInProgressLocker
     {
-        bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
+        SchainHash fromChainHash = _schainHash(fromChainName);
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");
         require(_verifyMessages(
@@ -247,7 +247,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * @dev Sends sFuel to the `receiver` address to satisfy a minimum balance
      */
     function topUpReceiverBalance(address payable receiver) external override {
-        require(isContractRegistered(bytes32(0), msg.sender), "Sender is not registered");
+        require(isContractRegistered(SchainHash.wrap(bytes32(0)), msg.sender), "Sender is not registered");
         uint256 balance = receiver.balance;
         uint256 threshold = minimumReceiverBalance;
         if (balance < threshold) {
@@ -302,7 +302,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             true,
             0
         );
-	    schainHash = keccak256(abi.encodePacked(schainName));
+	    schainHash = _schainHash(schainName);
 
         // In predeployed mode all token managers and community locker
         // will be added to registryContracts
@@ -323,7 +323,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         override(IMessageProxy, MessageProxy)
         onlyChainConnector
     {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        SchainHash chainHash = _schainHash(chainName);
         require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
         super.removeConnectedChain(chainName);
     }
@@ -338,12 +338,12 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * - Sender contract has to be registered.
      */
     function postOutgoingMessage(
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes memory data
     )
         public
-        override(IMessageProxy, MessageProxy)
+        override(IMessageListener, MessageProxy)
     {
         super.postOutgoingMessage(targetChainHash, targetContract, data);
 
@@ -355,7 +355,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             data
         );
 
-        bytes32 dstChainHash = outgoingMessageData.dstChainHash;
+        SchainHash dstChainHash = outgoingMessageData.dstChainHash;
         _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
         _idxTail[dstChainHash] += 1;
     }
@@ -396,7 +396,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         internal
         view
         override
-        returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
+        returns (mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) storage)
     {
         return _registryContracts;
     }

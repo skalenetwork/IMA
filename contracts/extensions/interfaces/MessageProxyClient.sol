@@ -19,12 +19,12 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "../../MessageProxy.sol";
 
 abstract contract MessageProxyClient {
-    MessageProxy public messageProxy;
+    MessageProxy public immutable messageProxy;
 
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");

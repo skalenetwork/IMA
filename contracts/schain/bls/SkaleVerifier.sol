@@ -19,7 +19,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "./Precompiled.sol";
 import "./FieldOperations.sol";
@@ -34,9 +34,9 @@ library SkaleVerifier {
 
     /**
     * @dev Verifies a BLS signature.
-    * 
+    *
     * Requirements:
-    * 
+    *
     * - Signature is in G1.
     * - Hash is in G1.
     * - G2.one in G2.

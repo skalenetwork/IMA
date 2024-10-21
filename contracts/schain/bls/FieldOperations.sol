@@ -20,7 +20,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/schain/bls/IFieldOperations.sol";
 
@@ -29,15 +29,15 @@ import "./Precompiled.sol";
 
 /**
  * @title Fp2Operations
- * @dev This library contains operations of field that is an extension by imaginary unit of 
+ * @dev This library contains operations of field that is an extension by imaginary unit of
  * a field of division remainders of a prime number
- * 
+ *
  * Element of field is Fp2Point
- * 
+ *
  * Prime divisor is P
- * 
+ *
  * Defined operations:
- * 
+ *
  * - addition
  * - subtraction
  * - scalar multiplication
@@ -167,15 +167,15 @@ library Fp2Operations {
  * @title G1Operations
  * @dev This library contains operations of a group of elements {x, y}
  * where y^2 = x^3 + 3 mod P and (x + iy) is an element of Fp2
- * 
+ *
  * Element of the group is Fp2Point
- * 
+ *
  * Prime divisor is Fp2Operations.P
- * 
+ *
  * A group generator is {1, 2}
- * 
+ *
  * Defined operations:
- * 
+ *
  * - check if a point is in the group G1
  * - check if a point is in the field Fp2
  * - for x of Fp calculate -x
@@ -200,7 +200,7 @@ library G1Operations {
      */
     function isG1Point(uint x, uint y) internal pure returns (bool) {
         uint p = Fp2Operations.P;
-        return mulmod(y, y, p) == 
+        return mulmod(y, y, p) ==
             addmod(mulmod(mulmod(x, x, p), x, p), 3, p);
     }
 
@@ -231,9 +231,9 @@ library G1Operations {
  * @title G2Operations
  * @dev This library contains operations of a group of elements {x, y}
  * where y^2 = x^3 + TWISTB and x and y are elements of Fp2
- * 
+ *
  * Element of the group is G2Point
- * 
+ *
  * Prime divisor is Fp2Operations.P
  * TWISTB is
  * {
@@ -251,9 +251,9 @@ library G1Operations {
  *         4082367875863433681332203403145435568316851327593401208105741076214120093531
  *     }
  * }
- * 
+ *
  * Defined operations:
- * 
+ *
  * - check if a point is in the group G2
  * - check if a point is zero element of group G2
  * - comparison for equality
