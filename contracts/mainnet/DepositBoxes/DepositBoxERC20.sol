@@ -593,14 +593,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         return _delayConfig[schainHash].arbitrageDuration;
     }
 
+    // TODO:
+    // Known issue to fix in further releases.
+    // https://github.com/skalenetwork/IMA/issues/1717
+    // slither-disable-start reentrancy-no-eth
+
     /**
      * @dev Retrieve tokens that were unlocked after delay for specified receiver
      */
     function retrieveFor(address receiver) public override {
-        // TODO:
-        // Known issue to fix in further releases.
-        // https://github.com/skalenetwork/IMA/issues/1717
-        // slither-disable-start reentrancy-no-eth
         uint256 transfersAmount = MathUpgradeable.min(
             delayedTransfersByReceiver[receiver].length(),
             _QUEUE_PROCESSING_LIMIT
@@ -651,8 +652,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             }
         }
         require(retrieved, "There are no transfers available for retrieving");
-        // slither-disable-end reentrancy-no-eth
     }
+    // slither-disable-end reentrancy-no-eth
 
     /**
      * @dev Creates a new DepositBoxERC20 contract.
