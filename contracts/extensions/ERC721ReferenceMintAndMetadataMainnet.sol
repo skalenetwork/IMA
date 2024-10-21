@@ -30,11 +30,11 @@ import "./interfaces/MessageReceiver.sol";
 // This contract runs on the main net and accepts deposits
 contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721ReferenceMintAndMetadataMainnet {
 
-    address public erc721ContractOnMainnet;
+    address public immutable erc721ContractOnMainnet;
     address public senderContractOnSchain;
     string public schainName;
 
-    address public owner;
+    address public immutable owner;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Sender is not an owner");

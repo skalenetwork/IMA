@@ -36,8 +36,8 @@ import "./interfaces/MessageSender.sol";
  */
 contract ERC721ReferenceMintAndMetadataSchain is MessageSender, IERC721ReferenceMintAndMetadataSchain {
 
-    address public erc721ContractOnSchain;
-    address public receiverContractOnMainnet;
+    address public immutable erc721ContractOnSchain;
+    address public immutable receiverContractOnMainnet;
 
     constructor(
         address newMessageProxyAddress,
