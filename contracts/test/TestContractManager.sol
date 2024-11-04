@@ -64,7 +64,7 @@ contract ContractManager is IContractManagerTester {
     /**
      * @dev Returns the contract address for a given contractName.
      */
-    function getContract(string memory contractName) external view override returns (address) {
+    function getContract(string calldata contractName) external view override returns (address) {
         return contracts[keccak256(abi.encodePacked(contractName))];
     }
 }
