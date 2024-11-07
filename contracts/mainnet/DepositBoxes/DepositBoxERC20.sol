@@ -78,10 +78,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     // schainHash => address of ERC20 on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
-    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC20;
     /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => uint256))
     mapping(SchainHash => mapping(address => uint256)) public transferredAmount;

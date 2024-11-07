@@ -43,10 +43,10 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     // schainHash => address of ERC on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
-    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC1155;
     /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => mapping(uint256 => uint256)))
     mapping(SchainHash => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
