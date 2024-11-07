@@ -44,36 +44,7 @@ class ImaMainnetUpgrader extends Upgrader {
         });
     }
 
-    updateManifest = async () => {
-        const manifestFilename = await getManifestFile();
-        const manifest = await fs.readFile(manifestFilename, 'utf8');
-        let updatedManifest = manifest;
-        updatedManifest = updatedManifest.replace(
-            /mapping(bytes32 => struct MessageProxy.ConnectedChainInfo)/g,
-            'mapping(SchainHash => struct MessageProxy.ConnectedChainInfo)'
-        );
-        updatedManifest = updatedManifest.replace(
-            /mapping(bytes32 => mapping(address => bool))/g,
-            'mapping(SchainHash => mapping(address => bool))'
-        );
-        updatedManifest = updatedManifest.replace(
-            /mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)/g,
-            'mapping(SchainHash => struct EnumerableSetUpgradeable.AddressSet)'
-        );
-        updatedManifest = updatedManifest.replace(
-            /mapping(bytes32 => struct MessageProxyForMainnet.Pause)/g,
-            'mapping(SchainHash => struct MessageProxyForMainnet.Pause)'
-        );
-        updatedManifest = updatedManifest.replace(
-            /mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)/g,
-            'mapping(SchainHash => struct EnumerableSetUpgradeable.AddressSet)'
-        );
-        await fs.writeFile(manifestFilename, updatedManifest);
-    }
-
-    deployNewContracts = async () => {
-        await this.updateManifest();
-    };
+    // deployNewContracts = () => {};
 
     initialize = async () => {
         const contractManagerAddress = await (await this.getMessageProxyForMainnet()).contractManagerOfSkaleManager();

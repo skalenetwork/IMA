@@ -76,14 +76,17 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     // disable detector until slither will fix this issue
     // https://github.com/crytic/slither/issues/456
     // slither-disable-next-line uninitialized-state
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
     string public version;
     bool public override messageInProgress;
 
     // schainHash   => Pause structure
+    /// @custom:oz-retyped-from mapping(bytes32 => struct MessageProxyForMainnet.Pause)
     mapping(SchainHash => Pause) public pauseInfo;
 
     //   schainHash => Set of addresses of reimbursed contracts
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _reimbursedContracts;
 
     /**

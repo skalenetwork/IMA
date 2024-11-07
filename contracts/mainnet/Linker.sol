@@ -48,6 +48,7 @@ contract Linker is Twin, ILinker {
     //
 
     // schainHash => schain status of killing process
+    /// @custom:oz-retyped-from mapping(bytes32 => struct Linker.KillProcess)
     mapping(SchainHash => KillProcess) public statuses;
 
     /**

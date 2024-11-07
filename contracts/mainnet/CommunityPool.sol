@@ -41,9 +41,11 @@ contract CommunityPool is Twin, ICommunityPool {
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     // address of user => schainHash => balance of gas wallet in ETH
+    /// @custom:oz-retyped-from mapping(address => mapping(bytes32 => uint256))
     mapping(address => mapping(SchainHash => uint)) private _userWallets;
 
     // address of user => schainHash => true if unlocked for transferring
+    /// @custom:oz-retyped-from mapping(address => mapping(bytes32 => bool))
     mapping(address => mapping(SchainHash => bool)) public activeUsers;
 
     uint public minTransactionGas;

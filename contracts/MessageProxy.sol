@@ -56,8 +56,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     uint256 public constant REVERT_REASON_LENGTH = 64;
 
     //   schainHash => ConnectedChainInfo
+    /// @custom:oz-retyped-from mapping(bytes32 => struct MessageProxy.ConnectedChainInfo)
     mapping(SchainHash => ConnectedChainInfo) public connectedChains;
     //   schainHash => contract address => allowed
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     mapping(SchainHash => mapping(address => bool)) private _deprecatedRegistryContracts;
 
     uint256 public gasLimit;

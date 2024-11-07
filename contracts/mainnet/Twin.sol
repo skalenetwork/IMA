@@ -36,6 +36,7 @@ import "./SkaleManagerClient.sol";
 abstract contract Twin is SkaleManagerClient, ITwin {
 
     IMessageProxyForMainnet public messageProxy;
+    /// @custom:oz-retyped-from mapping(bytes32 => address)
     mapping(SchainHash => address) public schainLinks;
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 

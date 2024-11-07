@@ -39,8 +39,10 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
 
     mapping(address => uint256) public approveTransfers;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => uint256)
     mapping(SchainHash => uint256) public transferredAmount;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => bool)
     mapping(SchainHash => bool) public activeEthTransfers;
 
     event ActiveEthTransfers(SchainHash indexed schainHash, bool active);

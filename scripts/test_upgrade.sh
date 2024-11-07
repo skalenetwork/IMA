@@ -4,7 +4,7 @@ set -e
 
 if [ -z "$GITHUB_WORKSPACE" ]
 then
-    GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
+    GITHUB_WORKSPACE="$(dirname "$(dirname "$(realpath "$0")")")"
 fi
 
 if [ -z "$GITHUB_REPOSITORY" ]

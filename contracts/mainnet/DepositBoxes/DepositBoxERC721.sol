@@ -43,8 +43,11 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     // schainHash => address of ERC on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC721;
+    /// @custom:oz-retyped-from mapping(address => mapping(uint256 => bytes32))
     mapping(address => mapping(uint256 => SchainHash)) public transferredAmount;
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC721;
 
     /**

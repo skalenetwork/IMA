@@ -81,16 +81,21 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     // schainHash => address of ERC20 on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC20;
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => uint256))
     mapping(SchainHash => mapping(address => uint256)) public transferredAmount;
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
     // exits delay configuration
     //   schainHash => delay config
+    /// @custom:oz-retyped-from mapping(bytes32 => struct DepositBoxERC20.DelayConfig)
     mapping(SchainHash => DelayConfig) private _delayConfig;
 
     uint256 public delayedTransfersSize;
     // delayed transfer id => delayed transfer
+    /// @custom:oz-retyped-from mapping(uint256 => struct DepositBoxERC20.DelayedTransfer)
     mapping(uint256 => DelayedTransfer) public delayedTransfers;
     // receiver address => delayed transfers ids queue
     mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedTransfersByReceiver;
