@@ -44,7 +44,7 @@ class ImaMainnetUpgrader extends Upgrader {
         });
     }
 
-    // deployNewContracts = () => {};
+    // deployNewContracts = () => { };
 
     initialize = async () => {
         const contractManagerAddress = await (await this.getMessageProxyForMainnet()).contractManagerOfSkaleManager();
