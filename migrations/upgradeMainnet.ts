@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
-import { AutoSubmitter, getManifestFile, Upgrader } from "@skalenetwork/upgrade-tools";
+import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
 import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deployMainnet";
 import { MessageProxyForMainnet } from "../typechain";
