@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
-import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { AutoSubmitter, getManifestFile, Upgrader } from "@skalenetwork/upgrade-tools";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
 import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deployMainnet";
 import { MessageProxyForMainnet } from "../typechain";
@@ -44,7 +44,36 @@ class ImaMainnetUpgrader extends Upgrader {
         });
     }
 
-    // deployNewContracts = () => { };
+    updateManifest = async () => {
+        const manifestFilename = await getManifestFile();
+        const manifest = await fs.readFile(manifestFilename, 'utf8');
+        let updatedManifest = manifest;
+        updatedManifest = updatedManifest.replace(
+            /mapping(bytes32 => struct MessageProxy.ConnectedChainInfo)/g,
+            'mapping(SchainHash => struct MessageProxy.ConnectedChainInfo)'
+        );
+        updatedManifest = updatedManifest.replace(
+            /mapping(bytes32 => mapping(address => bool))/g,
+            'mapping(SchainHash => mapping(address => bool))'
+        );
+        updatedManifest = updatedManifest.replace(
+            /mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)/g,
+            'mapping(SchainHash => struct EnumerableSetUpgradeable.AddressSet)'
+        );
+        updatedManifest = updatedManifest.replace(
+            /mapping(bytes32 => struct MessageProxyForMainnet.Pause)/g,
+            'mapping(SchainHash => struct MessageProxyForMainnet.Pause)'
+        );
+        updatedManifest = updatedManifest.replace(
+            /mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)/g,
+            'mapping(SchainHash => struct EnumerableSetUpgradeable.AddressSet)'
+        );
+        await fs.writeFile(manifestFilename, updatedManifest);
+    }
+
+    deployNewContracts = async () => {
+        await this.updateManifest();
+    };
 
     initialize = async () => {
         const contractManagerAddress = await (await this.getMessageProxyForMainnet()).contractManagerOfSkaleManager();
