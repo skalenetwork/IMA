@@ -52,10 +52,13 @@ contract TokenManagerERC1155 is
     // address clone on schain => added or not
     mapping(ERC1155OnChain => bool) public addedClones;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => contract ERC1155OnChain))
     mapping(SchainHash => mapping(address => ERC1155OnChain)) public clonesErc1155;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => mapping(uint256 => uint256)))
     mapping(SchainHash => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC1155;
 
     /**

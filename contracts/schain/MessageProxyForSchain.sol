@@ -73,26 +73,31 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     /**
      * @dev Keccak256 hash of schain name.
      */
+    /// @custom:oz-retyped-from bytes32
     SchainHash public schainHash;
 
     /**
      * @dev Hashed of meta information of outgoing messages.
      */
     //      schainHash  =>      message_id  => MessageData
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(uint256 => bytes32))
     mapping(SchainHash => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
 
     /**
      * @dev First unprocessed outgoing message.
      */
     //      schainHash  => head of unprocessed messages
+    /// @custom:oz-retyped-from mapping(bytes32 => uint256)
     mapping(SchainHash => uint) private _idxHead;
 
     /**
      * @dev Last unprocessed outgoing message.
      */
     //      schainHash  => tail of unprocessed messages
+    /// @custom:oz-retyped-from mapping(bytes32 => uint256)
     mapping(SchainHash => uint) private _idxTail;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     // disable detector until slither will fix this issue
     // https://github.com/crytic/slither/issues/456
     // slither-disable-next-line uninitialized-state

@@ -52,10 +52,13 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     // address clone on schain => added or not
     mapping(ERC20OnChain => bool) public addedClones;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => contract ERC20OnChain))
     mapping(SchainHash => mapping(address => ERC20OnChain)) public clonesErc20;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => uint256))
     mapping(SchainHash => mapping(address => uint256)) public transferredAmount;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
     /**

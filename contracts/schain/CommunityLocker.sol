@@ -73,6 +73,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     /**
      * @dev Keccak256 hash of schain name.
      */
+    /// @custom:oz-retyped-from bytes32
     SchainHash public schainHash;
 
     // Disable slither check due to variable depreciation
@@ -108,6 +109,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * when next message cannot be sent.
      */
     // schainHash   => time limit
+    /// @custom:oz-retyped-from mapping(bytes32 => uint256)
     mapping(SchainHash => uint) public timeLimitPerMessage;
 
     /**
@@ -115,6 +117,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * schain to schain transfers
      */
     // schainHash   =>           user  => timestamp
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => uint256))
     mapping(SchainHash => mapping(address => uint)) public lastMessageTimeStampToSchain;
 
     /**

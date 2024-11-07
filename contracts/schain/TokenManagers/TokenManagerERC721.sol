@@ -46,10 +46,13 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     // address clone on schain => added or not
     mapping(ERC721OnChain => bool) public addedClones;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => contract ERC721OnChain))
     mapping(SchainHash => mapping(address => ERC721OnChain)) public clonesErc721;
 
+    /// @custom:oz-retyped-from mapping(address => mapping(uint256 => bytes32))
     mapping(address => mapping(uint256 => SchainHash)) public transferredAmount;
 
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC721;
 
     /**

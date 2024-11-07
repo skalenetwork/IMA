@@ -77,6 +77,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
     /**
      * @dev Keccak256 hash of schain name.
      */
+    /// @custom:oz-retyped-from bytes32
     SchainHash public schainHash;
 
     /**
@@ -93,6 +94,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * @dev Addresses of corresponding token manager on other SKALE chains.
      */
     //   schainHash => TokenManager
+    /// @custom:oz-retyped-from mapping(bytes32 => address)
     mapping(SchainHash => address) public tokenManagers;
 
     /**
