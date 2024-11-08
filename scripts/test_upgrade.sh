@@ -33,7 +33,7 @@ GANACHE=$(npx ganache \
 cd "$DEPLOYED_DIR/proxy"
 yarn install
 PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
-PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[9].value')
+PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[0].value')
 URL_W3_S_CHAIN="http://127.0.0.1:8545"
 
 CHAIN_NAME_SCHAIN="Test" \
@@ -81,6 +81,6 @@ ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
 URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
 PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-npx hardhat run migrations/upgradeSchain.ts --network schain
+npx hardhat run migrations/upgradeSchain.ts --network localhost
 
 npx ganache instances stop "$GANACHE"
