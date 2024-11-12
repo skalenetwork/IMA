@@ -49,7 +49,6 @@ import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { BigNumberish } from "ethers";
 
 import { expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";

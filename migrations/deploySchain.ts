@@ -22,7 +22,8 @@
  * @file deploySchain.ts
  * @copyright SKALE Labs 2019-Present
  */
-// TODO: Remove this line after closing issue https://github.com/skalenetwork/IMA/issues/1720
+// TODO: Remove this line after closing issue https://github.com/skalenetwork/IMA/issues/1720 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";

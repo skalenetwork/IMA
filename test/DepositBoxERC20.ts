@@ -33,7 +33,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, getPublicKey, stringKeccak256, stringToHex } from "./utils/helper";
+import { getPublicKey, stringKeccak256, stringToHex } from "./utils/helper";
 
 import chai = require("chai");
 
@@ -55,7 +55,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { BigNumberish, HDNodeWallet, Wallet } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 import { currentTime, skipTime } from "./utils/time";
 

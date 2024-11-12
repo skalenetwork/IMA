@@ -25,7 +25,7 @@
 import { promises as fs } from 'fs';
 import { Interface } from 'ethers';
 import { ethers, upgrades } from "hardhat";
-import { MessageProxyForMainnet, Linker } from "../typechain";
+import { MessageProxyForMainnet, Linker, ContractManager } from "../typechain";
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { SkaleABIFile } from "@skalenetwork/skale-contracts/lib/domain/types";
@@ -52,7 +52,7 @@ async function getContractManager() {
     }
 }
 
-function isValidContractManager(contractManager: { address?: string, abi?: any[] }) {
+function isValidContractManager(contractManager: { address?: string, abi?: unknown[] }) {
     return contractManager?.address && contractManager?.abi;
 }
 
@@ -80,7 +80,7 @@ export const contracts = [
     ...depositBoxes
 ];
 
-async function deployContract(name: string, args: any[], initializer: string) {
+async function deployContract(name: string, args: unknown[], initializer: string) { 
     console.log("Deploy", name);
     const factory = await getContractFactory(name);
     const proxy = await upgrades.deployProxy(factory, args, { initializer });
@@ -98,7 +98,7 @@ async function registerContracts(linker: Linker, messageProxy: MessageProxyForMa
     }
 }
 
-async function registerInContractManager(contractManagerInst: any, deployed: Map<string, { address: string }>) {
+async function registerInContractManager(contractManagerInst: ContractManager, deployed: Map<string, { address: string }>) {
     try {
         for (const contractName of contracts) {
             const contract = deployed.get(contractName);
@@ -173,16 +173,15 @@ async function main() {
         await registerContracts(linker, messageProxyForMainnet, [proxyAddress]);
     }
 
-    if (isValidContractManager(contractManager) && await ethers.provider.getCode(contractManager.address) !== "0x") {
-        const contractManagerInst = new ethers.Contract(contractManager.address, contractManager.abi, owner);
-        if (await contractManagerInst.owner() === owner.address) {
-            await registerInContractManager(contractManagerInst, deployed);
-        } else {
-            console.error("Owner of ContractManager is not the same as the deployer");
-        }
-    } else {
+    if (!(isValidContractManager(contractManager) && await ethers.provider.getCode(contractManager.address) !== "0x")) {
         console.error("Invalid ContractManager address or ABI");
     }
+    const contractManagerInst = (new ethers.Contract(contractManager.address, contractManager.abi, owner)) as unknown as ContractManager;
+    if (await contractManagerInst.owner() !== owner.address) {
+        console.error("Owner of ContractManager is not the same as the deployer");
+    }
+    await registerInContractManager(contractManagerInst, deployed);
+
     console.log("Registration is completed!");
 
     console.log("Store ABIs");

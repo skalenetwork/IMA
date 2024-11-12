@@ -55,9 +55,9 @@ import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { BigNumberish, ContractTransaction, ContractTransactionResponse, HDNodeWallet, Wallet } from "ethers";
+import { BigNumberish, ContractTransactionResponse, HDNodeWallet, Wallet } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 
 const BlsSignature: [BigNumberish, BigNumberish] = [

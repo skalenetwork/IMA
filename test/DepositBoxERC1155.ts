@@ -56,7 +56,7 @@ import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { BigNumberish, HDNodeWallet, N, Wallet } from "ethers";
+import { BigNumberish, HDNodeWallet, Wallet } from "ethers";
 
 import { expect } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";

@@ -34,7 +34,7 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { stringFromHex, stringKeccak256, getBalance, getPublicKey, stringToHex } from "./utils/helper";
+import { stringKeccak256, getBalance, getPublicKey, stringToHex } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -58,7 +58,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { BigNumberish, HDNodeWallet, Wallet } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 
 const BlsSignature: [BigNumberish, BigNumberish] = [
