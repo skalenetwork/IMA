@@ -15,6 +15,8 @@ export PRIVATE_KEY_FOR_ETHEREUM=$PRIVATE_KEY
 export PRIVATE_KEY_FOR_SCHAIN=$PRIVATE_KEY
 
 yarn deploy-skale-manager-components
-yarn deploy-to-both-chains
+yarn deploy-to-mainnet
+# TODO: Uncomment after fixing deploy script for schain, related issue https://github.com/skalenetwork/IMA/issues/1720
+# yarn deploy-to-both-chains
 
 npx ganache instances stop "$GANACHE"
