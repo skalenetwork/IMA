@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "../schain/MessageProxyForSchain.sol";
 
@@ -27,14 +27,14 @@ import "../schain/MessageProxyForSchain.sol";
 interface IMessageProxyForSchainTester {
     function postMessage(
         IMessageReceiver targetContract,
-        bytes32 fromSchainHash,
+        SchainHash fromSchainHash,
         address sender,
         bytes calldata data
     )
     external;
     function postOutgoingMessageTester(
         MessageProxyForSchain targetContract,
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address dstContract,
         bytes calldata data
     )
@@ -43,7 +43,7 @@ interface IMessageProxyForSchainTester {
 }
 
 
-contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {    
+contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {
 
     IEtherbaseUpgradeable public etherbase = ETHERBASE;
 
@@ -53,7 +53,7 @@ contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForS
 
     function postMessage(
         IMessageReceiver targetContract,
-        bytes32 fromSchainHash,
+        SchainHash fromSchainHash,
         address sender,
         bytes calldata data
     )
@@ -65,7 +65,7 @@ contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForS
 
     function postOutgoingMessageTester(
         MessageProxyForSchain targetContract,
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address dstContract,
         bytes calldata data
     )

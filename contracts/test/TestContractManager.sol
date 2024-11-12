@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
@@ -64,7 +64,7 @@ contract ContractManager is IContractManagerTester {
     /**
      * @dev Returns the contract address for a given contractName.
      */
-    function getContract(string memory contractName) external view override returns (address) {
+    function getContract(string calldata contractName) external view override returns (address) {
         return contracts[keccak256(abi.encodePacked(contractName))];
     }
 }
