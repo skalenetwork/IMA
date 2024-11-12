@@ -135,7 +135,7 @@ export async function importAddresses(manifest: ManifestData, abi: {[ key in str
 
 export async function manifestSetup(pathToManifest: string) {
     const chainId = (await ethers.provider.getNetwork()).chainId;
-    const manifestName = networkNames[chainId] ?? `unknown-${chainId}`;
+    const manifestName = networkNames[Number(chainId)] ?? `unknown-${chainId}`;
     const correctManifestPath = `.openzeppelin/${manifestName}.json`;
     if (pathToManifest === "" || pathToManifest === correctManifestPath) {
         await fs.access(correctManifestPath);
