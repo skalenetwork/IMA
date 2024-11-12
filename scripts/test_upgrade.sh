@@ -2,9 +2,11 @@
 
 set -e
 
+trap 'npx ganache instances stop "$GANACHE"' EXIT
+
 if [ -z "$GITHUB_WORKSPACE" ]
 then
-    GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
+    GITHUB_WORKSPACE=$(git rev-parse --show-toplevel)
 fi
 
 if [ -z "$GITHUB_REPOSITORY" ]
@@ -41,31 +43,36 @@ VERSION="$DEPLOYED_VERSION" \
 PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" \
 PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
 npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
+# TODO: remove this line after upgrading to 2.2.0
+perl -0777 -i -pe 's/await contractManagerInst\.setContractsAddress\( "MessageProxyForMainnet",[^\}]*console\.log\( "Successfully registered MessageProxy in ContractManager" \);/await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);\nawait contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);\nawait contractManagerInst.setContractsAddress( "Linker", deployed.get( "Linker" )?.address);\nfor (const contractName of contractsToDeploy) {\n    const contract = deployed.get(contractName);\n    if (contract === undefined) {\n        throw new Error(`\${contractName} was not found`);\n    }\n    await contractManagerInst.setContractsAddress( contractName, contract.address);\n}\nconsole.log( "Successfully registered MessageProxy in ContractManager" );/s' migrations/deployMainnet.ts
+# end of TODO
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
 
-CHAIN_NAME_SCHAIN="Test" \
-VERSION="$DEPLOYED_VERSION" \
-URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
-PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-npx hardhat run migrations/deploySchain.ts --network schain
+# TODO: uncomment upgrade schain test after closing issue https://github.com/skalenetwork/IMA/issues/1720
 
-ABI_FILENAME_SCHAIN="proxySchain_Test.json"
-ABI="data/$ABI_FILENAME_SCHAIN" \
-MANIFEST=".openzeppelin/unknown-1337.json" \
-VERSION="$DEPLOYED_VERSION" \
-npx hardhat run migrations/changeManifest.ts --network localhost
+# CHAIN_NAME_SCHAIN="Test" \
+# VERSION="$DEPLOYED_VERSION" \
+# URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+# PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+# npx hardhat run migrations/deploySchain.ts --network schain
+
+# ABI_FILENAME_SCHAIN="proxySchain_Test.json"
+# ABI="data/$ABI_FILENAME_SCHAIN" \
+# MANIFEST=".openzeppelin/unknown-1337.json" \
+# VERSION="$DEPLOYED_VERSION" \
+# npx hardhat run migrations/changeManifest.ts --network localhost
 
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/.openzeppelin"
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/data/"
-cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
-ABI_FILENAME_MAINNET="proxyMainnet.json"
-cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/data"
-cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
+cp "data/proxyMainnet.json" "$GITHUB_WORKSPACE/data"
+# cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
+# cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
 cd "$GITHUB_WORKSPACE"
-rm -r --interactive=never "$DEPLOYED_DIR"
+rm -rf "$DEPLOYED_DIR"
 
-ABI="data/$ABI_FILENAME_MAINNET" \
+MESSAGE_PROXY_FOR_MAINNET=$(cat data/proxyMainnet.json | jq -r .message_proxy_mainnet_address)
 TEST_UPGRADE=true \
+TARGET="$MESSAGE_PROXY_FOR_MAINNET" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
 npx hardhat run migrations/upgradeMainnet.ts --network localhost
@@ -74,13 +81,13 @@ VERSION="$(git describe --tags | echo "$VERSION_TAG")"
 echo "$VERSION"
 mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
 
-ABI="data/$ABI_FILENAME_SCHAIN" \
-MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
-CHAIN_NAME_SCHAIN="Test" \
-ALLOW_NOT_ATOMIC_UPGRADE="OK" \
-VERSION=$VERSION_TAG \
-URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
-PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-npx hardhat run migrations/upgradeSchain.ts --network schain
+# ABI="data/$ABI_FILENAME_SCHAIN" \
+# MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
+# CHAIN_NAME_SCHAIN="Test" \
+# ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+# VERSION=$VERSION_TAG \
+# URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+# PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+# npx hardhat run migrations/upgradeSchain.ts --network schain
 
 npx ganache instances stop "$GANACHE"

@@ -19,9 +19,11 @@
  */
 
 /**
- * @file deploySchain.js
+ * @file deploySchain.ts
  * @copyright SKALE Labs 2019-Present
  */
+// TODO: Remove this line after closing issue https://github.com/skalenetwork/IMA/issues/1720
+// @ts-nocheck
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades } from "hardhat";
