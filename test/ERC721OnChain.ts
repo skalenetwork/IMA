@@ -10,7 +10,7 @@ chai.use(chaiAsPromised);
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 
@@ -52,7 +52,7 @@ describe("ERC721OnChain", () => {
 
     it("should reject with `ERC721Burnable: caller is not owner nor approved` when invoke `burn`", async () => {
         // preparation
-        const error = "ERC721: caller is not token owner nor approved";
+        const error = "ERC721: caller is not token owner or approved";
         const tokenId = 55;
         const account = user;
         // mint to avoid `owner query for nonexistent token` error
@@ -70,7 +70,7 @@ describe("ERC721OnChain", () => {
         // execution
         const res = await (await eRC721OnChain.connect(deployer).setTokenURI(tokenId, tokenURI)).wait();
         // expectation
-        expect(res.status).to.be.equal(1);
+        expect(res?.status).to.be.equal(1);
     });
 
 });

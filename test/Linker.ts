@@ -49,7 +49,7 @@ import { deployContractManager } from "./utils/skale-manager-utils/contractManag
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 const schainName = "TestSchain";
@@ -78,16 +78,16 @@ describe("Linker", () => {
         depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, linker, messageProxy);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
-        await linker.removeMainnetContract(depositBoxEth.address);
-        await linker.removeMainnetContract(depositBoxERC20.address);
-        await linker.removeMainnetContract(depositBoxERC721.address);
-        await linker.removeMainnetContract(linker.address);
+        await linker.removeMainnetContract(await depositBoxEth.getAddress());
+        await linker.removeMainnetContract(await depositBoxERC20.getAddress());
+        await linker.removeMainnetContract(await depositBoxERC721.getAddress());
+        await linker.removeMainnetContract(await linker.getAddress());
         await linker.grantRole(await linker.LINKER_ROLE(), deployer.address);
-        await linker.grantRole(await linker.LINKER_ROLE(), linker.address);
-        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
+        await linker.grantRole(await linker.LINKER_ROLE(), await linker.getAddress());
+        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), await linker.getAddress());
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-        await messageProxy.registerExtraContractForAll(linker.address);
+        await messageProxy.registerExtraContractForAll(await linker.getAddress());
     });
 
     it("should connect schain", async () => {
@@ -107,11 +107,11 @@ describe("Linker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(false);
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
+        await linker.connect(deployer).registerMainnetContract(await depositBoxEth.getAddress());
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(true);
 
         await linker.connect(deployer).connectSchain(schainName, [])
             .should.be.eventually.rejectedWith("Incorrect number of addresses");
@@ -134,20 +134,20 @@ describe("Linker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(linker.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxERC20.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxERC721.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await linker.getAddress())).to.equal(false);
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
-        await linker.connect(deployer).registerMainnetContract(linker.address);
+        await linker.connect(deployer).registerMainnetContract(await depositBoxEth.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await depositBoxERC20.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await depositBoxERC721.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await linker.getAddress());
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(linker.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxERC20.getAddress())).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxERC721.getAddress())).to.equal(true);
+        expect(await linker.hasMainnetContract(await linker.getAddress())).to.equal(true);
 
         await linker.connect(deployer).connectSchain(schainName, [])
             .should.be.eventually.rejectedWith("Incorrect number of addresses");
@@ -174,10 +174,10 @@ describe("Linker", () => {
     it("should invoke `disconnectSchain` without mistakes", async () => {
         const tokenManagerAddress = user.address;
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
-        await linker.connect(deployer).registerMainnetContract(linker.address);
+        await linker.connect(deployer).registerMainnetContract(await depositBoxEth.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await depositBoxERC20.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await depositBoxERC721.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await linker.getAddress());
 
         await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
 
@@ -193,17 +193,17 @@ describe("Linker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxERC20.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxERC721.getAddress())).to.equal(false);
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
+        await linker.connect(deployer).registerMainnetContract(await depositBoxEth.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await depositBoxERC20.getAddress());
+        await linker.connect(deployer).registerMainnetContract(await depositBoxERC721.getAddress());
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxERC20.getAddress())).to.equal(true);
+        expect(await linker.hasMainnetContract(await depositBoxERC721.getAddress())).to.equal(true);
 
         expect(await linker.hasMainnetContract(nullAddress)).to.equal(false);
         expect(await linker.hasMainnetContract(tokenManagerAddress)).to.equal(false);
@@ -227,13 +227,13 @@ describe("Linker", () => {
 
         expect(await linker.hasMainnetContract(nullAddress)).to.equal(false);
 
-        await linker.connect(deployer).removeMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).removeMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).removeMainnetContract(depositBoxERC721.address);
+        await linker.connect(deployer).removeMainnetContract(await depositBoxEth.getAddress());
+        await linker.connect(deployer).removeMainnetContract(await depositBoxERC20.getAddress());
+        await linker.connect(deployer).removeMainnetContract(await depositBoxERC721.getAddress());
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxEth.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxERC20.getAddress())).to.equal(false);
+        expect(await linker.hasMainnetContract(await depositBoxERC721.getAddress())).to.equal(false);
     });
 
     it("should kill schain by schain owner first", async () => {
