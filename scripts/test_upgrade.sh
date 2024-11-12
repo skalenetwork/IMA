@@ -79,7 +79,7 @@ npx hardhat run migrations/upgradeMainnet.ts --network localhost
 
 VERSION="$(git describe --tags | echo "$VERSION_TAG")"
 echo "$VERSION"
-mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
+# mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
 
 # ABI="data/$ABI_FILENAME_SCHAIN" \
 # MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
