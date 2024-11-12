@@ -46,7 +46,7 @@ import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messagePr
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
@@ -73,20 +73,20 @@ describe("TokenManagerLinker", () => {
     beforeEach(async () => {
         newSchainName = "newSchainName";
         const keyStorage = await deployKeyStorageMock();
-        messageProxy = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
+        messageProxy = await deployMessageProxyForSchainTester(await keyStorage.getAddress(), schainName);
         const fakeLinker = deployer.address;
         linker = await deployTokenManagerLinker(messageProxy, fakeLinker);
-        fakeDepositBox = linker.address;
-        fakeCommunityPool = linker.address;
-        communityLocker = await deployCommunityLocker(schainName, messageProxy.address, linker, fakeCommunityPool);
-        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox, "0x0000000000000000000000000000000000000000");
-        tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
-        tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
+        fakeDepositBox = await linker.getAddress();
+        fakeCommunityPool = await linker.getAddress();
+        communityLocker = await deployCommunityLocker(schainName, await messageProxy.getAddress(), linker, fakeCommunityPool);
+        tokenManagerEth = await deployTokenManagerEth(schainName, await messageProxy.getAddress(), linker, communityLocker, fakeDepositBox, "0x0000000000000000000000000000000000000000");
+        tokenManagerERC20 = await deployTokenManagerERC20(schainName, await messageProxy.getAddress(), linker, communityLocker, fakeDepositBox);
+        tokenManagerERC721 = await deployTokenManagerERC721(schainName, await messageProxy.getAddress(), linker, communityLocker, fakeDepositBox);
         const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
-        await messageProxy.connect(deployer).grantRole(chainConnectorRole, linker.address);
+        await messageProxy.connect(deployer).grantRole(chainConnectorRole, await linker.getAddress());
         const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxy.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
-        await messageProxy.registerExtraContractForAll(linker.address);
+        await messageProxy.registerExtraContractForAll(await linker.getAddress());
     });
 
     it("should connect schain", async () => {
@@ -97,11 +97,11 @@ describe("TokenManagerLinker", () => {
     });
 
     it("should connect schain with 1 tokenManager", async () => {
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(false);
 
-        await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
+        await linker.connect(deployer).registerTokenManager(await tokenManagerEth.getAddress());
 
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(true);
 
         expect(await linker.hasSchain(newSchainName)).to.equal(false);
 
@@ -111,17 +111,17 @@ describe("TokenManagerLinker", () => {
     });
 
     it("should connect schain with 3 tokenManager", async () => {
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
-        expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(false);
-        expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerERC20.getAddress())).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerERC721.getAddress())).to.equal(false);
 
-        await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
-        await linker.connect(deployer).registerTokenManager(tokenManagerERC20.address);
-        await linker.connect(deployer).registerTokenManager(tokenManagerERC721.address);
+        await linker.connect(deployer).registerTokenManager(await tokenManagerEth.getAddress());
+        await linker.connect(deployer).registerTokenManager(await tokenManagerERC20.getAddress());
+        await linker.connect(deployer).registerTokenManager(await tokenManagerERC721.getAddress());
 
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(true);
-        expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(true);
-        expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerERC20.getAddress())).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerERC721.getAddress())).to.equal(true);
 
         expect(await linker.hasSchain(newSchainName)).to.equal(false);
 
@@ -131,9 +131,9 @@ describe("TokenManagerLinker", () => {
     });
 
     it("should invoke `disconnectSchain` without mistakes", async () => {
-        await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
-        await linker.connect(deployer).registerTokenManager(tokenManagerERC20.address);
-        await linker.connect(deployer).registerTokenManager(tokenManagerERC721.address);
+        await linker.connect(deployer).registerTokenManager(await tokenManagerEth.getAddress());
+        await linker.connect(deployer).registerTokenManager(await tokenManagerERC20.getAddress());
+        await linker.connect(deployer).registerTokenManager(await tokenManagerERC721.getAddress());
 
         await linker.connect(deployer).connectSchain(newSchainName);
 
@@ -149,17 +149,17 @@ describe("TokenManagerLinker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
-        expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(false);
-        expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerERC20.getAddress())).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerERC721.getAddress())).to.equal(false);
 
-        await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
-        await linker.connect(deployer).registerTokenManager(tokenManagerERC20.address);
-        await linker.connect(deployer).registerTokenManager(tokenManagerERC721.address);
+        await linker.connect(deployer).registerTokenManager(await tokenManagerEth.getAddress());
+        await linker.connect(deployer).registerTokenManager(await tokenManagerERC20.getAddress());
+        await linker.connect(deployer).registerTokenManager(await tokenManagerERC721.getAddress());
 
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(true);
-        expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(true);
-        expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerERC20.getAddress())).to.equal(true);
+        expect(await linker.hasTokenManager(await tokenManagerERC721.getAddress())).to.equal(true);
 
         expect(await linker.hasTokenManager(nullAddress)).to.equal(false);
         expect(await linker.hasTokenManager(tokenManagerAddress)).to.equal(false);
@@ -183,13 +183,13 @@ describe("TokenManagerLinker", () => {
 
         expect(await linker.hasTokenManager(nullAddress)).to.equal(false);
 
-        await linker.connect(deployer).removeTokenManager(tokenManagerEth.address);
-        await linker.connect(deployer).removeTokenManager(tokenManagerERC20.address);
-        await linker.connect(deployer).removeTokenManager(tokenManagerERC721.address);
+        await linker.connect(deployer).removeTokenManager(await tokenManagerEth.getAddress());
+        await linker.connect(deployer).removeTokenManager(await tokenManagerERC20.getAddress());
+        await linker.connect(deployer).removeTokenManager(await tokenManagerERC721.getAddress());
 
-        expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
-        expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(false);
-        expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerEth.getAddress())).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerERC20.getAddress())).to.equal(false);
+        expect(await linker.hasTokenManager(await tokenManagerERC721.getAddress())).to.equal(false);
     });
 
 });
