@@ -57,7 +57,7 @@ export function stringKeccak256(value: string): string {
     return ethers.solidityPackedKeccak256(["string"], [value]);
 }
 
-export function getPublicKey(wallet: HDNodeWallet): [BytesLike, BytesLike] {
+export function getPublicKey(wallet: HDNodeWallet | Wallet): [BytesLike, BytesLike] {
     const publicKey = secp256k1EC.keyFromPrivate(wallet.privateKey.slice(2)).getPublic();
     return [ethers.hexlify(publicKey.getX().toBuffer()), ethers.hexlify(publicKey.getY().toBuffer())]
 }
