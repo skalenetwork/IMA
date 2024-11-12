@@ -38,7 +38,8 @@ import {
     KeyStorageMock,
     CommunityPool,
     EtherbaseMock,
-    SchainsInternal
+    SchainsInternal,
+    Wallets
 } from "../typechain/";
 import { getPublicKey, stringKeccak256 } from "./utils/helper";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
@@ -52,8 +53,8 @@ import { deployMessageProxyCaller } from "./utils/deploy/test/messageProxyCaller
 import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, Wallet } from "ethers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { BigNumberish, HDNodeWallet, Wallet } from "ethers";
 import { expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
@@ -70,7 +71,7 @@ describe("MessageProxy", () => {
     let customer: SignerWithAddress;
     let agent: SignerWithAddress;
     let richGuy: SignerWithAddress;
-    let nodeAddress: Wallet;
+    let nodeAddress: HDNodeWallet;
 
     let keyStorage: KeyStorageMock;
     let messageProxyForSchain: MessageProxyForSchainTester;
@@ -88,9 +89,9 @@ describe("MessageProxy", () => {
     const schainName = "Schain";
     const schainHash = stringKeccak256(schainName);
 
-    const BlsSignature: [BigNumber, BigNumber] = [
-        BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
-        BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
+    const BlsSignature: [BigNumberish, BigNumberish] = [
+        "178325537405109593276798394634841698946852714038246117383766698579865918287",
+        "493565443574555904019191451171395204672818649274520396086461475162723833781"
     ];
     const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
     const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
@@ -99,17 +100,17 @@ describe("MessageProxy", () => {
     before(async () => {
         [deployer, user, client, customer, agent, richGuy] = await ethers.getSigners();
         nodeAddress = Wallet.createRandom().connect(ethers.provider);
-        const balanceRichGuy = await richGuy.getBalance();
-        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
+        const balanceRichGuy = await ethers.provider.getBalance(richGuy.address);
+        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy - BigInt(ethers.parseEther("1"))});
     });
 
     after(async () => {
-        const balanceNode = await nodeAddress.getBalance();
-        await nodeAddress.sendTransaction({to: richGuy.address, value: balanceNode.sub(ethers.utils.parseEther("1"))});
+        const balanceNode = await ethers.provider.getBalance(nodeAddress.address);
+        await nodeAddress.sendTransaction({to: richGuy.address, value: balanceNode - BigInt(ethers.parseEther("1"))});
     });
 
     describe("MessageProxy for mainnet", async () => {
-        let gasPrice: BigNumber;
+        let gasPrice: BigNumberish;
         beforeEach(async () => {
             contractManager = await deployContractManager(contractManagerAddress);
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
@@ -120,24 +121,24 @@ describe("MessageProxy", () => {
             communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
             await messageProxyForMainnet.grantRole(await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
             await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), deployer.address);
-            const registerTx = await messageProxyForMainnet.registerExtraContract(schainName, caller.address);
+            const registerTx = await messageProxyForMainnet.registerExtraContract(schainName, await caller.getAddress());
             if (registerTx.gasPrice) {
                 gasPrice = registerTx.gasPrice;
             }
         });
 
         it("should set constants", async () => {
-            const headerMessageGasCostPrevious = (await messageProxyForMainnet.headerMessageGasCost()).toNumber();
-            const messageGasCostPrevious = (await messageProxyForMainnet.messageGasCost()).toNumber();
-            const gasLimitPrevious = (await messageProxyForMainnet.gasLimit()).toNumber();
+            const headerMessageGasCostPrevious = await messageProxyForMainnet.headerMessageGasCost();
+            const messageGasCostPrevious = await messageProxyForMainnet.messageGasCost();
+            const gasLimitPrevious = await messageProxyForMainnet.gasLimit();
 
             const headerMessageGasCostNew = 5;
             const messageGasCostNew = 6;
             const gasLimitNew = 7;
 
-            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostPrevious);
-            expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostPrevious);
-            expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+            expect(await messageProxyForMainnet.headerMessageGasCost()).to.equal(headerMessageGasCostPrevious);
+            expect(await messageProxyForMainnet.messageGasCost()).to.equal(messageGasCostPrevious);
+            expect(await messageProxyForMainnet.gasLimit()).to.equal(gasLimitPrevious);
 
             await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(
                 headerMessageGasCostNew
@@ -156,17 +157,17 @@ describe("MessageProxy", () => {
             await messageProxyForMainnet.connect(user).setNewMessageGasCost(messageGasCostNew);
             await messageProxyForMainnet.connect(user).setNewGasLimit(gasLimitNew);
 
-            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostNew);
-            expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostNew);
-            expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitNew);
+            expect(await messageProxyForMainnet.headerMessageGasCost()).to.equal(headerMessageGasCostNew);
+            expect(await messageProxyForMainnet.messageGasCost()).to.equal(messageGasCostNew);
+            expect(await messageProxyForMainnet.gasLimit()).to.equal(gasLimitNew);
 
             await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(headerMessageGasCostPrevious);
             await messageProxyForMainnet.connect(user).setNewMessageGasCost(messageGasCostPrevious);
             await messageProxyForMainnet.connect(user).setNewGasLimit(gasLimitPrevious);
 
-            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostPrevious);
-            expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostPrevious);
-            expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+            expect(await messageProxyForMainnet.headerMessageGasCost()).to.equal(headerMessageGasCostPrevious);
+            expect(await messageProxyForMainnet.messageGasCost()).to.equal(messageGasCostPrevious);
+            expect(await messageProxyForMainnet.gasLimit()).to.equal(gasLimitPrevious);
 
         });
 
@@ -213,48 +214,42 @@ describe("MessageProxy", () => {
         });
 
         it("should post outgoing message twice", async () => {
-            const contractAddress = messageProxyForMainnet.address;
+            const contractAddress = await messageProxyForMainnet.getAddress();
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            const message1 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+            const message1 = caller.postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData);
 
             await expect(message1)
                 .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
                 .withArgs(0, 0);
 
-            let outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
-            );
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
-            const lastOutgoingMessageBlockId = BigNumber.from(
-                await messageProxyForMainnet.getLastOutgoingMessageBlockId(schainName)
-            );
+            let outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(1);
+            const lastOutgoingMessageBlockId = await messageProxyForMainnet.getLastOutgoingMessageBlockId(schainName);
 
-            const message2 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+            const message2 = caller.postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData);
             await expect(message2)
                 .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
                 .withArgs(1, lastOutgoingMessageBlockId);
 
-            outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
-            );
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+            outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(2);
         });
 
         it("should pause with a role and unpause", async () => {
-            const contractAddress = messageProxyForMainnet.address;
+            const contractAddress = await messageProxyForMainnet.getAddress();
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
             const schainOwner = user;
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             const schainsInternal = (await ethers.getContractFactory("SchainsInternal")).attach(await contractManager.getContract("SchainsInternal")) as SchainsInternal;
@@ -264,10 +259,9 @@ describe("MessageProxy", () => {
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
-            let outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData);
+            let outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(1);
 
             (await messageProxyForMainnet.isPaused(schainHash)).should.be.deep.equal(false);
 
@@ -293,7 +287,7 @@ describe("MessageProxy", () => {
             pausedInfo.should.be.equal(true);
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("IMA is paused");
 
             await messageProxyForMainnet.connect(client).resume(schainName).should.be.rejectedWith("Incorrect sender");
@@ -309,10 +303,9 @@ describe("MessageProxy", () => {
             pausedInfo.should.be.equal(false);
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
-            outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData);
+            outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(2);
 
             await messageProxyForMainnet.connect(client).pause(schainName);
 
@@ -322,24 +315,24 @@ describe("MessageProxy", () => {
             pausedInfo.should.be.equal(true);
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("IMA is paused");
 
             await messageProxyForMainnet.connect(deployer).resume(schainName);
             await messageProxyForMainnet.connect(schainOwner).resume(schainName).should.be.rejectedWith("Already unpaused");
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
-            outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(3));
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData);
+            outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(3);
 
         });
 
         it("should allow schain owner to send message", async () => {
             const message = "0xd2";
             const schainOwner = user;
-            const schainsInternal = (await ethers.getContractFactory("SchainsInternal")).attach(await contractManager.getContract("SchainsInternal")) as SchainsInternal;
+            const SchainsInternalFactory = await ethers.getContractFactory("SchainsInternal");
+            const schainsInternal = SchainsInternalFactory.attach(await contractManager.getContract("SchainsInternal")) as SchainsInternal;
             const otherSchainName = "something else";
             const otherSchainHash = stringKeccak256(otherSchainName);
 
@@ -377,20 +370,20 @@ describe("MessageProxy", () => {
             await addNodesToSchain(contractManager, schainName, [0]);
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await communityPool.getAddress());
             await depositBox.addSchainContract(schainName, deployer.address);
             await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
-            const amountWei = minTransactionGas.mul(gasPrice);
+            const amountWei = minTransactionGas * BigInt(gasPrice);
 
             const message1 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(client.address, 0),
             };
 
             const message2 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(customer.address, 7),
             };
@@ -445,9 +438,8 @@ describe("MessageProxy", () => {
                     outgoingMessages,
                     sign
                 );
-            const incomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
+            const incomingMessagesCounter = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter.should.be.equal(4);
         });
 
         it("should post incoming message and reimburse from CommunityPool", async () => {
@@ -466,15 +458,15 @@ describe("MessageProxy", () => {
             await addNodesToSchain(contractManager, schainName, [0]);
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await communityPool.getAddress());
             await depositBox.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
-            const amountWei = minTransactionGas.mul(gasPrice).mul(2);
+            const amountWei = minTransactionGas * BigInt(gasPrice) * BigInt(2);
 
-            await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress());
 
             const message1 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(client.address, 1),
             };
@@ -488,12 +480,12 @@ describe("MessageProxy", () => {
             };
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            await communityPool.connect(deployer).addSchainContract(schainName, communityPool.address);
+            await communityPool.connect(deployer).addSchainContract(schainName, await communityPool.getAddress());
 
             await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
 
             const testWalletsFactory = await ethers.getContractFactory("Wallets");
-            const testWallets = testWalletsFactory.attach(await contractManager.getContract("Wallets"));
+            const testWallets = testWalletsFactory.attach(await contractManager.getContract("Wallets")) as Wallets;
 
             let balance = await testWallets.getSchainBalance(schainHash);
             let userBalance = await communityPool.getBalance(client.address, schainName);
@@ -518,7 +510,7 @@ describe("MessageProxy", () => {
             newBalance.should.be.lt(balance);
             newUserBalance.should.be.deep.equal(userBalance);
 
-            await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address);
+            await messageProxyForMainnet.addReimbursedContract(schainName, await depositBox.getAddress());
 
             balance = newBalance;
             userBalance = newUserBalance;
@@ -537,7 +529,7 @@ describe("MessageProxy", () => {
             newUserBalance = await communityPool.getBalance(client.address, schainName);
 
             newBalance.should.be.deep.equal(balance);
-            newUserBalance.toNumber().should.be.lessThan(userBalance.toNumber());
+            newUserBalance.should.be.lessThan(userBalance);
         });
 
         it("should not post incoming messages when IMA bridge is paused", async () => {
@@ -555,21 +547,21 @@ describe("MessageProxy", () => {
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await communityPool.getAddress());
             await depositBox.addSchainContract(schainName, deployer.address);
             await communityPool.addSchainContract(schainName, deployer.address);
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             const minTransactionGas = await communityPool.minTransactionGas();
-            const amountWei = minTransactionGas.mul(gasPrice);
+            const amountWei = minTransactionGas * BigInt(gasPrice);
 
             const message1 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(client.address, 0),
             };
 
             const message2 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(customer.address, 7),
             };
@@ -624,9 +616,8 @@ describe("MessageProxy", () => {
                     outgoingMessages,
                     sign
                 );
-            let incomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
+            let incomingMessagesCounter = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter.should.be.equal(4);
 
             const pauseableRole = await messageProxyForMainnet.PAUSABLE_ROLE();
 
@@ -654,9 +645,8 @@ describe("MessageProxy", () => {
                     sign
                 );
 
-            incomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(6));
+            incomingMessagesCounter = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter.should.be.equal(6);
         });
 
         it("should not post incoming messages with incorrect address", async () => {
@@ -675,20 +665,20 @@ describe("MessageProxy", () => {
             await addNodesToSchain(contractManager, schainName, [0]);
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await communityPool.getAddress());
             await depositBox.addSchainContract(schainName, deployer.address);
             await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
-            const amountWei = minTransactionGas.mul(gasPrice);
+            const amountWei = minTransactionGas * BigInt(gasPrice);
 
             const message1 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(client.address, 0),
             };
 
             const message2 = {
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 data: await messages.encodeTransferEthMessage(customer.address, 7),
             };
@@ -752,13 +742,12 @@ describe("MessageProxy", () => {
                     outgoingMessages,
                     sign
                 );
-            const incomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
+            const incomingMessagesCounter = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter.should.be.equal(4);
         });
 
         it("should get outgoing messages counter", async () => {
-            const contractAddress = depositBox.address;
+            const contractAddress = await depositBox.getAddress();
             const amount = 5;
             const addressTo = client.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
@@ -768,16 +757,14 @@ describe("MessageProxy", () => {
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
-            const outgoingMessagesCounter0 = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
+            const outgoingMessagesCounter0 = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter0.should.be.equal(0);
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+                .postOutgoingMessageTester(await messageProxyForMainnet.getAddress(), schainHash, contractAddress, bytesData);
 
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            const outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(1);
         });
 
         it("should get incoming messages counter", async () => {
@@ -799,14 +786,14 @@ describe("MessageProxy", () => {
             const message1 = {
                 amount: 3,
                 data: "0x11",
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 to: client.address
             };
             const message2 = {
                 amount: 7,
                 data: "0x22",
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: user.address,
                 to: customer.address
             };
@@ -823,9 +810,8 @@ describe("MessageProxy", () => {
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
-            const incomingMessagesCounter0 = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
+            const incomingMessagesCounter0 = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter0.should.be.equal(0);
 
             await messageProxyForMainnet
                 .connect(nodeAddress)
@@ -835,9 +821,8 @@ describe("MessageProxy", () => {
                     outgoingMessages,
                     sign
                 );
-            const incomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+            const incomingMessagesCounter = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter.should.be.equal(2);
         });
 
         it("should get outgoing messages counter", async () => {
@@ -868,14 +853,14 @@ describe("MessageProxy", () => {
             const message1 = {
                 amount: 3,
                 data: "0x11",
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: deployer.address,
                 to: client.address
             };
             const message2 = {
                 amount: 7,
                 data: "0x22",
-                destinationContract: depositBox.address,
+                destinationContract: await depositBox.getAddress(),
                 sender: user.address,
                 to: customer.address
             };
@@ -906,9 +891,9 @@ describe("MessageProxy", () => {
             const outgoingMessagesCounter0 = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
             outgoingMessagesCounter0.should.be.equal(0);
 
-            await caller.postOutgoingMessageTester(messageProxyForMainnet.address,
+            await caller.postOutgoingMessageTester(await messageProxyForMainnet.getAddress(),
                 schainHash,
-                depositBox.address,
+                await depositBox.getAddress(),
                 bytesData,
             );
 
@@ -940,7 +925,7 @@ describe("MessageProxy", () => {
             const message1 = {
                 amount: 0,
                 data: "0x11",
-                destinationContract: receiverMock.address,
+                destinationContract: await receiverMock.getAddress(),
                 sender: deployer.address,
                 to: client.address
             };
@@ -953,10 +938,10 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await receiverMock.getAddress());
 
             let a = await receiverMock.a();
-            expect(a.toNumber()).be.equal(0);
+            expect(a).be.equal(0);
 
             const res = await (await messageProxyForMainnet
                 .connect(nodeAddress)
@@ -968,8 +953,8 @@ describe("MessageProxy", () => {
                 )).wait();
 
             a = await receiverMock.a();
-            expect(a.toNumber()).be.equal(0);
-            expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
+            expect(a).be.equal(0);
+            expect(res?.gasUsed).to.be.greaterThan(1000000);
 
         });
 
@@ -992,13 +977,13 @@ describe("MessageProxy", () => {
 
             const testCallReceiverContract = await ethers.getContractFactory("TestCallReceiverContract");
             const receiverMock = await testCallReceiverContract.deploy();
-            await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await receiverMock.getAddress());
 
             const startingCounter = 0;
             const message1 = {
                 amount: 0,
-                data: ethers.utils.defaultAbiCoder.encode(["uint"], [1]),
-                destinationContract: receiverMock.address,
+                data: ethers.AbiCoder.defaultAbiCoder().encode(["uint"], [1]),
+                destinationContract: await receiverMock.getAddress(),
                 sender: deployer.address,
                 to: client.address
             };
@@ -1010,9 +995,9 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            const sixtyFourTimesA = ethers.utils.hexlify(Array(64).fill("A".charCodeAt(0)));
+            const sixtyFourTimesA = ethers.hexlify(new Uint8Array(Array(64).fill("A".charCodeAt(0))));
             const event = {
-                msgCounter: BigNumber.from(0),
+                msgCounter: 0,
                 message: sixtyFourTimesA
             }
             await expect(
@@ -1048,14 +1033,14 @@ describe("MessageProxy", () => {
 
             const testCallReceiverContract = await ethers.getContractFactory("TestCallReceiverContract");
             const receiverMock = await testCallReceiverContract.deploy();
-            await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, await receiverMock.getAddress());
 
             const startingCounter = 0;
 
             const message1 = {
                 amount: 0,
-                data: ethers.utils.defaultAbiCoder.encode(["uint"], [2]),
-                destinationContract: receiverMock.address,
+                data: ethers.AbiCoder.defaultAbiCoder().encode(["uint"], [2]),
+                destinationContract: await receiverMock.getAddress(),
                 sender: deployer.address,
                 to: client.address
             };
@@ -1069,7 +1054,7 @@ describe("MessageProxy", () => {
 
             const panicErrorCodeDivideByZero = "12";
             const event = {
-                msgCounter: BigNumber.from(0),
+                msgCounter: 0,
                 message: "0x" + panicErrorCodeDivideByZero.padStart(64, "0")
             }
             await expect(
@@ -1098,184 +1083,184 @@ describe("MessageProxy", () => {
         describe("register and remove extra contracts", async () => {
             it("should register extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).registerExtraContract(schainName,  depositBox.address)
+                await messageProxyForMainnet.connect(user).registerExtraContract(schainName,  await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
                 await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
                 expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
-                expect(await messageProxyForMainnet.isContractRegistered(schainHash, depositBox.address)).to.be.equal(false);
-                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
-                expect(await messageProxyForMainnet.isContractRegistered(schainHash, depositBox.address)).to.be.equal(true);
+                expect(await messageProxyForMainnet.isContractRegistered(schainHash, await depositBox.getAddress())).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress());
+                expect(await messageProxyForMainnet.isContractRegistered(schainHash, await depositBox.getAddress())).to.be.equal(true);
                 expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
                 expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(depositBox.address);
+                expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(await depositBox.getAddress());
                 await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
                 await messageProxyForMainnet.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
-                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
 
             it("should register extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).registerExtraContractForAll(depositBox.address)
+                await messageProxyForMainnet.connect(user).registerExtraContractForAll(await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForMainnet.registerExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
                 expect((await messageProxyForMainnet.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("0");
-                expect(await messageProxyForMainnet.isContractRegistered(zeroBytes32, depositBox.address)).to.be.equal(false);
-                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
-                expect(await messageProxyForMainnet.isContractRegistered(zeroBytes32, depositBox.address)).to.be.equal(true);
+                expect(await messageProxyForMainnet.isContractRegistered(zeroBytes32, await depositBox.getAddress())).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContractForAll(await depositBox.getAddress());
+                expect(await messageProxyForMainnet.isContractRegistered(zeroBytes32, await depositBox.getAddress())).to.be.equal(true);
                 expect((await messageProxyForMainnet.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("1");
                 expect((await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 1))[0]).to.be.equal(depositBox.address);
+                expect((await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 1))[0]).to.be.equal(await depositBox.getAddress());
                 await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
                 await messageProxyForMainnet.getContractRegisteredRange(zeroBytes32, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
-                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
 
-                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address)
+                await messageProxyForMainnet.registerExtraContractForAll(await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
 
             it("should register reimbursed contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).addReimbursedContract(schainName,  depositBox.address)
+                await messageProxyForMainnet.connect(user).addReimbursedContract(schainName,  await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Not enough permissions to add reimbursed contract");
                 await messageProxyForMainnet.addReimbursedContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
-                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                await messageProxyForMainnet.addReimbursedContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Contract is not registered");
 
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
-                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
-                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
-                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address);
-                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(true);
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, await depositBox.getAddress())).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress());
+                await messageProxyForMainnet.addReimbursedContract(schainName, await depositBox.getAddress());
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, await depositBox.getAddress())).to.be.equal(true);
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
                 expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1))[0]).to.be.equal(depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1))[0]).to.be.equal(await depositBox.getAddress());
                 await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
                 await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
-                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                await messageProxyForMainnet.addReimbursedContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Reimbursed contract is already added");
             });
 
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
+                await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
                 await messageProxyForMainnet.removeExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
                 await expect(
-                    messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                    messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ExtraContractRegistered"
-                ).withArgs(schainHash, depositBox.address);
+                ).withArgs(schainHash, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
                 await expect(
-                    messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
+                    messageProxyForMainnet.removeExtraContract(schainName, await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ExtraContractRemoved"
-                ).withArgs(schainHash, depositBox.address);
+                ).withArgs(schainHash, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
 
-                await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
+                await messageProxyForMainnet.removeExtraContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
-                expect(await messageProxyForMainnet.isContractRegistered(schainHash, depositBox.address)).to.be.equal(false);
+                expect(await messageProxyForMainnet.isContractRegistered(schainHash, await depositBox.getAddress())).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).removeExtraContractForAll(depositBox.address)
+                await messageProxyForMainnet.connect(user).removeExtraContractForAll(await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForMainnet.removeExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 expect((await messageProxyForMainnet.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("0");
                 await expect(
-                    messageProxyForMainnet.registerExtraContractForAll(depositBox.address)
+                    messageProxyForMainnet.registerExtraContractForAll(await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ExtraContractRegistered"
-                ).withArgs(zeroBytes32, depositBox.address);
+                ).withArgs(zeroBytes32, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("1");
                 await expect(
-                    messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
+                    messageProxyForMainnet.removeExtraContractForAll(await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ExtraContractRemoved"
-                ).withArgs(zeroBytes32, depositBox.address);
+                ).withArgs(zeroBytes32, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("0");
 
-                await messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
+                await messageProxyForMainnet.removeExtraContractForAll(await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
             });
 
             it("should remove reimbursed contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  depositBox.address)
+                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Not enough permissions to remove reimbursed contract");
                 await messageProxyForMainnet.removeReimbursedContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Reimbursed contract is not added");
 
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
-                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress());
                 await expect(
-                    messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                    messageProxyForMainnet.addReimbursedContract(schainName, await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ReimbursedContractAdded"
-                ).withArgs(schainHash, depositBox.address);
+                ).withArgs(schainHash, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
                 await expect(
-                    messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                    messageProxyForMainnet.removeReimbursedContract(schainName, await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ReimbursedContractRemoved"
-                ).withArgs(schainHash, depositBox.address);
+                ).withArgs(schainHash, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
 
-                await messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                await messageProxyForMainnet.removeReimbursedContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Reimbursed contract is not added");
-                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, await depositBox.getAddress())).to.be.equal(false);
             });
 
             it("should remove reimbursed contract when remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  depositBox.address)
+                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Not enough permissions to remove reimbursed contract");
                 await messageProxyForMainnet.removeReimbursedContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Reimbursed contract is not added");
 
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
-                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress());
                 await expect(
-                    messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                    messageProxyForMainnet.addReimbursedContract(schainName, await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ReimbursedContractAdded"
-                ).withArgs(schainHash, depositBox.address);
+                ).withArgs(schainHash, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
                 await expect(
-                    messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
+                    messageProxyForMainnet.removeExtraContract(schainName, await depositBox.getAddress())
                 ).to.emit(
                     messageProxyForMainnet,
                     "ReimbursedContractRemoved"
-                ).withArgs(schainHash, depositBox.address);
+                ).withArgs(schainHash, await depositBox.getAddress());
                 expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
 
-                await messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                await messageProxyForMainnet.removeReimbursedContract(schainName, await depositBox.getAddress())
                     .should.be.eventually.rejectedWith("Reimbursed contract is not added");
-                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, await depositBox.getAddress())).to.be.equal(false);
             });
         });
 
@@ -1285,22 +1270,22 @@ describe("MessageProxy", () => {
 
         beforeEach(async () => {
             keyStorage = await deployKeyStorageMock();
-            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
+            messageProxyForSchain = await deployMessageProxyForSchainTester(await keyStorage.getAddress(), "Base schain");
             messages = await deployMessages();
             caller = await deployMessageProxyCaller();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
             const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
-            await messageProxyForSchain.registerExtraContract(schainName, caller.address);
+            await messageProxyForSchain.registerExtraContract(schainName, await caller.getAddress());
         });
 
         it("should set constants", async () => {
-            const gasLimitPrevious = (await messageProxyForSchain.gasLimit()).toNumber();
+            const gasLimitPrevious = await messageProxyForSchain.gasLimit();
 
             const gasLimitNew = 7;
 
-            expect((await messageProxyForSchain.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+            expect(await messageProxyForSchain.gasLimit()).to.equal(gasLimitPrevious);
 
             await messageProxyForSchain.connect(user).setNewGasLimit(
                 gasLimitNew
@@ -1311,11 +1296,11 @@ describe("MessageProxy", () => {
 
             await messageProxyForSchain.connect(user).setNewGasLimit(gasLimitNew);
 
-            expect((await messageProxyForSchain.gasLimit()).toNumber()).to.equal(gasLimitNew);
+            expect(await messageProxyForSchain.gasLimit()).to.equal(gasLimitNew);
 
             await messageProxyForSchain.connect(user).setNewGasLimit(gasLimitPrevious);
 
-            expect((await messageProxyForSchain.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+            expect(await messageProxyForSchain.gasLimit()).to.equal(gasLimitPrevious);
 
         });
 
@@ -1352,20 +1337,19 @@ describe("MessageProxy", () => {
         });
 
         it("should post outgoing message", async () => {
-            const contractAddress = messageProxyForSchain.address;
+            const contractAddress = await messageProxyForSchain.getAddress();
             const amount = 4;
             const addressTo = user.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
             await caller
-                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, schainHash, contractAddress, bytesData)
+                .postOutgoingMessageTesterOnSchain(await messageProxyForSchain.getAddress(), schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, schainHash, contractAddress, bytesData);
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+                .postOutgoingMessageTesterOnSchain(await messageProxyForSchain.getAddress(), schainHash, contractAddress, bytesData);
+            const outgoingMessagesCounter = await messageProxyForSchain.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(1);
         });
 
         // l_sergiy: this test should be rewritten in respect to new pre-BLS hash computation algorithm
@@ -1502,18 +1486,16 @@ describe("MessageProxy", () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             // chain should be inited:
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(schainName)).should.be.deep.equal(BigNumber.from(0));
+            (await messageProxyForSchain.getOutgoingMessagesCounter(schainName)).should.be.equal(0);
 
-            const outgoingMessagesCounter0 = BigNumber.from(
-                await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
+            const outgoingMessagesCounter0 = await messageProxyForSchain.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter0.should.be.equal(0);
 
             await caller
-                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, schainHash, messages.address, bytesData);
+                .postOutgoingMessageTesterOnSchain(await messageProxyForSchain.getAddress(), schainHash, messages.getAddress(), bytesData);
 
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            const outgoingMessagesCounter = await messageProxyForSchain.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(1);
         });
 
         it("should set version of contracts on schain", async () => {
@@ -1546,7 +1528,7 @@ describe("MessageProxy", () => {
                 await messageProxyForSchainWithoutSignature.connect(deployer).grantRole(chainConnectorRole, deployer.address);
                 const extraContractRegistrarRole = await messageProxyForSchainWithoutSignature.EXTRA_CONTRACT_REGISTRAR_ROLE();
                 await messageProxyForSchainWithoutSignature.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
-                await messageProxyForSchainWithoutSignature.registerExtraContract(schainName, caller.address);
+                await messageProxyForSchainWithoutSignature.registerExtraContract(schainName, await caller.getAddress());
 
                 const receiverMockFactory = await ethers.getContractFactory("ReceiverGasLimitSchainMock");
                 receiverMock = await receiverMockFactory.deploy() as ReceiverGasLimitSchainMock;
@@ -1557,17 +1539,17 @@ describe("MessageProxy", () => {
                 const message1 = {
                     amount: 0,
                     data: "0x11",
-                    destinationContract: receiverMock.address,
+                    destinationContract: await receiverMock.getAddress(),
                     sender: deployer.address,
                     to: client.address
                 };
 
                 const outgoingMessages = [message1];
 
-                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
+                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", await receiverMock.getAddress());
 
                 let a = await receiverMock.a();
-                expect(a.toNumber()).be.equal(0);
+                expect(a).be.equal(0);
 
                 const res = await (await messageProxyForSchainWithoutSignature
                     .connect(deployer)
@@ -1579,8 +1561,8 @@ describe("MessageProxy", () => {
                     )).wait();
 
                 a = await receiverMock.a();
-                expect(a.toNumber()).be.equal(0);
-                expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
+                expect(a).be.equal(0);
+                expect(res?.gasUsed).to.be.greaterThan(1000000);
 
             });
 
@@ -1589,7 +1571,7 @@ describe("MessageProxy", () => {
                 const message1 = {
                     amount: 0,
                     data: "0x11",
-                    destinationContract: receiverMock.address,
+                    destinationContract: await receiverMock.getAddress(),
                     sender: deployer.address,
                     to: client.address
                 };
@@ -1597,14 +1579,15 @@ describe("MessageProxy", () => {
 
                 const etherbase = await (await ethers.getContractFactory("EtherbaseMock")).deploy() as EtherbaseMock;
                 await etherbase.initialize(deployer.address);
-                await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), messageProxyForSchainWithoutSignature.address);
+                await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), await messageProxyForSchainWithoutSignature.getAddress());
 
-                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
-                await messageProxyForSchainWithoutSignature.setEtherbase(etherbase.address);
+                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", await receiverMock.getAddress());
+                await messageProxyForSchainWithoutSignature.setEtherbase(await etherbase.getAddress());
 
-                const smallBalance = ethers.utils.parseEther("0.02");
+                const smallBalance = ethers.parseEther("0.02");
                 // left small amount of eth on agent balance to emulate PoW.
-                await agent.sendTransaction({to: etherbase.address, value: (await agent.getBalance()).sub(smallBalance)});
+                let agentBalance = await ethers.provider.getBalance(await agent.getAddress());
+                await agent.sendTransaction({to: await etherbase.getAddress(), value: agentBalance - smallBalance});
 
                 await messageProxyForSchainWithoutSignature
                     .connect(agent)
@@ -1615,10 +1598,11 @@ describe("MessageProxy", () => {
                         randomSignature
                     );
 
-                (await agent.getBalance())
-                    .should.be.closeTo(
-                        await messageProxyForSchainWithoutSignature.MINIMUM_BALANCE(),
-                        ethers.utils.parseEther("0.001").toNumber());
+                agentBalance = await ethers.provider.getBalance(await agent.getAddress());
+                agentBalance.should.be.closeTo(
+                    await messageProxyForSchainWithoutSignature.MINIMUM_BALANCE(),
+                    ethers.parseEther("0.001")
+                );
 
                 await etherbase.retrieve(agent.address);
             });
@@ -1628,7 +1612,7 @@ describe("MessageProxy", () => {
                 const message1 = {
                     amount: 0,
                     data: "0x11",
-                    destinationContract: receiverMock.address,
+                    destinationContract: await receiverMock.getAddress(),
                     sender: deployer.address,
                     to: client.address
                 };
@@ -1636,16 +1620,17 @@ describe("MessageProxy", () => {
 
                 const etherbase = await (await ethers.getContractFactory("EtherbaseMock")).deploy() as EtherbaseMock;
                 await etherbase.initialize(deployer.address);
-                await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), messageProxyForSchainWithoutSignature.address);
+                await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), await messageProxyForSchainWithoutSignature.getAddress());
 
-                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
-                await messageProxyForSchainWithoutSignature.setEtherbase(etherbase.address);
+                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", await receiverMock.getAddress());
+                await messageProxyForSchainWithoutSignature.setEtherbase(await etherbase.getAddress());
 
-                const etherbaseBalance = ethers.utils.parseEther("0.5");
-                const smallBalance = ethers.utils.parseEther("0.02");
-                const rest = (await agent.getBalance()).sub(smallBalance).sub(etherbaseBalance);
+                const etherbaseBalance = ethers.parseEther("0.5");
+                const smallBalance = ethers.parseEther("0.02");
+                let agentBalance = await ethers.provider.getBalance(await agent.getAddress());
+                const rest = agentBalance - smallBalance - etherbaseBalance;
                 // left small amount of eth on agent balance to emulate PoW.
-                await agent.sendTransaction({to: etherbase.address, value: etherbaseBalance});
+                await agent.sendTransaction({to: await etherbase.getAddress(), value: etherbaseBalance});
                 await agent.sendTransaction({to: deployer.address, value: rest});
 
                 await messageProxyForSchainWithoutSignature
@@ -1657,10 +1642,11 @@ describe("MessageProxy", () => {
                         randomSignature
                     );
 
-                (await ethers.provider.getBalance(etherbase.address))
+                (await ethers.provider.getBalance(await etherbase.getAddress()))
                     .should.be.equal(0);
-                (await agent.getBalance())
-                    .should.be.gt(etherbaseBalance);
+
+                agentBalance = await ethers.provider.getBalance(await agent.getAddress());
+                agentBalance.should.be.gt(etherbaseBalance);
 
                 await deployer.sendTransaction({to: agent.address, value: rest});
             });
@@ -1674,102 +1660,102 @@ describe("MessageProxy", () => {
         describe("register and remove extra contracts", async () => {
             it("should register extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForSchain.connect(user).registerExtraContract(schainName,  messages.address)
+                await messageProxyForSchain.connect(user).registerExtraContract(schainName,  messages.getAddress())
                     .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
                 expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
-                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.address)).to.be.equal(false);
-                await messageProxyForSchain.registerExtraContract(schainName, messages.address);
-                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.address)).to.be.equal(true);
+                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.getAddress())).to.be.equal(false);
+                await messageProxyForSchain.registerExtraContract(schainName, messages.getAddress());
+                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.getAddress())).to.be.equal(true);
                 expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
                 expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(messages.address);
+                expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(await messages.getAddress());
                 await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
                 await messageProxyForSchain.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
-                await messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                await messageProxyForSchain.registerExtraContract(schainName, messages.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
 
             it("should register extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForSchain.connect(user).registerExtraContractForAll(messages.address)
+                await messageProxyForSchain.connect(user).registerExtraContractForAll(messages.getAddress())
                     .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.registerExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
                 expect((await messageProxyForSchain.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("0");
-                expect(await messageProxyForSchain.isContractRegistered(zeroBytes32, messages.address)).to.be.equal(false);
-                await messageProxyForSchain.registerExtraContractForAll(messages.address);
+                expect(await messageProxyForSchain.isContractRegistered(zeroBytes32, messages.getAddress())).to.be.equal(false);
+                await messageProxyForSchain.registerExtraContractForAll(messages.getAddress());
 
-                expect(await messageProxyForSchain.isContractRegistered(zeroBytes32, messages.address)).to.be.equal(true);
+                expect(await messageProxyForSchain.isContractRegistered(zeroBytes32, messages.getAddress())).to.be.equal(true);
                 expect((await messageProxyForSchain.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("1");
                 expect((await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 1))[0]).to.be.equal(messages.address);
+                expect((await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 1))[0]).to.be.equal(await messages.getAddress());
                 await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
                 await messageProxyForSchain.getContractRegisteredRange(zeroBytes32, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
 
-                await messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                await messageProxyForSchain.registerExtraContract(schainName, messages.getAddress())
                 .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
 
-                await messageProxyForSchain.registerExtraContractForAll(messages.address)
+                await messageProxyForSchain.registerExtraContractForAll(messages.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
 
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForSchain.connect(user).removeExtraContract(schainName,  messages.address)
+                await messageProxyForSchain.connect(user).removeExtraContract(schainName,  messages.getAddress())
                     .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.removeExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
                 await expect(
-                    messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                    messageProxyForSchain.registerExtraContract(schainName, messages.getAddress())
                 ).to.emit(
                     messageProxyForSchain,
                     "ExtraContractRegistered"
-                ).withArgs(schainHash, messages.address);
+                ).withArgs(schainHash, messages.getAddress());
                 expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
                 await expect(
-                    messageProxyForSchain.removeExtraContract(schainName, messages.address)
+                    messageProxyForSchain.removeExtraContract(schainName, messages.getAddress())
                 ).to.emit(
                     messageProxyForSchain,
                     "ExtraContractRemoved"
-                ).withArgs(schainHash, messages.address);
+                ).withArgs(schainHash, messages.getAddress());
                 expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
 
-                await messageProxyForSchain.removeExtraContract(schainName, messages.address)
+                await messageProxyForSchain.removeExtraContract(schainName, messages.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
-                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.address)).to.be.equal(false);
+                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.getAddress())).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
-                await messageProxyForSchain.connect(user).removeExtraContractForAll(messages.address)
+                await messageProxyForSchain.connect(user).removeExtraContractForAll(messages.getAddress())
                     .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.removeExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 expect((await messageProxyForSchain.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("0");
                 await expect(
-                    messageProxyForSchain.registerExtraContractForAll(messages.address)
+                    messageProxyForSchain.registerExtraContractForAll(messages.getAddress())
                 ).to.emit(
                     messageProxyForSchain,
                     "ExtraContractRegistered"
-                ).withArgs(zeroBytes32, messages.address);
+                ).withArgs(zeroBytes32, messages.getAddress());
                 expect((await messageProxyForSchain.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("1");
                 await expect(
-                    messageProxyForSchain.removeExtraContractForAll(messages.address)
+                    messageProxyForSchain.removeExtraContractForAll(messages.getAddress())
                 ).to.emit(
                     messageProxyForSchain,
                     "ExtraContractRemoved"
-                ).withArgs(zeroBytes32, messages.address);
+                ).withArgs(zeroBytes32, messages.getAddress());
                 expect((await messageProxyForSchain.getContractRegisteredLength(zeroBytes32)).toString()).to.be.equal("0");
 
-                await messageProxyForSchain.removeExtraContractForAll(messages.address)
+                await messageProxyForSchain.removeExtraContractForAll(messages.getAddress())
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
             });
         });
