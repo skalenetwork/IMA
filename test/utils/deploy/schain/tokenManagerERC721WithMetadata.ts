@@ -16,10 +16,10 @@ export async function deployTokenManagerERC721WithMetadata(
         [
             schainName,
             messageProxyForSchain,
-            tokenManagerLinker.address,
-            communityLocker.address,
+            await tokenManagerLinker.getAddress(),
+            await communityLocker.getAddress(),
             newDepositBox
         ]
-    ) as TokenManagerERC721WithMetadata;
+    ) as unknown as TokenManagerERC721WithMetadata;
     return instance;
 }

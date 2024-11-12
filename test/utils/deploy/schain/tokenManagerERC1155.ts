@@ -16,10 +16,10 @@ export async function deployTokenManagerERC1155(
         [
             schainName,
             messageProxyForSchain,
-            tokenManagerLinker.address,
-            communityLocker.address,
+            await tokenManagerLinker.getAddress(),
+            await communityLocker.getAddress(),
             newDepositBox
         ]
-    ) as TokenManagerERC1155;
+    ) as unknown as TokenManagerERC1155;
     return instance;
 }

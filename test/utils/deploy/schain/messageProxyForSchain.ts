@@ -8,6 +8,6 @@ export async function deployMessageProxyForSchain(keyStorageAddress: string, sch
     const instance = await upgrades.deployProxy(
         factory,
         [keyStorageAddress, schainName]
-    ) as MessageProxyForSchain;
+    ) as unknown as MessageProxyForSchain;
     return instance;
 }

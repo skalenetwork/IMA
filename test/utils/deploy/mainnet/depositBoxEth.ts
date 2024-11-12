@@ -10,9 +10,13 @@ export async function deployDepositBoxEth(
     const factory = await ethers.getContractFactory("DepositBoxEth");
     const instance = await upgrades.deployProxy(
         factory,
-        [contractManager.address, linker.address, messageProxy.address],
+        [
+            await contractManager.getAddress(),
+            await linker.getAddress(),
+            await messageProxy.getAddress()
+        ],
         {"initializer": "initialize(address,address,address)"}
-    ) as DepositBoxEth;
-    await linker.registerMainnetContract(instance.address);
+    ) as unknown as DepositBoxEth;
+    await linker.registerMainnetContract(await instance.getAddress());
     return instance;
 }

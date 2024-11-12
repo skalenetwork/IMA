@@ -16,8 +16,8 @@ export async function rechargeSchainWallet(
     if (await contractManager.getContract(nameWallets) === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
         walletsInstance = await walletsFactory.deploy() as Wallets;
-        await walletsInstance.addContractManager(contractManager.address);
-        await contractManager.setContractsAddress(nameWallets, walletsInstance.address);
+        await walletsInstance.addContractManager(await contractManager.getAddress());
+        await contractManager.setContractsAddress(nameWallets, await walletsInstance.getAddress());
     } else {
         walletsInstance = await walletsFactory.attach(await contractManager.getContract(nameWallets)) as Wallets;
     }

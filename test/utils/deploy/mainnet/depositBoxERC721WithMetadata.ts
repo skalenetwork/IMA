@@ -10,9 +10,13 @@ export async function deployDepositBoxERC721WithMetadata(
     const factory = await ethers.getContractFactory("DepositBoxERC721WithMetadata");
     const instance = await upgrades.deployProxy(
         factory,
-        [contractManager.address, linker.address, messageProxy.address],
+        [
+            await contractManager.getAddress(),
+            await linker.getAddress(),
+            await messageProxy.getAddress()
+        ],
         {"initializer": "initialize(address,address,address)"}
-    ) as DepositBoxERC721WithMetadata;
-    await linker.registerMainnetContract(instance.address);
+    ) as unknown as DepositBoxERC721WithMetadata;
+    await linker.registerMainnetContract(await instance.getAddress());
     return instance;
 }

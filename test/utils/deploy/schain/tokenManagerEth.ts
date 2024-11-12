@@ -17,11 +17,11 @@ export async function deployTokenManagerEth(
         [
             schainName,
             messageProxyForSchain,
-            tokenManagerLinker.address,
-            communityLocker.address,
+            await tokenManagerLinker.getAddress(),
+            await communityLocker.getAddress(),
             newDepositBox,
             ethErc20Address
         ]
-    ) as TokenManagerEth;
+    ) as unknown as TokenManagerEth;
     return instance;
 }

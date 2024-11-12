@@ -12,7 +12,7 @@ export async function deployCommunityLocker(
     const factory = await ethers.getContractFactory(name);
     const instance = await upgrades.deployProxy(
         factory,
-        [schainName, messageProxyForSchain, tokenManagerLinker.address, communityPool]
-    ) as CommunityLocker;
+        [schainName, messageProxyForSchain, await tokenManagerLinker.getAddress(), communityPool]
+    ) as unknown as CommunityLocker;
     return instance;
 }

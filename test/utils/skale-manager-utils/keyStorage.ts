@@ -22,7 +22,7 @@ export async function setCommonPublicKey(
     if (await contractManager.getContract("KeyStorage") === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
         keyStorageInstance = await factory.deploy() as KeyStorageMock;
-        await contractManager.setContractsAddress("KeyStorage", keyStorageInstance.address);
+        await contractManager.setContractsAddress("KeyStorage", await keyStorageInstance.getAddress());
     } else {
         keyStorageInstance = factory.attach(await contractManager.getContract("KeyStorage")) as KeyStorageMock;
     }

@@ -25,7 +25,7 @@ export async function addNodesToSchain(
     const schainsInternalFactory = await ethers.getContractFactory(nameSchainsInternal);
     const schainsInternalAddres = await contractManager.getContract(nameSchainsInternal);
     const schainsInternal = schainsInternalFactory.attach(schainsInternalAddres) as SchainsInternal;
-    await schainsInternal.addNodesToSchainsGroups(ethers.utils.id(schainName), nodes);
+    await schainsInternal.addNodesToSchainsGroups(ethers.id(schainName), nodes);
 }
 
 export async function isSchainActive(
@@ -37,9 +37,9 @@ export async function isSchainActive(
     if (await contractManager.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
         schainsInternalInstance = await factory.deploy() as SchainsInternal;
-        await contractManager.setContractsAddress(nameSchainsInternal, schainsInternalInstance.address);
+        await contractManager.setContractsAddress(nameSchainsInternal, await schainsInternalInstance.getAddress());
     } else {
-        schainsInternalInstance = await factory.attach(await contractManager.getContract(nameSchainsInternal)) as SchainsInternal;
+        schainsInternalInstance = factory.attach(await contractManager.getContract(nameSchainsInternal)) as SchainsInternal;
     }
     return await schainsInternalInstance.isSchainActive(stringKeccak256(schainName));
 }

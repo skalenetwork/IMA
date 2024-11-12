@@ -10,9 +10,13 @@ export async function deployDepositBoxERC1155(
     const factory = await ethers.getContractFactory("DepositBoxERC1155");
     const instance = await upgrades.deployProxy(
         factory,
-        [contractManager.address, linker.address, messageProxy.address],
+        [
+            await contractManager.getAddress(),
+            await linker.getAddress(),
+            await messageProxy.getAddress()
+        ],
         {"initializer": "initialize(address,address,address)"}
-    ) as DepositBoxERC1155;
-    await linker.registerMainnetContract(instance.address);
+    ) as unknown as DepositBoxERC1155;
+    await linker.registerMainnetContract(await instance.getAddress());
     return instance;
 }

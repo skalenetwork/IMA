@@ -8,6 +8,10 @@ export async function deployFallbackEthTester(
     schainName: string
 ) {
     const factory = await ethers.getContractFactory("FallbackEthTester");
-    const instance = await factory.deploy(depositBoxEth.address, communityPool.address, schainName) as FallbackEthTester;
+    const instance = await factory.deploy(
+        await depositBoxEth.getAddress(),
+        await communityPool.getAddress(),
+        schainName
+    ) as FallbackEthTester;
     return instance;
 }

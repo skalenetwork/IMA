@@ -31,5 +31,12 @@ export async function skipTime(seconds: number) {
 }
 
 export async function currentTime() {
-    return (await ethers.provider.getBlock("latest")).timestamp;
+    try {
+        const block = await ethers.provider.getBlock('latest');
+        if (!block) throw new Error('Failed to retrieve the latest block.');
+        return block.timestamp;
+    } catch (error) {
+        console.error('Error fetching the latest block:', error);
+        throw error;
+    }
 }
