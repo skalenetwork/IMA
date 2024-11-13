@@ -1,11 +1,11 @@
 import { ethers, upgrades } from "hardhat";
-import { TokenManagerERC721WithMetadata, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
+import { TokenManagerERC721WithMetadata, TokenManagerLinker, CommunityLocker, MessageProxyForSchain } from "../../../../typechain";
 
 const name = "TokenManagerERC721WithMetadata";
 
 export async function deployTokenManagerERC721WithMetadata(
     schainName: string,
-    messageProxyForSchain: string,
+    messageProxyForSchain: MessageProxyForSchain,
     tokenManagerLinker: TokenManagerLinker,
     communityLocker: CommunityLocker,
     newDepositBox: string
@@ -15,7 +15,7 @@ export async function deployTokenManagerERC721WithMetadata(
         factory,
         [
             schainName,
-            messageProxyForSchain,
+            await messageProxyForSchain.getAddress(),
             await tokenManagerLinker.getAddress(),
             await communityLocker.getAddress(),
             newDepositBox

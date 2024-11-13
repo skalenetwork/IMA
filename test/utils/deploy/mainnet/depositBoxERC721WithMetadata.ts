@@ -17,6 +17,6 @@ export async function deployDepositBoxERC721WithMetadata(
         ],
         {"initializer": "initialize(address,address,address)"}
     ) as unknown as DepositBoxERC721WithMetadata;
-    await linker.registerMainnetContract(await instance.getAddress());
+    await linker.registerMainnetContract(instance);
     return instance;
 }

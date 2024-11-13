@@ -11,7 +11,7 @@ export async function deployMessageProxyForMainnet(
         return factory.attach(await contractManager.getContract(name)) as MessageProxyForMainnet;
     } else {
         const instance = await upgrades.deployProxy(factory, [await contractManager.getAddress()]) as unknown as MessageProxyForMainnet;
-        await contractManager.setContractsAddress(name, await instance.getAddress());
+        await contractManager.setContractsAddress(name, instance);
         return instance;
     }
 }

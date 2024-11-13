@@ -65,11 +65,11 @@ describe("CommunityLocker", () => {
 
     beforeEach(async () => {
         messages = await deployMessages();
-        fakeCommunityPool = await messages.getAddress();
+        fakeCommunityPool = user.address;
         const messageProxyForSchainWithoutSignatureFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
         messageProxyForSchain = await messageProxyForSchainWithoutSignatureFactory.deploy("MyChain") as MessageProxyForSchainWithoutSignature;
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
-        communityLocker = await deployCommunityLocker(schainName, await messageProxyForSchain.getAddress(), tokenManagerLinker, fakeCommunityPool);
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain, tokenManagerLinker, fakeCommunityPool);
     })
 
     it("should activate user", async () => {
@@ -79,19 +79,19 @@ describe("CommunityLocker", () => {
         await communityLocker.postMessage(mainnetHash, fakeCommunityPool, data)
             .should.be.eventually.rejectedWith("Sender is not a message proxy");
 
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), mainnetHash, deployer.address, data)
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, deployer.address, data)
             .should.be.eventually.rejectedWith("Sender must be CommunityPool");
 
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), schainHash, fakeCommunityPool, data)
+        await messageProxyForSchain.postMessage(communityLocker, schainHash, fakeCommunityPool, data)
             .should.be.eventually.rejectedWith("Source chain name must be Mainnet");
 
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), mainnetHash, fakeCommunityPool, fakeData)
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, fakeData)
             .should.be.eventually.rejectedWith("The message should contain a status of user");
 
         expect(await communityLocker.activeUsers(deployer.address)).to.be.equal(false);
 
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), mainnetHash, fakeCommunityPool, data);
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), mainnetHash, fakeCommunityPool, data)
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data)
             .should.be.eventually.rejectedWith("Active user statuses must be different");
         expect(await communityLocker.activeUsers(deployer.address)).to.be.equal(true);
     });
@@ -99,9 +99,9 @@ describe("CommunityLocker", () => {
     it("should activate and then lock user", async () => {
         const activateData = await messages.encodeActivateUserMessage(user.address);
         const lockData = await messages.encodeLockUserMessage(user.address);
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), mainnetHash, fakeCommunityPool, activateData);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, activateData);
         expect(await communityLocker.activeUsers(user.address)).to.be.equal(true);
-        await messageProxyForSchain.postMessage(await communityLocker.getAddress(), mainnetHash, fakeCommunityPool, lockData);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, lockData);
         expect(await communityLocker.activeUsers(user.address)).to.be.equal(false);
     });
 

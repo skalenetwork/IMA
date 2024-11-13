@@ -14,7 +14,7 @@ export async function deployMessageProxyForMainnetTester(
             factory,
             [await contractManager.getAddress()]
         ) as unknown as MessageProxyForMainnetTester;
-        await contractManager.setContractsAddress(name, await instance.getAddress());
+        await contractManager.setContractsAddress(name, instance);
         return instance;
     }
 }

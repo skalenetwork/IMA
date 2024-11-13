@@ -37,7 +37,7 @@ export async function isSchainActive(
     if (await contractManager.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
         schainsInternalInstance = await factory.deploy() as SchainsInternal;
-        await contractManager.setContractsAddress(nameSchainsInternal, await schainsInternalInstance.getAddress());
+        await contractManager.setContractsAddress(nameSchainsInternal, schainsInternalInstance);
     } else {
         schainsInternalInstance = factory.attach(await contractManager.getContract(nameSchainsInternal)) as SchainsInternal;
     }

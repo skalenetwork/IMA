@@ -126,7 +126,7 @@ describe("DepositBoxEth", () => {
         depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         messages = await deployMessages();
-        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), await linker.getAddress());
+        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         const nodeCreationParams = {
@@ -141,9 +141,9 @@ describe("DepositBoxEth", () => {
         await createNode(contractManager, nodeAddress.address, nodeCreationParams);
         await addNodesToSchain(contractManager, schainName, [0]);
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
-        await messageProxy.registerExtraContractForAll(await depositBoxEth.getAddress());
-        await messageProxy.registerExtraContract(schainName, await communityPool.getAddress());
-        await messageProxy.registerExtraContract(schainName, await linker.getAddress());
+        await messageProxy.registerExtraContractForAll(depositBoxEth);
+        await messageProxy.registerExtraContract(schainName, communityPool);
+        await messageProxy.registerExtraContract(schainName, linker);
     });
 
     describe("tests for `deposit` function", async () => {
@@ -184,7 +184,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            const lockAndDataBalance = await ethers.provider.getBalance(await depositBoxEth.getAddress());
+            const lockAndDataBalance = await ethers.provider.getBalance(depositBoxEth);
             // expectation
             expect(lockAndDataBalance).to.equal(wei);
         });
@@ -206,9 +206,9 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .depositDirect(schainName, user.address, { value: wei })
                 .should.emit(messageProxy, "OutgoingMessage")
-                .withArgs(schainHash, 0, await depositBoxEth.getAddress(), deployer.address, data);
+                .withArgs(schainHash, 0, depositBoxEth, deployer.address, data);
 
-            const lockAndDataBalance = await ethers.provider.getBalance(await depositBoxEth.getAddress());
+            const lockAndDataBalance = await ethers.provider.getBalance(depositBoxEth);
             // expectation
             expect(lockAndDataBalance).to.equal(wei);
         });
@@ -217,7 +217,7 @@ describe("DepositBoxEth", () => {
             // preparation
             const error = "Use deposit function";
             // execution/expectation
-            await deployer.sendTransaction({to: await depositBoxEth.getAddress(), value: ethers.parseEther("1") })
+            await deployer.sendTransaction({to: depositBoxEth, value: ethers.parseEther("1") })
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -276,7 +276,7 @@ describe("DepositBoxEth", () => {
 
             const message = {
                 data: bytesData,
-                destinationContract: await depositBoxEth.getAddress(),
+                destinationContract: depositBoxEth,
                 sender: senderFromSchain
             };
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
@@ -314,7 +314,7 @@ describe("DepositBoxEth", () => {
 
                 const message = {
                     data: bytesData,
-                    destinationContract: await depositBoxEth.getAddress(),
+                    destinationContract: depositBoxEth,
                     sender: senderFromSchain
                 };
                 // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
@@ -360,7 +360,7 @@ describe("DepositBoxEth", () => {
 
             const message = {
                 data: bytesData,
-                destinationContract: await depositBoxEth.getAddress(),
+                destinationContract: depositBoxEth,
                 sender: senderFromSchain
             };
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
@@ -397,7 +397,7 @@ describe("DepositBoxEth", () => {
 
             const message = {
                 data: bytesData,
-                destinationContract: await depositBoxEth.getAddress(),
+                destinationContract: depositBoxEth,
                 sender: senderFromSchain,
             };
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
@@ -431,7 +431,7 @@ describe("DepositBoxEth", () => {
 
             const message = {
                 data: bytesData,
-                destinationContract: await depositBoxEth.getAddress(),
+                destinationContract: depositBoxEth,
                 sender: senderFromSchain,
             };
 
@@ -480,7 +480,7 @@ describe("DepositBoxEth", () => {
 
             const message = {
                 data: bytesData,
-                destinationContract: await depositBoxEth.getAddress(),
+                destinationContract: depositBoxEth,
                 sender: senderFromSchain,
             };
 
@@ -543,7 +543,7 @@ describe("DepositBoxEth", () => {
             const wei = "30000000000000000";
 
             const fallbackEthTester = await deployFallbackEthTester(depositBoxEth, communityPool, schainName);
-            const bytesData = await messages.encodeTransferEthMessage(await fallbackEthTester.getAddress(), wei);
+            const bytesData = await messages.encodeTransferEthMessage(fallbackEthTester, wei);
 
             await setCommonPublicKey(contractManager, schainName);
 
@@ -556,7 +556,7 @@ describe("DepositBoxEth", () => {
 
             const message = {
                 data: bytesData,
-                destinationContract: await depositBoxEth.getAddress(),
+                destinationContract: depositBoxEth,
                 sender: senderFromSchain,
             };
 
@@ -582,12 +582,12 @@ describe("DepositBoxEth", () => {
 
             await reimbursed(await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign));
 
-            expect(await depositBoxEth.approveTransfers(await fallbackEthTester.getAddress())).to.equal(wei);
+            expect(await depositBoxEth.approveTransfers(fallbackEthTester)).to.equal(wei);
 
             await depositBoxEth.connect(user2).getMyEth()
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
 
-            expect(await depositBoxEth.approveTransfers(await fallbackEthTester.getAddress())).to.equal(wei);
+            expect(await depositBoxEth.approveTransfers(fallbackEthTester)).to.equal(wei);
 
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
             await depositBoxEth.connect(user2).enableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
@@ -597,7 +597,7 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
-            await ethers.provider.getBalance(await fallbackEthTester.getAddress());
+            await ethers.provider.getBalance(fallbackEthTester);
 
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 1, [message], sign);
 
@@ -606,9 +606,9 @@ describe("DepositBoxEth", () => {
                 .withArgs(1n, stringToHex("Address: unable to send value, recipient may have reverted"));
 
 
-            expect(await depositBoxEth.approveTransfers(await fallbackEthTester.getAddress())).to.equal(wei);
+            expect(await depositBoxEth.approveTransfers(fallbackEthTester)).to.equal(wei);
             await fallbackEthTester.connect(user).getMyEth();
-            expect(await depositBoxEth.approveTransfers(await fallbackEthTester.getAddress())).to.equal("0");
+            expect(await depositBoxEth.approveTransfers(fallbackEthTester)).to.equal("0");
             await fallbackEthTester.connect(user).getMyEth()
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
         });

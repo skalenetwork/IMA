@@ -17,6 +17,6 @@ export async function deployDepositBoxERC20(
         ],
         {"initializer": "initialize(address,address,address)"}
     ) as unknown as DepositBoxERC20;
-    await linker.registerMainnetContract(await instance.getAddress());
+    await linker.registerMainnetContract(instance);
     return instance;
 }

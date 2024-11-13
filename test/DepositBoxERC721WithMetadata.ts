@@ -105,7 +105,7 @@ describe("DepositBoxERC721WithMetadata", () => {
         depositBoxERC721WithMetadata = await deployDepositBoxERC721WithMetadata(contractManager, linker, messageProxy);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         messages = await deployMessages();
-        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), await linker.getAddress());
+        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         const nodeCreationParams = {
@@ -120,9 +120,9 @@ describe("DepositBoxERC721WithMetadata", () => {
         await createNode(contractManager, nodeAddress.address, nodeCreationParams);
         await addNodesToSchain(contractManager, schainName, [0]);
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
-        await messageProxy.registerExtraContractForAll(await depositBoxERC721WithMetadata.getAddress());
-        await messageProxy.registerExtraContract(schainName, await communityPool.getAddress());
-        await messageProxy.registerExtraContract(schainName, await linker.getAddress());
+        await messageProxy.registerExtraContractForAll(depositBoxERC721WithMetadata);
+        await messageProxy.registerExtraContract(schainName, communityPool);
+        await messageProxy.registerExtraContract(schainName, linker);
     });
 
     describe("tests with `ERC721`", async () => {
@@ -151,14 +151,14 @@ describe("DepositBoxERC721WithMetadata", () => {
                 //  preparation
                 const amount = 10;
 
-                await depositBoxERC721WithMetadata.connect(user).depositERC721(schainName, await erc721.getAddress(), amount)
+                await depositBoxERC721WithMetadata.connect(user).depositERC721(schainName, erc721, amount)
                     .should.be.eventually.rejectedWith("Unconnected chain");
             });
 
             it("should rejected with `DepositBox was not approved for ERC721 token`", async () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC721 token";
-                const contractHere = await erc721OnChain.getAddress();
+                const contractHere = erc721OnChain;
                 const tokenId = 10;
                 // the wei should be MORE than (55000 * 1000000000)
                 // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
@@ -176,7 +176,7 @@ describe("DepositBoxERC721WithMetadata", () => {
 
             it("should invoke `depositERC721` without mistakes", async () => {
                 // preparation
-                const contractHere = await erc721OnChain.getAddress();
+                const contractHere = erc721OnChain;
                 const tokenId = 10;
                 const tokenId2 = 11;
                 // the wei should be MORE than (55000 * 1000000000)
@@ -186,8 +186,8 @@ describe("DepositBoxERC721WithMetadata", () => {
                     .connect(deployer)
                     .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
                 // transfer tokenId from `deployer` to `depositBoxERC721WithMetadata`
-                await erc721OnChain.connect(deployer).approve(await depositBoxERC721WithMetadata.getAddress(), tokenId);
-                await erc721OnChain.connect(deployer).approve(await depositBoxERC721WithMetadata.getAddress(), tokenId2);
+                await erc721OnChain.connect(deployer).approve(depositBoxERC721WithMetadata, tokenId);
+                await erc721OnChain.connect(deployer).approve(depositBoxERC721WithMetadata, tokenId2);
                 // execution
                 await depositBoxERC721WithMetadata
                     .connect(deployer)
@@ -201,13 +201,13 @@ describe("DepositBoxERC721WithMetadata", () => {
                     .depositERC721(schainName, contractHere, tokenId2)).wait();
                 // console.log("Gas for depositERC721:", res.receipt.gasUsed);
                 // expectation
-                expect(await erc721OnChain.ownerOf(tokenId)).to.equal(await depositBoxERC721WithMetadata.getAddress());
-                expect(await erc721OnChain.ownerOf(tokenId2)).to.equal(await depositBoxERC721WithMetadata.getAddress());
+                expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721WithMetadata);
+                expect(await erc721OnChain.ownerOf(tokenId2)).to.equal(depositBoxERC721WithMetadata);
             });
 
             it("should invoke `depositERC721Direct` without mistakes", async () => {
                 // preparation
-                const contractHere = await erc721OnChain.getAddress();
+                const contractHere = erc721OnChain;
                 const to = user.address;
                 const tokenId = 10;
                 const tokenId2 = 11;
@@ -218,8 +218,8 @@ describe("DepositBoxERC721WithMetadata", () => {
                     .connect(deployer)
                     .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
                 // transfer tokenId from `deployer` to `depositBoxERC721`
-                await erc721OnChain.connect(deployer).approve(await depositBoxERC721WithMetadata.getAddress(), tokenId);
-                await erc721OnChain.connect(deployer).approve(await depositBoxERC721WithMetadata.getAddress(), tokenId2);
+                await erc721OnChain.connect(deployer).approve(depositBoxERC721WithMetadata, tokenId);
+                await erc721OnChain.connect(deployer).approve(depositBoxERC721WithMetadata, tokenId2);
                 // execution
                 await depositBoxERC721WithMetadata
                     .connect(deployer)
@@ -231,16 +231,16 @@ describe("DepositBoxERC721WithMetadata", () => {
                     .connect(deployer)
                     .depositERC721Direct(schainName, contractHere, tokenId, to)
                     .should.emit(messageProxy, "OutgoingMessage")
-                    .withArgs(schainHash, 0, await depositBoxERC721WithMetadata.getAddress(), deployer.address, data1);
+                    .withArgs(schainHash, 0, depositBoxERC721WithMetadata, deployer.address, data1);
                 await depositBoxERC721WithMetadata
                     .connect(deployer)
                     .depositERC721Direct(schainName, contractHere, tokenId2, to)
                     .should.emit(messageProxy, "OutgoingMessage")
-                    .withArgs(schainHash, 1, await depositBoxERC721WithMetadata.getAddress(), deployer.address, data2);
+                    .withArgs(schainHash, 1, depositBoxERC721WithMetadata, deployer.address, data2);
                 // console.log("Gas for depositERC721:", res.receipt.gasUsed);
                 // expectation
-                expect(await erc721OnChain.ownerOf(tokenId)).to.equal(await depositBoxERC721WithMetadata.getAddress());
-                expect(await erc721OnChain.ownerOf(tokenId2)).to.equal(await depositBoxERC721WithMetadata.getAddress());
+                expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721WithMetadata);
+                expect(await erc721OnChain.ownerOf(tokenId2)).to.equal(depositBoxERC721WithMetadata);
             });
 
         });
@@ -251,16 +251,16 @@ describe("DepositBoxERC721WithMetadata", () => {
             await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
-            await erc721OnChain.connect(deployer).approve(await depositBoxERC721WithMetadata.getAddress(), tokenId);
+            await erc721OnChain.connect(deployer).approve(depositBoxERC721WithMetadata, tokenId);
             await depositBoxERC721WithMetadata.connect(user).disableWhitelist(schainName);
             await depositBoxERC721WithMetadata
                 .connect(deployer)
-                .depositERC721(schainName, await erc721OnChain.getAddress(), tokenId);
-            await depositBoxERC721WithMetadata.connect(user).getFunds(schainName, await erc721OnChain.getAddress(), user.address, tokenId).should.be.eventually.rejectedWith("Schain is not killed");
+                .depositERC721(schainName, erc721OnChain, tokenId);
+            await depositBoxERC721WithMetadata.connect(user).getFunds(schainName, erc721OnChain, user.address, tokenId).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user).kill(schainName);
-            await depositBoxERC721WithMetadata.connect(user).getFunds(schainName, await erc721OnChain.getAddress(), user.address, tokenId2).should.be.eventually.rejectedWith("Incorrect tokenId");
-            await depositBoxERC721WithMetadata.connect(user).getFunds(schainName, await erc721OnChain.getAddress(), user.address, tokenId);
+            await depositBoxERC721WithMetadata.connect(user).getFunds(schainName, erc721OnChain, user.address, tokenId2).should.be.eventually.rejectedWith("Incorrect tokenId");
+            await depositBoxERC721WithMetadata.connect(user).getFunds(schainName, erc721OnChain, user.address, tokenId);
             expect(await erc721OnChain.ownerOf(tokenId)).to.equal(user.address);
         });
 
@@ -268,13 +268,13 @@ describe("DepositBoxERC721WithMetadata", () => {
             const fakeERC721Contract = deployer.address;
             await depositBoxERC721WithMetadata.connect(user).addERC721TokenByOwner(schainName, fakeERC721Contract)
                 .should.be.eventually.rejectedWith("Given address is not a contract");
-            await depositBoxERC721WithMetadata.connect(deployer).addERC721TokenByOwner(schainName, await erc721.getAddress())
+            await depositBoxERC721WithMetadata.connect(deployer).addERC721TokenByOwner(schainName, erc721)
                 .should.be.eventually.rejectedWith("Sender is not an Schain owner");
 
-            await depositBoxERC721WithMetadata.connect(user).addERC721TokenByOwner(schainName, await erc721.getAddress());
-            await depositBoxERC721WithMetadata.connect(user).addERC721TokenByOwner(schainName, await erc721.getAddress()).should.be.eventually.rejectedWith("ERC721 Token was already added");
-            expect(await depositBoxERC721WithMetadata.getSchainToERC721(schainName, await erc721.getAddress())).to.be.equal(true);
-            expect((await depositBoxERC721WithMetadata.getSchainToAllERC721(schainName, 0, 1))[0]).to.be.equal(await erc721.getAddress());
+            await depositBoxERC721WithMetadata.connect(user).addERC721TokenByOwner(schainName, erc721);
+            await depositBoxERC721WithMetadata.connect(user).addERC721TokenByOwner(schainName, erc721).should.be.eventually.rejectedWith("ERC721 Token was already added");
+            expect(await depositBoxERC721WithMetadata.getSchainToERC721(schainName, erc721)).to.be.equal(true);
+            expect((await depositBoxERC721WithMetadata.getSchainToAllERC721(schainName, 0, 1))[0]).to.be.equal(erc721);
             expect((await depositBoxERC721WithMetadata.getSchainToAllERC721(schainName, 0, 1)).length).to.be.equal(1);
             expect((await depositBoxERC721WithMetadata.getSchainToAllERC721Length(schainName)).toString()).to.be.equal("1");
             await depositBoxERC721WithMetadata.getSchainToAllERC721(schainName, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
@@ -322,14 +322,14 @@ describe("DepositBoxERC721WithMetadata", () => {
             const senderFromSchain = deployer.address;
 
             const message = {
-                data: await messages.encodeTransferErc721MessageWithMetadata(await erc721.getAddress(), to, tokenId, tokenURI),
-                destinationContract: await depositBoxERC721WithMetadata.getAddress(),
+                data: await messages.encodeTransferErc721MessageWithMetadata(erc721, to, tokenId, tokenURI),
+                destinationContract: depositBoxERC721WithMetadata,
                 sender: senderFromSchain
             };
 
             await erc721.connect(deployer).mint(deployer.address, tokenId);
             await erc721.connect(deployer).setTokenURI(tokenId, tokenURI);
-            await erc721.connect(deployer).transferFrom(deployer.address, await depositBoxERC721WithMetadata.getAddress(), tokenId);
+            await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721WithMetadata, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
@@ -350,13 +350,13 @@ describe("DepositBoxERC721WithMetadata", () => {
 
             const messageWithWrongTokenAddress = {
                 data: await messages.encodeTransferErc721MessageWithMetadata(user2.address, to, tokenId, tokenURI),
-                destinationContract: await depositBoxERC721WithMetadata.getAddress(),
+                destinationContract: depositBoxERC721WithMetadata,
                 sender: senderFromSchain
             };
 
             await erc721.connect(deployer).mint(deployer.address, tokenId);
             await erc721.connect(deployer).setTokenURI(tokenId, tokenURI);
-            await erc721.connect(deployer).transferFrom(deployer.address, await depositBoxERC721WithMetadata.getAddress(), tokenId);
+            await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721WithMetadata, tokenId);
 
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign);
             await expect(tx)
@@ -371,8 +371,8 @@ describe("DepositBoxERC721WithMetadata", () => {
             const senderFromSchain = deployer.address;
 
             const messageWithWrongTokenAddress = {
-                data: await messages.encodeTransferErc721MessageWithMetadata(await erc721.getAddress(), to, tokenId, tokenURI),
-                destinationContract: await depositBoxERC721WithMetadata.getAddress(),
+                data: await messages.encodeTransferErc721MessageWithMetadata(erc721, to, tokenId, tokenURI),
+                destinationContract: depositBoxERC721WithMetadata,
                 sender: senderFromSchain
             };
 
@@ -394,24 +394,24 @@ describe("DepositBoxERC721WithMetadata", () => {
             const senderFromSchain = deployer.address;
 
             const message = {
-                data: await messages.encodeTransferErc721MessageWithMetadata(await erc721.getAddress(), to, tokenId, tokenURI),
-                destinationContract: await depositBoxERC721WithMetadata.getAddress(),
+                data: await messages.encodeTransferErc721MessageWithMetadata(erc721, to, tokenId, tokenURI),
+                destinationContract: depositBoxERC721WithMetadata,
                 sender: senderFromSchain
             };
 
             await erc721.mint(deployer.address, tokenId);
             await erc721.connect(deployer).setTokenURI(tokenId, tokenURI);
-            await erc721.approve(await depositBoxERC721WithMetadata.getAddress(), tokenId);
+            await erc721.approve(depositBoxERC721WithMetadata, tokenId);
 
             await depositBoxERC721WithMetadata
-                .depositERC721(schainName, await erc721.getAddress(), tokenId);
+                .depositERC721(schainName, erc721, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
-            expect(await depositBoxERC721WithMetadata.transferredAmount(await erc721.getAddress(), tokenId)).to.be.equal(zeroHash);
+            expect(await depositBoxERC721WithMetadata.transferredAmount(erc721, tokenId)).to.be.equal(zeroHash);
 
             (await erc721.ownerOf(tokenId)).should.be.equal(user.address);
             (await erc721.tokenURI(tokenId)).should.be.equal(tokenURI);

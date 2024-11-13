@@ -14,6 +14,6 @@ export async function deployLinker(
         ],
         {"initializer": "initialize(address,address)"}
     ) as unknown as Linker;
-    await instance.registerMainnetContract(await instance.getAddress());
+    await instance.registerMainnetContract(instance);
     return instance;
 }

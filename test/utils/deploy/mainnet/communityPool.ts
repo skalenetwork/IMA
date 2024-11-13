@@ -10,10 +10,14 @@ export async function deployCommunityPool(
     const factory = await ethers.getContractFactory("CommunityPool");
     const instance = await upgrades.deployProxy(
         factory,
-        [await contractManager.getAddress(), await linker.getAddress(), await messageProxy.getAddress()],
+        [
+            await contractManager.getAddress(),
+            await linker.getAddress(),
+            await messageProxy.getAddress()
+        ],
         {"initializer": "initialize(address,address,address)"}
     ) as unknown as CommunityPool;
-    await linker.registerMainnetContract(await instance.getAddress());
-    await messageProxy.setCommunityPool(await instance.getAddress());
+    await linker.registerMainnetContract(instance);
+    await messageProxy.setCommunityPool(instance);
     return instance;
 }

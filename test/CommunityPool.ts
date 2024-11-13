@@ -129,11 +129,11 @@ describe("CommunityPool", () => {
         it("should not allow to withdraw from user wallet if CommunityPool is not registered for all chains", async () => {
             const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
             await messageProxy.grantRole(extraContractRegistrarRole, deployer.address);
-            await messageProxy.registerExtraContractForAll(await communityPool.getAddress());
+            await messageProxy.registerExtraContractForAll(communityPool);
             const tx = await messageProxy.addConnectedChain(schainName);
             const wei = BigInt(minTransactionGas) * tx.gasPrice;
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: wei.toString() });
-            await messageProxy.removeExtraContractForAll(await communityPool.getAddress());
+            await messageProxy.removeExtraContractForAll(communityPool);
             await communityPool.connect(user).withdrawFunds(schainName, wei.toString())
                 .should.be.eventually.rejectedWith("Sender contract is not registered");
         });
@@ -141,14 +141,14 @@ describe("CommunityPool", () => {
         describe("when chain connected and contract registered", async () => {
             let gasPrice: BigNumberish;
             beforeEach(async () => {
-                await messageProxy.registerExtraContract(schainName, await communityPool.getAddress());
+                await messageProxy.registerExtraContract(schainName, communityPool);
                 gasPrice = ((await messageProxy.addConnectedChain(schainName)).gasPrice) as BigNumberish;
             });
 
             it("should not allow to withdraw from user wallet if CommunityPool is not registered", async () => {
                 const amount = BigInt(minTransactionGas) * BigInt(gasPrice);
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString() });
-                await messageProxy.removeExtraContract(schainName, await communityPool.getAddress());
+                await messageProxy.removeExtraContract(schainName, communityPool);
                 await communityPool.connect(user).withdrawFunds(schainName, amount.toString())
                     .should.be.eventually.rejectedWith("Sender contract is not registered");
             });
@@ -232,7 +232,7 @@ describe("CommunityPool", () => {
 
             await communityPool.addSchainContract(schainName2, mockContractOnSchain);
             for (const schain of [schainName, schainName2]) {
-                await messageProxy.registerExtraContract(schain, await communityPool.getAddress());
+                await messageProxy.registerExtraContract(schain, communityPool);
                 await messageProxy.addConnectedChain(schain);
 
             }
@@ -248,12 +248,12 @@ describe("CommunityPool", () => {
 
             await expect(res1)
                 .to.emit(messageProxy, "OutgoingMessage")
-                .withArgs(schainHash, 0, await communityPool.getAddress(), mockContractOnSchain, activateUserData);
+                .withArgs(schainHash, 0, communityPool, mockContractOnSchain, activateUserData);
 
 
             await expect(res2)
                 .to.emit(messageProxy, "OutgoingMessage")
-                .withArgs(schainHash2, 0, await communityPool.getAddress(), mockContractOnSchain, activateUserData);
+                .withArgs(schainHash2, 0, communityPool, mockContractOnSchain, activateUserData);
 
             const res3 = await communityPool.connect(user).rechargeUserWallet(
                 schainName,
@@ -321,7 +321,7 @@ describe("CommunityPool", () => {
 
         it("should be rejected with Node address must be set", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
-            await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester);
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice) * 2n;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
@@ -332,7 +332,7 @@ describe("CommunityPool", () => {
         it("should refund node", async () => {
             const balanceBefore = await getBalance(node.address);
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
-            await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester);
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice) * 2n;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
@@ -344,7 +344,7 @@ describe("CommunityPool", () => {
 
         it("should lock user", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
-            await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester);
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
@@ -356,7 +356,7 @@ describe("CommunityPool", () => {
 
         it("should lock user with extra low balance", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
-            await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester);
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice);
             const gasPriceDuringGasSpikes = BigInt(gasPrice) * 2n;

@@ -17,6 +17,6 @@ export async function deployDepositBoxEth(
         ],
         {"initializer": "initialize(address,address,address)"}
     ) as unknown as DepositBoxEth;
-    await linker.registerMainnetContract(await instance.getAddress());
+    await linker.registerMainnetContract(instance);
     return instance;
 }
