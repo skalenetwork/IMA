@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     ERC20OnChain,
     MessagesTester,
@@ -1242,8 +1242,8 @@ describe("TokenManagerERC20", () => {
             const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
             const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ, tokenManagerLinkerZ, fakeCommunityPool);
             const tokenManagerErc20Z = await deployTokenManagerERC20(newSchainNameZ, messageProxyForSchainZ, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
-            await erc20OnTargetZChain.connect(deployer).grantRole(await erc20OnTargetZChain.MINTER_ROLE(), await tokenManagerErc20Z.getAddress());
-            await tokenManagerLinkerZ.registerTokenManager(await tokenManagerErc20Z.getAddress());
+            await erc20OnTargetZChain.connect(deployer).grantRole(await erc20OnTargetZChain.MINTER_ROLE(), tokenManagerErc20Z);
+            await tokenManagerLinkerZ.registerTokenManager(tokenManagerErc20Z);
 
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);

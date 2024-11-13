@@ -36,8 +36,8 @@ import {
 } from "../typechain";
 import { getBalance, getPublicKey, stringToHex } from "./utils/helper";
 
-import chai = require("chai");
-import chaiAlmost = require("chai-almost");
+import chai from "chai";
+import chaiAlmost from "chai-almost";
 
 chai.should();
 chai.use(chaiAsPromised);

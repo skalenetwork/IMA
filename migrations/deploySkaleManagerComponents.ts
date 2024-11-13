@@ -62,58 +62,65 @@ async function main() {
     console.log("Deploy ContractManager");
     const contractManagerFactory = await ethers.getContractFactory("ContractManager");
     const contractManager = await contractManagerFactory.deploy();
-    console.log("Contract ContractManager deployed to", await contractManager.getAddress());
+    const contractManagerAddress = await contractManager.getAddress();
+    console.log("Contract ContractManager deployed to", contractManagerAddress);
 
     console.log("Deploy Schains");
     const schainsFactory = await ethers.getContractFactory("Schains");
     const schains = await schainsFactory.deploy();
-    console.log("Contract Schains deployed to", await schains.getAddress());
+    const schainsAddress = await schains.getAddress();
+    console.log("Contract Schains deployed to", schainsAddress);
 
     console.log("Deploy SchainsInternal");
     const schainsInternalFactory = await ethers.getContractFactory("SchainsInternal");
     const schainsInternal = await schainsInternalFactory.deploy();
-    console.log("Contract SchainsInternal deployed to", await schainsInternal.getAddress());
+    const schainsInternalAddress = await schainsInternal.getAddress();
+    console.log("Contract SchainsInternal deployed to", schainsInternalAddress);
 
     console.log("Deploy Wallets");
     const walletsFactory = await ethers.getContractFactory("Wallets");
     const wallets = await walletsFactory.deploy();
-    console.log("Contract Wallets deployed to", await wallets.getAddress());
+    const walletsAddress = await wallets.getAddress();
+    console.log("Contract Wallets deployed to", walletsAddress);
 
     console.log("Deploy SkaleVerifier");
     const skaleVerifierFactory = await ethers.getContractFactory("SkaleVerifierMock");
     const skaleVerifier = await skaleVerifierFactory.deploy();
-    console.log("Contract SkaleVerifier deployed to", await skaleVerifier.getAddress());
-    
+    const skaleVerifierAddress = await skaleVerifier.getAddress();
+    console.log("Contract SkaleVerifier deployed to", skaleVerifierAddress);
+
     console.log("Deploy KeyStorage");
     const keyStorageFactory = await ethers.getContractFactory("KeyStorageMock");
     const keyStorage = await keyStorageFactory.deploy() as KeyStorageMock;
-    console.log("Contract KeyStorage deployed to", await keyStorage.getAddress());
+    const keyStorageAddress = await keyStorage.getAddress();
+    console.log("Contract KeyStorage deployed to", keyStorageAddress);
 
     console.log("Deploy Nodes");
     const nodesFactory = await ethers.getContractFactory("Nodes");
     const nodes = await nodesFactory.deploy();
-    console.log("Contract Nodes deployed to", await nodes.getAddress());
+    const nodesAddress = await nodes.getAddress();
+    console.log("Contract Nodes deployed to", nodesAddress);
 
     console.log("Will set dependencies");
 
-    await schains.addContractManager( await contractManager.getAddress() );
-    console.log("Add ContractManager address", await contractManager.getAddress(), "as ContractManager to Contract Schains", await schains.getAddress(), "\n");
-    await schainsInternal.addContractManager( await contractManager.getAddress() );
-    console.log("Add ContractManager address", await contractManager.getAddress(), "as ContractManager to Contract SchainsInternal", await schainsInternal.getAddress(), "\n");
-    await wallets.addContractManager( await contractManager.getAddress() );
-    console.log("Add ContractManager address", await contractManager.getAddress(), "as ContractManager to Contract Wallets", await wallets.getAddress(), "\n");
-    await contractManager.setContractsAddress( "Schains", await schains.getAddress() );
-    console.log("Set Schains", await schains.getAddress(), "to ContractManager", await contractManager.getAddress(), "\n");
-    await contractManager.setContractsAddress( "SchainsInternal", await schainsInternal.getAddress() );
-    console.log("Set SchainsInternal", await schainsInternal.getAddress(), "to ContractManager", await contractManager.getAddress(), "\n");
-    await contractManager.setContractsAddress( "Wallets", await wallets.getAddress() );
-    console.log("Set Wallets", await wallets.getAddress(), "to ContractManager", await contractManager.getAddress(), "\n");
-    await contractManager.setContractsAddress( "SkaleVerifier", await skaleVerifier.getAddress() );
-    console.log("Set SkaleVerifier", await skaleVerifier.getAddress(), "to ContractManager", await contractManager.getAddress(), "\n");
-    await contractManager.setContractsAddress( "KeyStorage", await keyStorage.getAddress() );
-    console.log("Set KeyStorage", await keyStorage.getAddress(), "to ContractManager", await contractManager.getAddress(), "\n");
-    await contractManager.setContractsAddress( "Nodes", await nodes.getAddress() );
-    console.log("Set Nodes", await nodes.getAddress(), "to ContractManager", await contractManager.getAddress(), "\n");
+    await schains.addContractManager(contractManager);
+    console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract Schains", schainsAddress, "\n");
+    await schainsInternal.addContractManager(contractManager);
+    console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract SchainsInternal", schainsInternalAddress, "\n");
+    await wallets.addContractManager(contractManager);
+    console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract Wallets", walletsAddress, "\n");
+    await contractManager.setContractsAddress("Schains", schains);
+    console.log("Set Schains", schainsAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("SchainsInternal", schainsInternal);
+    console.log("Set SchainsInternal", schainsInternalAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("Wallets", wallets);
+    console.log("Set Wallets", walletsAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier);
+    console.log("Set SkaleVerifier", skaleVerifierAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("KeyStorage", keyStorage);
+    console.log("Set KeyStorage", keyStorageAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("Nodes", nodes);
+    console.log("Set Nodes", nodesAddress, "to ContractManager", contractManagerAddress, "\n");
     const nodeAddress1 = new Wallet(process.env.PRIVATE_KEY_FOR_ETHEREUM).connect(ethers.provider);
     const nodeAddress2 = new Wallet(process.env.PRIVATE_KEY_FOR_SCHAIN).connect(ethers.provider);
     await owner.sendTransaction({to: nodeAddress1.address, value: ethers.parseEther("1")});
@@ -156,18 +163,18 @@ async function main() {
         }
     };
     await keyStorage.setBlsCommonPublicKeyForSchain(schainHash, BLSPublicKey );
-    console.log("Set common public key in KeyStorage contract", await keyStorage.getAddress(), "\n");
+    console.log("Set common public key in KeyStorage contract", keyStorageAddress, "\n");
     await wallets.rechargeSchainWallet(schainHash, { value: "10000000000000000000" } ); // originally it was 1000000000000000000 = 1ETH
-    console.log("Recharge schain wallet in Wallets contract", await wallets.getAddress(), "\n");
+    console.log("Recharge schain wallet in Wallets contract", walletsAddress, "\n");
 
     const jsonObject = {
-        contract_manager_address: await contractManager.getAddress(),
+        contract_manager_address: contractManagerAddress,
         contract_manager_abi: getAbi(contractManager.interface),
-        schains_internal_address: await schainsInternal.getAddress(),
+        schains_internal_address: schainsInternalAddress,
         schains_internal_abi: getAbi(schainsInternal.interface),
-        key_storage_address: await keyStorage.getAddress(),
+        key_storage_address: keyStorageAddress,
         key_storage_abi: getAbi(keyStorage.interface),
-        wallets_address: await wallets.getAddress(),
+        wallets_address: walletsAddress,
         wallets_abi: getAbi(wallets.interface)
     };
 

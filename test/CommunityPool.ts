@@ -10,8 +10,8 @@ import {
 
 import { getBalance } from "./utils/helper";
 
-import chai = require("chai");
-import chaiAlmost = require("chai-almost");
+import chai from "chai";
+import chaiAlmost from "chai-almost";
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -32,6 +32,8 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { BigNumberish, toNumber } from "ethers";
 import { expect } from "chai";
 import { deployMessages } from "./utils/deploy/messages";
+
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 
 describe("CommunityPool", () => {
     let deployer: SignerWithAddress;

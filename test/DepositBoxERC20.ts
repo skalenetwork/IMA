@@ -35,7 +35,7 @@ import {
 } from "../typechain";
 import { getPublicKey, stringToHex } from "./utils/helper";
 
-import chai = require("chai");
+import chai from "chai";
 
 chai.should();
 chai.use(chaiAsPromised);

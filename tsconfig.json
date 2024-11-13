@@ -30,7 +30,6 @@
         "migrations/submitTransactions.ts",
         "migrations/hotfixUpgrade.ts",
         "migrations/generateManifest.ts",
-        "gas/calculateGas.ts",
         "migrations/deploySchain.ts"
     ]
 }

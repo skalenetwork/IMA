@@ -24,7 +24,7 @@
  */
 import chalk from "chalk";
 import { promises as fs } from 'fs';
-import { Interface } from 'ethers';
+import { AddressLike, Interface } from 'ethers';
 import { ethers, upgrades } from "hardhat";
 import { MessageProxyForMainnet, Linker, ContractManager, CommunityPool } from "../typechain";
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
@@ -91,7 +91,7 @@ async function setVersion(messageProxy: MessageProxyForMainnet, version: string)
     }
 }
 
-async function deployContract(name: string, args: unknown[], initializer: string) {
+async function deployContract(name: string, args: string[], initializer: string) {
     console.log("Deploy", name);
     const factory = await getContractFactory(name);
     const proxy = await upgrades.deployProxy(factory, args, { initializer });
@@ -102,10 +102,10 @@ async function deployContract(name: string, args: unknown[], initializer: string
     return proxy;
 }
 
-async function registerContracts(linker: Linker, messageProxy: MessageProxyForMainnet, addresses: string[]) {
-    for (const address of addresses) {
-        await (await linker.registerMainnetContract(address)).wait();
-        await (await messageProxy.registerExtraContractForAll(address)).wait();
+async function registerContracts(linker: Linker, messageProxy: MessageProxyForMainnet, proxies: AddressLike[]) {
+    for (const proxy of proxies) {
+        await (await linker.registerMainnetContract(proxy)).wait();
+        await (await messageProxy.registerExtraContractForAll(proxy)).wait();
     }
 }
 
@@ -120,17 +120,15 @@ async function deployMessageProxyForMainnet(
 ): Promise<MessageProxyForMainnet> {
     const [owner] = await ethers.getSigners();
     const contractManager = await getContractManager();
-    const contractManagerAddress = await contractManager.getAddress();
     const messageProxyForMainnet = await deployContract(
         "MessageProxyForMainnet",
-        [contractManagerAddress],
+        [await contractManager.getAddress()],
         'initialize(address)'
     ) as unknown as MessageProxyForMainnet;
-    const messageProxyForMainetAddress = await messageProxyForMainnet.getAddress();
-    await contractManager.setContractsAddress("MessageProxyForMainnet", messageProxyForMainetAddress);
+    await contractManager.setContractsAddress("MessageProxyForMainnet", messageProxyForMainnet);
     await messageProxyForMainnet.grantRole(await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE(), owner.address);
     deployed.set("MessageProxyForMainnet", {
-        address: messageProxyForMainetAddress,
+        address: await messageProxyForMainnet.getAddress(),
         interface: messageProxyForMainnet.interface
     });
     return messageProxyForMainnet;
@@ -155,13 +153,12 @@ async function deployLinker(
         ],
         'initialize(address,address)'
     ) as unknown as Linker;
-    const linkerAddress = await linker.getAddress();
-    await contractManager.setContractsAddress("Linker", linkerAddress);
-    await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), linkerAddress);
-    await registerContracts(linker, messageProxyForMainnet, [linkerAddress]);
+    await contractManager.setContractsAddress("Linker", linker);
+    await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), linker);
+    await registerContracts(linker, messageProxyForMainnet, [linker]);
 
     deployed.set("Linker", {
-        address: linkerAddress,
+        address: await linker.getAddress(),
         interface: linker.interface
     });
     return linker;
@@ -188,13 +185,12 @@ async function deployCommunityPool(
         ],
         'initialize(address,address,address)'
     ) as unknown as CommunityPool;
-    const communityPoolAddress = await communityPool.getAddress();
-    await contractManager.setContractsAddress("CommunityPool", communityPoolAddress);
-    await messageProxyForMainnet.setCommunityPool(communityPoolAddress);
-    await registerContracts(linker, messageProxyForMainnet, [communityPoolAddress]);
+    await contractManager.setContractsAddress("CommunityPool", communityPool);
+    await messageProxyForMainnet.setCommunityPool(communityPool);
+    await registerContracts(linker, messageProxyForMainnet, [communityPool]);
 
     deployed.set("CommunityPool", {
-        address: communityPoolAddress,
+        address: await communityPool.getAddress(),
         interface: communityPool.interface
     });
     return communityPool;
@@ -222,11 +218,10 @@ async function deployDepositBoxes(
             ],
             'initialize(address,address,address)'
         );
-        const proxyAddress = await proxy.getAddress();
-        await registerContracts(linker, messageProxyForMainnet, [proxyAddress]);
-        await contractManager.setContractsAddress(contract, proxyAddress);
+        await registerContracts(linker, messageProxyForMainnet, [proxy]);
+        await contractManager.setContractsAddress(contract, proxy);
         deployed.set(contract, {
-            address: proxyAddress,
+            address: await proxy.getAddress(),
             interface: proxy.interface
         });
     }

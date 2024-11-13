@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     CommunityLocker,
     EthErc20,
@@ -53,6 +53,8 @@ import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
 const schainHash = ethers.id(schainName);
+
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 
 describe("TokenManagerEth", () => {
     let deployer: SignerWithAddress;

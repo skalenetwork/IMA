@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     CommunityLocker,
     TokenManagerEth,
@@ -83,10 +83,10 @@ describe("TokenManagerLinker", () => {
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxy, linker, communityLocker, fakeDepositBox);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxy, linker, communityLocker, fakeDepositBox);
         const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
-        await messageProxy.connect(deployer).grantRole(chainConnectorRole, await linker.getAddress());
+        await messageProxy.connect(deployer).grantRole(chainConnectorRole, linker);
         const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxy.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
-        await messageProxy.registerExtraContractForAll(await linker.getAddress());
+        await messageProxy.registerExtraContractForAll(linker);
     });
 
     it("should connect schain", async () => {

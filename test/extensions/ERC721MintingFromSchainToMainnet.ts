@@ -25,7 +25,7 @@
 
 // import { solidity } from "ethereum-waffle";
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     CommunityLocker,
     CommunityPool,
@@ -198,7 +198,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         // await messageProxyForMainnet.registerExtraContractForAll(communityPool)
 
         // IMA schain part deployment
-        messageProxyForSchain = await deployMessageProxyForSchain(await keyStorage.getAddress(), schainName);
+        messageProxyForSchain = await deployMessageProxyForSchain(keyStorage, schainName);
         await keyStorage.connect(deployer).setBlsCommonPublicKey(BLSPublicKey);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, await imaLinker.getAddress());
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain, tokenManagerLinker, await communityPool.getAddress());

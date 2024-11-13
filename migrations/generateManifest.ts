@@ -148,12 +148,12 @@ export async function manifestSetup(pathToManifest: string) {
         try {
             await fs.unlink(correctManifestPath);
             console.log("Current Manifest file removed");
-        } catch (e) {
-            console.log("Could not remove current manifest file");
+        } catch {
+            console.error("Could not remove current manifest file");
             process.exit(1);
         }
-    } catch (e) {
-        console.log("No current Manifest file detected");
+    } catch {
+        console.error("No current Manifest file detected");
     }
     try {
         await fs.access( pathToManifest );
@@ -161,12 +161,12 @@ export async function manifestSetup(pathToManifest: string) {
         try {
             await fs.copyFile( pathToManifest, correctManifestPath );
             console.log("New Manifest file setup");
-        } catch (e) {
-            console.log("Could not setup new Manifest file");
+        } catch {
+            console.error("Could not setup new Manifest file");
             process.exit(1);
         }
-    } catch (e) {
-        console.log("No new Manifest file detected");
+    } catch {
+        console.error("No new Manifest file detected");
         process.exit(1);
     }
 }

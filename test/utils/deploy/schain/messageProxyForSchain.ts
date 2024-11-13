@@ -1,13 +1,13 @@
 import { ethers, upgrades } from "hardhat";
-import { MessageProxyForSchain } from "../../../../typechain";
+import { KeyStorage, MessageProxyForSchain } from "../../../../typechain";
 
 const name = "MessageProxyForSchain";
 
-export async function deployMessageProxyForSchain(keyStorageAddress: string, schainName: string) {
+export async function deployMessageProxyForSchain(keyStorageAddress: KeyStorage, schainName: string) {
     const factory = await ethers.getContractFactory(name);
     const instance = await upgrades.deployProxy(
         factory,
-        [keyStorageAddress, schainName]
+        [await keyStorageAddress.getAddress(), schainName]
     ) as unknown as MessageProxyForSchain;
     return instance;
 }

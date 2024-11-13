@@ -60,7 +60,7 @@ export async function transferOwnership(contractNamesToTransfer: string[])
         const safeMock = await safeMockFactory.attach(adminOwner) as SafeMock;
         try {
             await (await safeMock.transferProxyAdminOwnership(proxyAdmin.address, deployer.address)).wait();
-        } catch (e) {
+        } catch {
             console.log(chalk.red("Could not run transferProxyAdminOwnership in SafeMock"));
             process.exit(1);
         }

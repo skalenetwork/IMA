@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     ERC721OnChain,
     TokenManagerERC721,
@@ -213,9 +213,9 @@ describe("TokenManagerERC721", () => {
             tokenManagerLinker2 = await deployTokenManagerLinker(messageProxyForSchain2, deployer.address);
             communityLocker2 = await deployCommunityLocker(newSchainName, messageProxyForSchain2, tokenManagerLinker2, fakeCommunityPool);
             tokenManagerERC7212 = await deployTokenManagerERC721(newSchainName, messageProxyForSchain2, tokenManagerLinker2, communityLocker2, fakeDepositBox);
-            await erc721OnTargetChain.connect(deployer).grantRole(await erc721OnTargetChain.MINTER_ROLE(), await tokenManagerERC7212.getAddress());
-            await tokenManagerLinker2.registerTokenManager(await tokenManagerERC7212.getAddress());
-            await messageProxyForSchain2.registerExtraContractForAll(await tokenManagerERC7212.getAddress());
+            await erc721OnTargetChain.connect(deployer).grantRole(await erc721OnTargetChain.MINTER_ROLE(), tokenManagerERC7212);
+            await tokenManagerLinker2.registerTokenManager(tokenManagerERC7212);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerERC7212);
         });
 
         it("should invoke `transferToSchainERC721` without mistakes", async () => {
@@ -1108,8 +1108,8 @@ describe("TokenManagerERC721", () => {
             const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
             const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ, tokenManagerLinkerZ, fakeCommunityPool);
             const tokenManagerERC721Z = await deployTokenManagerERC721(newSchainNameZ, messageProxyForSchainZ, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
-            await erc721OnTargetZChain.connect(deployer).grantRole(await erc721OnTargetZChain.MINTER_ROLE(), await tokenManagerERC721Z.getAddress());
-            await tokenManagerLinkerZ.registerTokenManager(await tokenManagerERC721Z.getAddress());
+            await erc721OnTargetZChain.connect(deployer).grantRole(await erc721OnTargetZChain.MINTER_ROLE(), tokenManagerERC721Z);
+            await tokenManagerLinkerZ.registerTokenManager(tokenManagerERC721Z);
 
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
