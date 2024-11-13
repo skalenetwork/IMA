@@ -22,48 +22,15 @@
  * @file deployMainnet.ts
  * @copyright SKALE Labs 2019-Present
  */
-import { promises as fs } from 'fs';
+import chalk from "chalk";
+import { promises as fs, link } from 'fs';
 import { Interface } from 'ethers';
 import { ethers, upgrades } from "hardhat";
-import { MessageProxyForMainnet, Linker, ContractManager } from "../typechain";
+import { MessageProxyForMainnet, Linker, ContractManager, CommunityPool } from "../typechain";
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
-import { SkaleABIFile } from "@skalenetwork/skale-contracts/lib/domain/types";
+import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
 
-export function getContractKeyInAbiFile(contract: string) {
-    return contract === "MessageProxyForMainnet"
-        ? "message_proxy_mainnet"
-        : contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
-}
-
-export async function getManifestFile(): Promise<string> {
-    return (await Manifest.forNetwork(ethers.provider)).file;
-}
-
-async function getContractManager() {
-    const defaultFilePath = "data/skaleManagerComponents.json";
-    const jsonData = JSON.parse(await fs.readFile(defaultFilePath, "utf-8")) as SkaleABIFile;
-    try {
-        const { contract_manager_address, contract_manager_abi } = jsonData;
-        return { address: contract_manager_address as unknown as string, abi: contract_manager_abi as [] };
-    } catch (e) {
-        console.error(e);
-        process.exit(126);
-    }
-}
-
-function isValidContractManager(contractManager: { address?: string, abi?: unknown[] }) {
-    return contractManager?.address && contractManager?.abi;
-}
-
-async function setVersion(messageProxy: MessageProxyForMainnet, version: string) {
-    try {
-        console.log(`Set version ${version}`);
-        await (await messageProxy.setVersion(version)).wait();
-    } catch {
-        console.error("Failed to set ima version on mainnet");
-    }
-}
 
 export const depositBoxes = [
     "DepositBoxEth",
@@ -79,6 +46,50 @@ export const contracts = [
     "CommunityPool",
     ...depositBoxes
 ];
+
+export function getContractKeyInAbiFile(contract: string) {
+    return contract === "MessageProxyForMainnet"
+        ? "message_proxy_mainnet"
+        : contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
+}
+
+export async function getManifestFile(): Promise<string> {
+    return (await Manifest.forNetwork(ethers.provider)).file;
+}
+
+async function getContractManager() {
+    const skaleManager = await getSkaleManagerInstance();
+    return (await skaleManager.getContract("ContractManager")) as ContractManager;
+}
+async function getLinker(): Promise<Linker> {
+    const contractManager = await getContractManager();
+    return (await contractManager.getContract("Linker")) as unknown as Linker;
+}
+
+async function getMessageProxyForMainnet(): Promise<MessageProxyForMainnet> {
+    const contractManager = await getContractManager();
+    return (await contractManager.getContract("MessageProxyForMainnet")) as unknown as MessageProxyForMainnet;
+}
+
+async function getSkaleManagerInstance() {
+    if (!process.env.TARGET) {
+        console.log(chalk.red("Specify desired skale-manager instance"));
+        console.log(chalk.red("Set instance alias or SkaleManager address to TARGET environment variable"));
+        process.exit(1);
+    }
+    const network = await skaleContracts.getNetworkByProvider(ethers.provider);
+    const project = network.getProject("skale-manager");
+    return await project.getInstance(process.env.TARGET);
+}
+
+async function setVersion(messageProxy: MessageProxyForMainnet, version: string) {
+    try {
+        console.log(`Set version ${version}`);
+        await (await messageProxy.setVersion(version)).wait();
+    } catch {
+        console.error("Failed to set ima version on mainnet");
+    }
+}
 
 async function deployContract(name: string, args: unknown[], initializer: string) { 
     console.log("Deploy", name);
@@ -111,78 +122,139 @@ async function registerInContractManager(contractManagerInst: ContractManager, d
     }
 }
 
-async function main() {
+async function deployMessageProxyForMainnet(
+    deployed: Map<
+        string,
+        {
+            address: string;
+            interface: Interface;
+        }
+    >
+): Promise<MessageProxyForMainnet> {
     const [owner] = await ethers.getSigners();
-    const deployed = new Map<string, { address: string; interface: Interface }>();
     const contractManager = await getContractManager();
-    const version = await getVersion();
-
+    const contractManagerAddress = await contractManager.getAddress();
     const messageProxyForMainnet = await deployContract(
         "MessageProxyForMainnet",
-        [contractManager?.address],
+        [contractManagerAddress],
         'initialize(address)'
     ) as unknown as MessageProxyForMainnet;
+    const messageProxyForMainetAddress = await messageProxyForMainnet.getAddress();
+    await contractManager.setContractsAddress("MessageProxyForMainnet", messageProxyForMainetAddress);
+    await messageProxyForMainnet.grantRole(await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE(), owner.address);
     deployed.set("MessageProxyForMainnet", {
-        address: await messageProxyForMainnet.getAddress(),
+        address: messageProxyForMainetAddress,
         interface: messageProxyForMainnet.interface
     });
+    return messageProxyForMainnet;
+}
 
-    const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
-    await (await messageProxyForMainnet.grantRole(extraContractRegistrarRole, owner.address)).wait();
-
-    await setVersion(messageProxyForMainnet, version);
-
+async function deployLinker(
+    deployed: Map<
+        string,
+        {
+            address: string;
+            interface: Interface;
+        }
+    >
+): Promise<Linker> {
+    const contractManager = await getContractManager();
+    const messageProxyForMainnet = await getMessageProxyForMainnet();
     const linker = await deployContract(
         "Linker",
-        [contractManager?.address, deployed.get("MessageProxyForMainnet")?.address],
+        [
+            await contractManager.getAddress(),
+            await messageProxyForMainnet.getAddress(),
+        ],
         'initialize(address,address)'
     ) as unknown as Linker;
+    const linkerAddress = await linker.getAddress();
+    await contractManager.setContractsAddress("Linker", linkerAddress);
+    await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), linkerAddress);
+    await registerContracts(linker, messageProxyForMainnet, [linkerAddress]);
+
     deployed.set("Linker", {
-        address: await linker.getAddress(),
+        address: linkerAddress,
         interface: linker.interface
     });
+    return linker;
+}
 
-    await registerContracts(linker, messageProxyForMainnet, [await linker.getAddress()]);
-    const chainConnectorRole = await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE();
-    await (await messageProxyForMainnet.grantRole(chainConnectorRole, await linker.getAddress())).wait();
-
+async function deployCommunityPool(
+    deployed: Map<
+        string,
+        {
+            address: string;
+            interface: Interface;
+        }
+    >
+): Promise<CommunityPool> {
+    const contractManager = await getContractManager();
+    const messageProxyForMainnet = await getMessageProxyForMainnet();
+    const linker = await getLinker();
     const communityPool = await deployContract(
         "CommunityPool",
-        [contractManager?.address, deployed.get("Linker")?.address, deployed.get("MessageProxyForMainnet")?.address],
+        [
+            await contractManager.getAddress(),
+            await messageProxyForMainnet.getAddress(),
+            await linker.getAddress()
+        ],
         'initialize(address,address,address)'
-    );
+    ) as unknown as CommunityPool;
     const communityPoolAddress = await communityPool.getAddress();
+    await contractManager.setContractsAddress("CommunityPool", communityPoolAddress);
+    await messageProxyForMainnet.setCommunityPool(communityPoolAddress);
+    await registerContracts(linker, messageProxyForMainnet, [communityPoolAddress]);
+
     deployed.set("CommunityPool", {
         address: communityPoolAddress,
         interface: communityPool.interface
     });
-    await registerContracts(linker, messageProxyForMainnet, [communityPoolAddress]);
-    await (await messageProxyForMainnet.setCommunityPool(communityPoolAddress)).wait();
+    return communityPool;
+}
 
+async function deployDepositBoxes(
+    deployed: Map<
+        string,
+        {
+            address: string;
+            interface: Interface;
+        }
+    >
+) {
+    const contractManager = await getContractManager();
+    const linker = await getLinker();
+    const messageProxyForMainnet = await getMessageProxyForMainnet();
     for (const contract of depositBoxes) {
         const proxy = await deployContract(
             contract,
-            [contractManager?.address, deployed.get("Linker")?.address, deployed.get("MessageProxyForMainnet")?.address],
+            [
+                await contractManager.getAddress(),
+                await linker.getAddress(),
+                await messageProxyForMainnet.getAddress()
+            ],
             'initialize(address,address,address)'
         );
         const proxyAddress = await proxy.getAddress();
+        await registerContracts(linker, messageProxyForMainnet, [proxyAddress]);
+        await contractManager.setContractsAddress(contract, proxyAddress);
         deployed.set(contract, {
             address: proxyAddress,
             interface: proxy.interface
         });
-        await registerContracts(linker, messageProxyForMainnet, [proxyAddress]);
     }
+}
 
-    if (!(isValidContractManager(contractManager) && await ethers.provider.getCode(contractManager.address) !== "0x")) {
-        console.error("Invalid ContractManager address or ABI");
-    }
-    const contractManagerInst = (new ethers.Contract(contractManager.address, contractManager.abi, owner)) as unknown as ContractManager;
-    if (await contractManagerInst.owner() !== owner.address) {
-        console.error("Owner of ContractManager is not the same as the deployer");
-    }
-    await registerInContractManager(contractManagerInst, deployed);
+async function main() {
+    const deployed = new Map<string, { address: string; interface: Interface }>();
+    const version = await getVersion();
 
-    console.log("Registration is completed!");
+    const messageProxyForMainnet =  await deployMessageProxyForMainnet(deployed);
+    await setVersion(messageProxyForMainnet, version);
+
+    await deployLinker(deployed);
+    await deployCommunityPool(deployed);
+    await deployDepositBoxes(deployed);
 
     console.log("Store ABIs");
     const outputObject: { [k: string]: string | [] } = {};
