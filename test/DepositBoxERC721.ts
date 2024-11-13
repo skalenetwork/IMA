@@ -352,7 +352,7 @@ describe("DepositBoxERC721", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign);
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(BigInt(0), stringToHex("Given address is not a contract"));
+                .withArgs(0n, stringToHex("Given address is not a contract"));
         });
 
         it("should revert `Incorrect tokenId`", async () => {
@@ -371,7 +371,7 @@ describe("DepositBoxERC721", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign);
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(BigInt(0), stringToHex("Incorrect tokenId"));
+                .withArgs(0n, stringToHex("Incorrect tokenId"));
         });
 
         it("should transfer ERC721 token", async () => {

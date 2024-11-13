@@ -370,12 +370,12 @@ describe("DepositBoxERC20", () => {
 
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(BigInt(0), stringToHex("Given address is not a contract"));
-            
+                .withArgs(0n, stringToHex("Given address is not a contract"));
+
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(BigInt(1), stringToHex("Not enough money"));
-            
+                .withArgs(1n, stringToHex("Not enough money"));
+
 
             const balanceBefore = await ethers.provider.getBalance(deployer.address);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 2, [message], sign);
@@ -386,7 +386,7 @@ describe("DepositBoxERC20", () => {
             await depositBoxERC20.connect(user).depositERC20(schainName, await erc20.getAddress(), amount);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 3, [message], sign);
             const transferredAmount = await depositBoxERC20.transferredAmount(schainHash, await erc20.getAddress());
-            expect(transferredAmount).to.be.equal(BigInt(0));
+            expect(transferredAmount).to.be.equal(0n);
 
             (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
 

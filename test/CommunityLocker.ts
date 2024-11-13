@@ -106,25 +106,25 @@ describe("CommunityLocker", () => {
     });
 
     it("should set time limit per message", async () => {
-        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(BigInt(300));
+        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(300n);
         await communityLocker.setTimeLimitPerMessage("Mainnet", 0)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage("Mainnet", 0);
-        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(BigInt(0));
+        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(0n);
     });
 
     it("should set time limit per message for schain", async () => {
         const anotherSchainName = "Schain Sierra";
         const schainHash = ethers.id(anotherSchainName);
-        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(BigInt(0));
+        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(0n);
         await communityLocker.setTimeLimitPerMessage(anotherSchainName, 1200)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage(schainName, 1200)
             .should.be.eventually.rejectedWith("Incorrect chain");
         await communityLocker.setTimeLimitPerMessage(anotherSchainName, 1200);
-        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(BigInt(1200));
+        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(1200n);
     });
 
     it("should set gasprice", async () => {
@@ -141,7 +141,7 @@ describe("CommunityLocker", () => {
         const time = await currentTime();
         await communityLocker.setGasPrice(100, time + 200, sign).should.be.eventually.rejectedWith("Timestamp should not be in the future");
         await communityLocker.setGasPrice(100, time, sign);
-        expect(await communityLocker.mainnetGasPrice()).to.be.equal(BigInt(100));
+        expect(await communityLocker.mainnetGasPrice()).to.be.equal(100n);
         expect(await communityLocker.gasPriceTimestamp()).to.be.equal(BigInt(time));
 
         skipTime(60);
@@ -150,7 +150,7 @@ describe("CommunityLocker", () => {
         await communityLocker.setGasPrice(101, time, sign).should.be.eventually.rejectedWith("Gas price timestamp already updated");
         await communityLocker.setGasPrice(101, time + 70, sign).should.be.eventually.rejectedWith("Timestamp should not be in the future");
         await communityLocker.setGasPrice(101, time + 40, sign);
-        expect(await communityLocker.mainnetGasPrice()).to.be.equal(BigInt(101));
+        expect(await communityLocker.mainnetGasPrice()).to.be.equal(101n);
         expect(await communityLocker.gasPriceTimestamp()).to.be.equal(BigInt(time + 40));
     });
 });

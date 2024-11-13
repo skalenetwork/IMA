@@ -461,7 +461,7 @@ describe("MessageProxy", () => {
             await messageProxyForMainnet.registerExtraContract(schainName, await communityPool.getAddress());
             await depositBox.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
-            const amountWei = minTransactionGas * BigInt(gasPrice) * BigInt(2);
+            const amountWei = minTransactionGas * BigInt(gasPrice) * 2n;
 
             await messageProxyForMainnet.registerExtraContract(schainName, await depositBox.getAddress());
 

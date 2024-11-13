@@ -91,7 +91,7 @@ async function setVersion(messageProxy: MessageProxyForMainnet, version: string)
     }
 }
 
-async function deployContract(name: string, args: unknown[], initializer: string) { 
+async function deployContract(name: string, args: unknown[], initializer: string) {
     console.log("Deploy", name);
     const factory = await getContractFactory(name);
     const proxy = await upgrades.deployProxy(factory, args, { initializer });

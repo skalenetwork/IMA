@@ -154,7 +154,7 @@ describe("CommunityPool", () => {
             });
 
             it("should revert if user recharged not enough money for most costly transaction", async () => {
-                const amount = BigInt(minTransactionGas) * BigInt(gasPrice) - BigInt(1);
+                const amount = BigInt(minTransactionGas) * BigInt(gasPrice) - 1n;
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice })
                     .should.be.eventually.rejectedWith("Not enough ETH for transaction");
             });
@@ -178,19 +178,19 @@ describe("CommunityPool", () => {
                 userBalance.should.be.deep.equal(amount);
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice });
                 userBalance = await communityPool.getBalance(user.address, schainName);
-                userBalance.should.be.deep.equal(amount * BigInt(2));
+                userBalance.should.be.deep.equal(amount * 2n);
                 expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(1);
             });
 
             it("should reject if user tries to withdraw more than he has", async () => {
                 const amount = BigInt(minTransactionGas) * BigInt(gasPrice);
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice });
-                await communityPool.connect(user).withdrawFunds(schainName, amount + BigInt(1), { gasPrice })
+                await communityPool.connect(user).withdrawFunds(schainName, amount + 1n, { gasPrice })
                     .should.be.eventually.rejectedWith("Balance is too low");
             });
 
             it("should reject if user passes not enough money for transaction", async () => {
-                const tooSmallAmount = BigInt(1);
+                const tooSmallAmount = 1n;
                 await communityPool
                     .connect(user)
                     .rechargeUserWallet(schainName, user.address, { value: tooSmallAmount, gasPrice })
@@ -200,22 +200,22 @@ describe("CommunityPool", () => {
             it("should recharge wallet if user passed enough money", async () => {
                 const amount = await communityPool.getRecommendedRechargeAmount(ethers.id(schainName), user.address, { gasPrice: gasPrice });
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: gasPrice});
-                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(BigInt(1));
+                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(1n);
                 let userBalance = await communityPool.getBalance(user.address, schainName);
                 userBalance.should.be.deep.equal(amount);
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: gasPrice});
                 userBalance = await communityPool.getBalance(user.address, schainName);
-                userBalance.should.be.deep.equal(amount * BigInt(2));
-                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(BigInt(1));
+                userBalance.should.be.deep.equal(amount * 2n);
+                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(1n);
             });
-            
+
             it("should recharge wallet, withdraw all money and check outgoingMessageCounter", async () => {
                 const amount = await communityPool.getRecommendedRechargeAmount(ethers.id(schainName), user.address, { gasPrice });
                 await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice });
-                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(BigInt(1));
+                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(1n);
 
                 await communityPool.connect(user).withdrawFunds(schainName, amount.toString(), { gasPrice });
-                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(BigInt(2));
+                expect(await messageProxy.getOutgoingMessagesCounter(schainName)).to.be.equal(2n);
             });
 
             it("should allow to withdraw money", async () => {
@@ -238,7 +238,7 @@ describe("CommunityPool", () => {
             }
             const gasPrice = BigInt(1e9);
             const wei = BigInt(minTransactionGas) * gasPrice;
-            const wei2 = BigInt(minTransactionGas) * gasPrice * BigInt(2);
+            const wei2 = BigInt(minTransactionGas) * gasPrice * 2n;
             const res1 = await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: wei.toString(), gasPrice });
             const res2 = await communityPool.connect(user).rechargeUserWallet(schainName2, user.address, { value: wei2.toString(), gasPrice });
             const userBalance = await communityPool.getBalance(user.address, schainName);
@@ -323,7 +323,7 @@ describe("CommunityPool", () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
             const gasPrice = tx.gasPrice as BigNumberish;
-            const wei = BigInt(minTransactionGas) * BigInt(gasPrice) * BigInt(2);
+            const wei = BigInt(minTransactionGas) * BigInt(gasPrice) * 2n;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, "0x0000000000000000000000000000000000000000", user.address, 0)
                 .should.be.eventually.rejectedWith("Node address must be set");
@@ -334,7 +334,7 @@ describe("CommunityPool", () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
             const gasPrice = tx.gasPrice as BigNumberish;
-            const wei = BigInt(minTransactionGas) * BigInt(gasPrice) * BigInt(2);
+            const wei = BigInt(minTransactionGas) * BigInt(gasPrice) * 2n;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice });
             const balanceAfter = await getBalance(node.address);
@@ -359,7 +359,7 @@ describe("CommunityPool", () => {
             await messageProxyTester.registerExtraContract(schainNameRGBU, await communityPoolTester.getAddress());
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice);
-            const gasPriceDuringGasSpikes = BigInt(gasPrice) * BigInt(2);
+            const gasPriceDuringGasSpikes = BigInt(gasPrice) * 2n;
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;

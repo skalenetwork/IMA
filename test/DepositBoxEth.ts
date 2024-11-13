@@ -293,7 +293,7 @@ describe("DepositBoxEth", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(BigInt(0), stringToHex(error));
+                .withArgs(0n, stringToHex(error));
         });
 
         it("should rejected with message `Not enough money to finish this transaction` when "
@@ -331,7 +331,7 @@ describe("DepositBoxEth", () => {
                 const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
                 await expect(tx)
                     .to.emit(messageProxy, "PostMessageError")
-                    .withArgs(BigInt(0), stringToHex(error));
+                    .withArgs(0n, stringToHex(error));
             });
 
         it("should rejected with message `Not enough money to finish this transaction`", async () => {
@@ -370,7 +370,7 @@ describe("DepositBoxEth", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             await expect(tx)
                     .to.emit(messageProxy, "PostMessageError")
-                    .withArgs(BigInt(0), stringToHex(error));
+                    .withArgs(0n, stringToHex(error));
         });
 
         it("should rejected with message `null`", async () => {
@@ -411,7 +411,7 @@ describe("DepositBoxEth", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             await expect(tx)
                     .to.emit(messageProxy, "PostMessageError")
-                    .withArgs(BigInt(0), stringToHex(""));
+                    .withArgs(0n, stringToHex(""));
         });
 
         it("should transfer eth", async () => {
@@ -502,7 +502,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.equal(BigInt(wei) * BigInt(2));
+            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.equal(BigInt(wei) * 2n);
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
@@ -578,7 +578,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.equal(BigInt(wei) * BigInt(2));
+            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.equal(BigInt(wei) * 2n);
 
             await reimbursed(await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign));
 
@@ -603,7 +603,7 @@ describe("DepositBoxEth", () => {
 
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(BigInt(1), stringToHex("Address: unable to send value, recipient may have reverted"));
+                .withArgs(1n, stringToHex("Address: unable to send value, recipient may have reverted"));
 
 
             expect(await depositBoxEth.approveTransfers(await fallbackEthTester.getAddress())).to.equal(wei);
