@@ -34,7 +34,7 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { stringKeccak256, getBalance, getPublicKey, stringToHex } from "./utils/helper";
+import { getBalance, getPublicKey, stringToHex } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -84,7 +84,7 @@ describe("DepositBoxERC721WithMetadata", () => {
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
-    const schainHash = stringKeccak256(schainName);
+    const schainHash = ethers.id(schainName);
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();

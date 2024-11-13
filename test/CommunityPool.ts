@@ -8,7 +8,7 @@ import {
     MessagesTester
 } from "../typechain";
 
-import { stringKeccak256, getBalance } from "./utils/helper";
+import { getBalance } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -70,7 +70,7 @@ describe("CommunityPool", () => {
     it("should add link to contract on schain", async () => {
         const fakeContractOnSchain = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
-        const schainHash = stringKeccak256(schainName);
+        const schainHash = ethers.id(schainName);
 
         await communityPool.getSchainContract(schainHash)
             .should.be.eventually.rejectedWith("Destination contract must be defined");
@@ -226,8 +226,8 @@ describe("CommunityPool", () => {
         });
 
         it("should recharge wallet for couple chains", async () => {
-            const schainHash = stringKeccak256(schainName);
-            const schainHash2 = stringKeccak256(schainName2);
+            const schainHash = ethers.id(schainName);
+            const schainHash2 = ethers.id(schainName2);
             const activateUserData = await messages.encodeActivateUserMessage(user.address);
 
             await communityPool.addSchainContract(schainName2, mockContractOnSchain);
@@ -290,13 +290,13 @@ describe("CommunityPool", () => {
     });
 
     it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {
-            const schainHash = stringKeccak256("Schain");
+            const schainHash = ethers.id("Schain");
             await communityPool.connect(deployer).refundGasByUser(schainHash, node.address, user.address, 0)
                 .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
         });
 
         it("should set rejected when call refundGasBySchainWallet not from messageProxy contract", async () => {
-            const schainHash = stringKeccak256("Schain");
+            const schainHash = ethers.id("Schain");
             await communityPool.connect(deployer).refundGasBySchainWallet(schainHash, node.address, 0)
                 .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
         });
@@ -308,7 +308,7 @@ describe("CommunityPool", () => {
         let communityPoolTester: CommunityPool;
         let mockContractOnSchain: string;
         const schainNameRGBU = "SchainRGBU";
-        const schainHashRGBU = stringKeccak256("SchainRGBU");
+        const schainHashRGBU = ethers.id("SchainRGBU");
 
         beforeEach(async () => {
             messageProxyTester = await deployMessageProxyForMainnetTester(contractManager);

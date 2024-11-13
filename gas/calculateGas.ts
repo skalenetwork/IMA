@@ -79,7 +79,7 @@ import { deployTokenManagerERC1155 } from "../test/utils/deploy/schain/tokenMana
 import { deployMessageProxyForSchain } from "../test/utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "../test/utils/deploy/messages";
 
-import { stringKeccak256, getPublicKey } from "../test/utils/helper";
+import { getPublicKey } from "../test/utils/helper";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
@@ -130,7 +130,7 @@ describe("Gas calculation", () => {
     let ERC1155TokenOnSchain: ERC1155OnChain;
 
     const schainName = "GasCalculation";
-    const schainNameHash = stringKeccak256("GasCalculation");
+    const schainNameHash = ethers.id("GasCalculation");
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const mainnetName = "Mainnet";
 

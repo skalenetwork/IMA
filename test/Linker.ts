@@ -33,7 +33,6 @@ import {
     Linker,
     MessageProxyForMainnet,
 } from "../typechain";
-import { stringKeccak256 } from "./utils/helper";
 
 
 chai.should();
@@ -52,7 +51,6 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
-const schainName = "TestSchain";
 
 describe("Linker", () => {
     let deployer: SignerWithAddress;
@@ -65,6 +63,8 @@ describe("Linker", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const schainName = "TestSchain";
+    const schainHash = ethers.id(schainName);
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -238,31 +238,32 @@ describe("Linker", () => {
 
     it("should kill schain by schain owner first", async () => {
         // schain owner is user
+
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(0);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(0);
         await linker.connect(user).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(1);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(1);
         await linker.connect(user).kill(schainName).should.be.eventually.rejectedWith("Already killed or incorrect sender");
         await linker.connect(deployer).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(false);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(3);
+        expect(await linker.isNotKilled(schainHash)).to.equal(false);
+        expect(await linker.statuses(schainHash)).to.equal(3);
     });
 
     it("should kill schain by deployer first", async () => {
         // schain owner is user
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(0);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(0);
         await linker.connect(deployer).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(2);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(2);
         await linker.connect(user).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(false);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(3);
+        expect(await linker.isNotKilled(schainHash)).to.equal(false);
+        expect(await linker.statuses(schainHash)).to.equal(3);
     });
 
 });

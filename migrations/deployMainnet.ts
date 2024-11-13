@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 import chalk from "chalk";
-import { promises as fs, link } from 'fs';
+import { promises as fs } from 'fs';
 import { Interface } from 'ethers';
 import { ethers, upgrades } from "hardhat";
 import { MessageProxyForMainnet, Linker, ContractManager, CommunityPool } from "../typechain";
@@ -106,19 +106,6 @@ async function registerContracts(linker: Linker, messageProxy: MessageProxyForMa
     for (const address of addresses) {
         await (await linker.registerMainnetContract(address)).wait();
         await (await messageProxy.registerExtraContractForAll(address)).wait();
-    }
-}
-
-async function registerInContractManager(contractManagerInst: ContractManager, deployed: Map<string, { address: string }>) {
-    try {
-        for (const contractName of contracts) {
-            const contract = deployed.get(contractName);
-            if (!contract) throw new Error(`${contractName} was not found`);
-            await contractManagerInst.setContractsAddress(contractName, contract.address);
-        }
-        console.log("Successfully registered contracts in ContractManager");
-    } catch (error) {
-        console.error("Registration of contracts failed in ContractManager. Please redo it manually!\nError:", error);
     }
 }
 

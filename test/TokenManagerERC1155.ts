@@ -34,7 +34,7 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringKeccak256 } from "./utils/helper";
+
 import { skipTime } from "./utils/time";
 
 chai.should();
@@ -59,13 +59,13 @@ describe("TokenManagerERC1155", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
-    const schainId = stringKeccak256(schainName);
+    const schainId = ethers.id(schainName);
     const id = 1;
     const amount = 4;
     const ids = [1, 2, 3, 4];
     const amounts = [4, 3, 2, 1];
     const mainnetName = "Mainnet";
-    const mainnetId = stringKeccak256("Mainnet");
+    const mainnetId = ethers.id("Mainnet");
     let to: string;
     let token: ERC1155OnChain;
     let fakeDepositBox: string;
@@ -194,7 +194,7 @@ describe("TokenManagerERC1155", () => {
         let tokenManagerERC11552: TokenManagerERC1155;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringKeccak256(newSchainName);
+        const newSchainId = ethers.id(newSchainName);
 
         beforeEach(async () => {
             erc1155OnOriginChain = await deployERC1155OnChain("NewToken");
@@ -1203,7 +1203,7 @@ describe("TokenManagerERC1155", () => {
         let tokenManagerERC11552: TokenManagerERC1155;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringKeccak256(newSchainName);
+        const newSchainId = ethers.id(newSchainName);
 
         beforeEach(async () => {
             erc1155OnOriginChain = await deployERC1155OnChain("NewToken");

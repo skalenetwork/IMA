@@ -34,7 +34,7 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringKeccak256 } from "./utils/helper";
+
 import { skipTime } from "./utils/time";
 
 chai.should();
@@ -59,11 +59,11 @@ describe("TokenManagerERC721WithMetadata", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
-    const schainId = stringKeccak256(schainName);
+    const schainId = ethers.id(schainName);
     const tokenId = 1;
     const tokenURI = "Hello1";
     const mainnetName = "Mainnet";
-    const mainnetId = stringKeccak256("Mainnet");
+    const mainnetId = ethers.id("Mainnet");
     let to: string;
     let token: ERC721OnChain;
     let tokenClone: ERC721OnChain;
@@ -208,7 +208,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         let tokenManagerERC721WithMetadata2: TokenManagerERC721WithMetadata;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringKeccak256(newSchainName);
+        const newSchainId = ethers.id(newSchainName);
 
         beforeEach(async () => {
             erc721OnOriginChain = await deployERC721OnChain("NewToken", "NTN");

@@ -33,7 +33,7 @@ import {
     TokenManagerEth,
     TokenManagerLinker,
 } from "../typechain";
-import { stringKeccak256 } from "./utils/helper";
+
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -52,7 +52,7 @@ import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messagePr
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
-const schainHash = stringKeccak256(schainName);
+const schainHash = ethers.id(schainName);
 
 describe("TokenManagerEth", () => {
     let deployer: SignerWithAddress;
@@ -66,7 +66,7 @@ describe("TokenManagerEth", () => {
     let communityLocker: CommunityLocker;
     let fakeDepositBox: string;
     let fakeCommunityPool: string;
-    const mainnetHash = stringKeccak256("Mainnet");
+    const mainnetHash = ethers.id("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -125,6 +125,7 @@ describe("TokenManagerEth", () => {
         const tokenManagerAddress = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const schainName2 = "TestSchain2";
+        const schainHash = ethers.id(schainName2);
 
         // only owner can add deposit box:
         await tokenManagerEth.connect(user).addTokenManager(schainName2, tokenManagerAddress).should.be.rejected;
@@ -140,7 +141,7 @@ describe("TokenManagerEth", () => {
         await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).
             should.be.rejectedWith("Token Manager is already set");
 
-        const storedDepositBox = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
+        const storedDepositBox = await tokenManagerEth.tokenManagers(schainHash);
         expect(storedDepositBox).to.equal(tokenManagerAddress);
     });
 
@@ -174,12 +175,13 @@ describe("TokenManagerEth", () => {
         const tokenManagerAddress = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const schainName2 = "TestSchain2";
+        const schainHash = ethers.id(schainName2);
         // add deposit box:
         await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress);
         // execution
         await tokenManagerEth.connect(deployer).removeTokenManager(schainName2);
         // expectation
-        const getMapping = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
+        const getMapping = await tokenManagerEth.tokenManagers(schainHash);
         expect(getMapping).to.equal(nullAddress);
     });
 
@@ -273,7 +275,7 @@ describe("TokenManagerEth", () => {
             //  preparation
             await messageProxyForSchain.registerExtraContractForAll(await tokenManagerEth.getAddress());
             const fromSchainName = "fromSchainName";
-            const fromSchainId = stringKeccak256(fromSchainName);
+            const fromSchainId = ethers.id(fromSchainName);
             const amount = "10";
             const sender = deployer.address;
             const to = user.address;

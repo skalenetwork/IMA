@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { ContractManager, SchainsInternal } from "../../../typechain";
-import { stringKeccak256 } from "../helper";
 
 const nameSchainsInternal = "SchainsInternal";
 
@@ -32,6 +31,7 @@ export async function isSchainActive(
     contractManager: ContractManager,
     schainName: string
 ) {
+    const schainHash = ethers.id(schainName);
     const factory = await ethers.getContractFactory(nameSchainsInternal);
     let schainsInternalInstance: SchainsInternal;
     if (await contractManager.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
@@ -41,5 +41,5 @@ export async function isSchainActive(
     } else {
         schainsInternalInstance = factory.attach(await contractManager.getContract(nameSchainsInternal)) as SchainsInternal;
     }
-    return await schainsInternalInstance.isSchainActive(stringKeccak256(schainName));
+    return await schainsInternalInstance.isSchainActive(schainHash);
 }

@@ -51,10 +51,6 @@ export function stringToHex(str: string) {
       .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
       .join('');
     return `0x${hex}`;
-  }
-
-export function stringKeccak256(value: string): string {
-    return ethers.solidityPackedKeccak256(["string"], [value]);
 }
 
 export function getPublicKey(wallet: HDNodeWallet | Wallet): [BytesLike, BytesLike] {

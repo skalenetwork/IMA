@@ -31,7 +31,6 @@ import {
     MessagesTester,
     TokenManagerLinker,
 } from "../typechain";
-import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -58,7 +57,7 @@ describe("CommunityLocker", () => {
     let messages: MessagesTester;
     let communityLocker: CommunityLocker;
     let fakeCommunityPool: string;
-    const mainnetHash = stringKeccak256("Mainnet");
+    const mainnetHash = ethers.id("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -74,7 +73,7 @@ describe("CommunityLocker", () => {
     })
 
     it("should activate user", async () => {
-        const schainHash = stringKeccak256("Schain");
+        const schainHash = ethers.id("Schain");
         const data = await messages.encodeActivateUserMessage(deployer.address);
         const fakeData = await messages.encodeTransferEthMessage(user.address, 1);
         await communityLocker.postMessage(mainnetHash, fakeCommunityPool, data)

@@ -66,7 +66,7 @@ import { deployContractManager } from "../utils/skale-manager-utils/contractMana
 import { deployTokenManagerLinker } from "../utils/deploy/schain/tokenManagerLinker";
 import { deployMessageProxyForSchain } from "../utils/deploy/schain/messageProxyForSchain";
 
-import { stringKeccak256, getPublicKey } from "../utils/helper";
+import { getPublicKey } from "../utils/helper";
 
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
@@ -104,7 +104,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let extensionSchain: ERC721ReferenceMintAndMetadataSchain;
 
     const schainName = "ExtensionChain";
-    const schainNameHash = stringKeccak256("ExtensionChain");
+    const schainNameHash = ethers.id("ExtensionChain");
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
@@ -295,7 +295,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
     it("should send message", async () => {
         const tokenURI = "MyToken1";
-        const mainnetHash = stringKeccak256("Mainnet");
+        const mainnetHash = ethers.id("Mainnet");
         await ERC721TokenOnSchain.connect(user).setTokenURI(1, tokenURI);
         await ERC721TokenOnSchain.connect(user).approve(await extensionSchain.getAddress(), 1);
         await messageProxyForSchain.connect(deployer).registerExtraContract("Mainnet", await extensionSchain.getAddress());
