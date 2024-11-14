@@ -72,9 +72,12 @@ const weiTolerance = Number(ethers.parseEther("0.002"));
 
 async function reimbursed(transaction: ContractTransactionResponse, operation?: string) {
     const receipt = await transaction.wait();
+    if (!receipt) {
+        throw new Error("Transaction failed");
+    }
     const sender = transaction.from;
-    const balanceBefore = await ethers.provider.getBalance(sender, (receipt?.blockNumber ?? 1) - 1);
-    const balanceAfter = await ethers.provider.getBalance(sender, receipt?.blockNumber);
+    const balanceBefore = await ethers.provider.getBalance(sender, (receipt.blockNumber ?? 1) - 1);
+    const balanceAfter = await ethers.provider.getBalance(sender, receipt.blockNumber);
     if (balanceAfter < balanceBefore) {
         const shortageEth = balanceBefore - balanceAfter;
         const shortageGas = shortageEth / transaction.gasPrice;
