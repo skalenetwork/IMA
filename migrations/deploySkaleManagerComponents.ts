@@ -29,6 +29,7 @@ import { Manifest } from "@openzeppelin/upgrades-core";
 import { KeyStorageMock } from '../typechain';
 import { Wallet } from 'ethers';
 import { getPublicKey } from '../test/utils/helper';
+import axios from 'axios';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -36,6 +37,16 @@ export function getContractKeyInAbiFile(contract: string) {
 
 export async function getManifestFile(): Promise<string> {
     return (await Manifest.forNetwork(ethers.provider)).file;
+}
+
+async function getLatestVersionOfSkaleManager(): Promise<string> {
+    try {
+        const response = await axios.get('https://raw.githubusercontent.com/skalenetwork/skale-manager/refs/heads/stable/VERSION');
+        return response.data.trim();
+    } catch (error) {
+        console.error('Failed to fetch the latest version of SkaleManager:', error);
+        throw error;
+    }
 }
 
 async function main() {
@@ -101,8 +112,20 @@ async function main() {
     const nodesAddress = await nodes.getAddress();
     console.log("Contract Nodes deployed to", nodesAddress);
 
+    console.log("Deploy SkaleManager");
+    const skaleManagerFactory = await ethers.getContractFactory("SkaleManager");
+    const skaleManager = await skaleManagerFactory.deploy(contractManager);
+    const skaleManagerAddress = await skaleManager.getAddress();
+    console.log("Contract SkaleManager deployed to", skaleManagerAddress);
+
     console.log("Will set dependencies");
 
+    const versionOfSkaleManager = await getLatestVersionOfSkaleManager();
+
+    await skaleManager.setVersion(versionOfSkaleManager);
+    console.log("Set version", versionOfSkaleManager, "to SkaleManager", skaleManagerAddress, "\n");
+    await contractManager.setContractsAddress("ContractManager", contractManager);
+    console.log("Set ContractManager", contractManagerAddress, "to ContractManager", contractManagerAddress, "\n");
     await schains.addContractManager(contractManager);
     console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract Schains", schainsAddress, "\n");
     await schainsInternal.addContractManager(contractManager);
@@ -121,6 +144,8 @@ async function main() {
     console.log("Set KeyStorage", keyStorageAddress, "to ContractManager", contractManagerAddress, "\n");
     await contractManager.setContractsAddress("Nodes", nodes);
     console.log("Set Nodes", nodesAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("SkaleManager", skaleManager);
+    console.log("Set SkaleManager", skaleManagerAddress, "to ContractManager", contractManagerAddress, "\n");
     const nodeAddress1 = new Wallet(process.env.PRIVATE_KEY_FOR_ETHEREUM).connect(ethers.provider);
     const nodeAddress2 = new Wallet(process.env.PRIVATE_KEY_FOR_SCHAIN).connect(ethers.provider);
     await owner.sendTransaction({to: nodeAddress1.address, value: ethers.parseEther("1")});
@@ -175,7 +200,9 @@ async function main() {
         key_storage_address: keyStorageAddress,
         key_storage_abi: getAbi(keyStorage.interface),
         wallets_address: walletsAddress,
-        wallets_abi: getAbi(wallets.interface)
+        wallets_abi: getAbi(wallets.interface),
+        skale_manager_address: skaleManagerAddress,
+        skale_manager_abi: getAbi(skaleManager.interface),
     };
 
     await fs.writeFile( "data/skaleManagerComponents.json", JSON.stringify( jsonObject ) );
