@@ -30,6 +30,7 @@ import { MessageProxyForMainnet, Linker, ContractManager, CommunityPool } from "
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
+import { SkaleManager } from "../typechain/artifacts/contracts/test/SkaleManagerMock.sol";
 
 
 export const depositBoxes = [
@@ -58,17 +59,24 @@ export async function getManifestFile(): Promise<string> {
 }
 
 async function getContractManager() {
+    const [owner] = await ethers.getSigners();
     const skaleManager = await getSkaleManagerInstance();
-    return (await skaleManager.getContract("ContractManager")) as ContractManager;
+    const contractManager = (await skaleManager.getContract("ContractManager")) as unknown as ContractManager;
+    return contractManager;
 }
+
 async function getLinker(): Promise<Linker> {
     const contractManager = await getContractManager();
-    return (await contractManager.getContract("Linker")) as unknown as Linker;
+    const Linker = await ethers.getContractFactory("Linker");
+    const linkerAddress = await contractManager.getContract("Linker");
+    return Linker.attach(linkerAddress) as Linker;
 }
 
 async function getMessageProxyForMainnet(): Promise<MessageProxyForMainnet> {
     const contractManager = await getContractManager();
-    return (await contractManager.getContract("MessageProxyForMainnet")) as unknown as MessageProxyForMainnet;
+    const MessageProxyForMainnet = await ethers.getContractFactory("MessageProxyForMainnet");
+    const messageProxyForMainnetAddress = await contractManager.getContract("MessageProxyForMainnet");
+    return MessageProxyForMainnet.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
 }
 
 async function getSkaleManagerInstance() {
@@ -125,7 +133,7 @@ async function deployMessageProxyForMainnet(
         [await contractManager.getAddress()],
         'initialize(address)'
     ) as unknown as MessageProxyForMainnet;
-    await contractManager.setContractsAddress("MessageProxyForMainnet", messageProxyForMainnet);
+    await contractManager.connect(owner).setContractsAddress("MessageProxyForMainnet", messageProxyForMainnet);
     await messageProxyForMainnet.grantRole(await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE(), owner.address);
     deployed.set("MessageProxyForMainnet", {
         address: await messageProxyForMainnet.getAddress(),
@@ -143,6 +151,7 @@ async function deployLinker(
         }
     >
 ): Promise<Linker> {
+    const [owner] = await ethers.getSigners();
     const contractManager = await getContractManager();
     const messageProxyForMainnet = await getMessageProxyForMainnet();
     const linker = await deployContract(
@@ -153,7 +162,7 @@ async function deployLinker(
         ],
         'initialize(address,address)'
     ) as unknown as Linker;
-    await contractManager.setContractsAddress("Linker", linker);
+    await contractManager.connect(owner).setContractsAddress("Linker", linker);
     await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), linker);
     await registerContracts(linker, messageProxyForMainnet, [linker]);
 
@@ -173,6 +182,7 @@ async function deployCommunityPool(
         }
     >
 ): Promise<CommunityPool> {
+    const [owner] = await ethers.getSigners();
     const contractManager = await getContractManager();
     const messageProxyForMainnet = await getMessageProxyForMainnet();
     const linker = await getLinker();
@@ -185,7 +195,7 @@ async function deployCommunityPool(
         ],
         'initialize(address,address,address)'
     ) as unknown as CommunityPool;
-    await contractManager.setContractsAddress("CommunityPool", communityPool);
+    await contractManager.connect(owner).setContractsAddress("CommunityPool", communityPool);
     await messageProxyForMainnet.setCommunityPool(communityPool);
     await registerContracts(linker, messageProxyForMainnet, [communityPool]);
 
@@ -205,6 +215,7 @@ async function deployDepositBoxes(
         }
     >
 ) {
+    const [owner] = await ethers.getSigners();
     const contractManager = await getContractManager();
     const linker = await getLinker();
     const messageProxyForMainnet = await getMessageProxyForMainnet();
@@ -219,7 +230,7 @@ async function deployDepositBoxes(
             'initialize(address,address,address)'
         );
         await registerContracts(linker, messageProxyForMainnet, [proxy]);
-        await contractManager.setContractsAddress(contract, proxy);
+        await contractManager.connect(owner).setContractsAddress(contract, proxy);
         deployed.set(contract, {
             address: await proxy.getAddress(),
             interface: proxy.interface
