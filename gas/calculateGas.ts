@@ -89,7 +89,7 @@ import { expect } from "chai";
 import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
 import { deployCommunityPool } from "../test/utils/deploy/mainnet/communityPool";
 
-function getGasUsed(res: ContractTransactionReceipt | null): BigInt {
+function getGasUsed(res: ContractTransactionReceipt | null): bigint {
     if (!res) {
         throw new Error("Transaction result is null");
     }
@@ -334,7 +334,7 @@ describe("Gas calculation", () => {
         let res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("First deposit eth cost:", getGasUsed(res));
         res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
-        console.log("Second deposit eth cost:", getGasUsed(res));;
+        console.log("Second deposit eth cost:", getGasUsed(res));
         res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("Third deposit eth cost:", getGasUsed(res));
         res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
