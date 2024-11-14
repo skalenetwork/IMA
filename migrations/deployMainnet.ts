@@ -30,7 +30,6 @@ import { MessageProxyForMainnet, Linker, ContractManager, CommunityPool } from "
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
-import { SkaleManager } from "../typechain/artifacts/contracts/test/SkaleManagerMock.sol";
 
 
 export const depositBoxes = [
@@ -59,7 +58,6 @@ export async function getManifestFile(): Promise<string> {
 }
 
 async function getContractManager() {
-    const [owner] = await ethers.getSigners();
     const skaleManager = await getSkaleManagerInstance();
     const contractManager = (await skaleManager.getContract("ContractManager")) as unknown as ContractManager;
     return contractManager;

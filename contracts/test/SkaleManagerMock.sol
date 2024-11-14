@@ -22,8 +22,11 @@
 pragma solidity 0.8.16;
 
 import "./TestContractManager.sol";
+interface ISkaleManager {
+    function setVersion(string calldata newVersion) external;
+}
 
-contract SkaleManager is ContractManager {
+contract SkaleManager is ISkaleManager, ContractManager {
 
     ContractManager public contractManager;
 
@@ -33,7 +36,7 @@ contract SkaleManager is ContractManager {
         contractManager = ContractManager(newContractManager);
     }
 
-    function setVersion(string calldata newVersion) external {
+    function setVersion(string calldata newVersion) external override {
         version = newVersion;
     }
 }
