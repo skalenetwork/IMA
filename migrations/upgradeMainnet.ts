@@ -1,10 +1,11 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
+import { promises as fs } from 'fs';
 import { Interface, Transaction } from "ethers";
-import { Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { getAbi, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
-import { contracts } from "./deployMainnet";
+import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 
 
 async function getImaMainnetInstance() {
@@ -58,7 +59,7 @@ class ImaMainnetUpgrader extends Upgrader {
     }
 
     // deployNewContracts = () => { };
-    
+
     initialize = async () => {
         const contractManagerAddress = await (await this.getMessageProxyForMainnet()).contractManagerOfSkaleManager();
         const contractManagerInterface = new Interface([{
@@ -107,7 +108,6 @@ class ImaMainnetUpgrader extends Upgrader {
                 const contractAddress = await contractManager.getContract(contractName);
                 console.log(`Address of ${contractName} is set to ${contractAddress}`);
             } catch {
-                
                 // getContract failed because the contract is not set
                 const contractAddress = await this.instance.getContract(contractName);
                 this.transactions.push(Transaction.from(
@@ -132,6 +132,21 @@ class ImaMainnetUpgrader extends Upgrader {
     }
 }
 
+async function updateAbi() {
+    if (!process.env.ABI) {
+        console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+        process.exit(1);
+    }
+    const abiFilename = process.env.ABI;
+    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    for (const contract of contracts) {
+        const contractInterface = (await ethers.getContractFactory(contract)).interface;
+        abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
+    }
+    await fs.writeFile(abiFilename, JSON.stringify(abi, null, 4));
+    console.log(chalk.green(`ABI updated and saved to ${abiFilename}`));
+}
+
 async function main() {
     const upgrader = new ImaMainnetUpgrader(
         "2.1.0",
@@ -139,6 +154,7 @@ async function main() {
         contracts
     );
     await upgrader.upgrade();
+    await updateAbi();
 }
 
 if (require.main === module) {

@@ -78,14 +78,14 @@ async function getMessageProxyForMainnet(): Promise<MessageProxyForMainnet> {
 }
 
 async function getSkaleManagerInstance() {
-    if (!process.env.TARGET) {
+    if (!process.env.SKALE_MANAGER_ADDRESS) {
         console.log(chalk.red("Specify desired skale-manager instance"));
-        console.log(chalk.red("Set instance alias or SkaleManager address to TARGET environment variable"));
+        console.log(chalk.red("Set instance alias or SkaleManager address to SKALE_MANAGER_ADDRESS environment variable"));
         process.exit(1);
     }
     const network = await skaleContracts.getNetworkByProvider(ethers.provider);
     const project = network.getProject("skale-manager");
-    return await project.getInstance(process.env.TARGET);
+    return await project.getInstance(process.env.SKALE_MANAGER_ADDRESS);
 }
 
 async function setVersion(messageProxy: MessageProxyForMainnet, version: string) {
