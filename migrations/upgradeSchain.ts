@@ -1,29 +1,45 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
-import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
-import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
-import { contracts } from "./deploySchain";
+import { Transaction } from "ethers";
+import { getAbi, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
+import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
 import { MessageProxyForSchain } from "../typechain";
 
+
+async function getImaSchainInstance() {
+    if (!process.env.TARGET) {
+        console.log(chalk.red("Specify desired schain-ima instance"));
+        console.log(chalk.red("Set instance alias or MessageProxyForSchain address to TARGET environment variable"));
+        process.exit(1);
+    }
+    const network = await skaleContracts.getNetworkByProvider(ethers.provider);
+    const project = network.getProject("schain-ima");
+    return await project.getInstance(process.env.TARGET);
+}
 class ImaSchainUpgrader extends Upgrader {
 
     constructor(
         targetVersion: string,
-        abi: SkaleABIFile,
+        instance: Instance,
         contractNamesToUpgrade: string[],
-        submitter = new AutoSubmitter()) {
+        submitter?: Submitter) {
             super(
-                "proxySchain",
-                targetVersion,
-                abi,
-                contractNamesToUpgrade,
-                submitter);
+                {
+                    contractNamesToUpgrade,
+                    instance,
+                    name: "proxySchain",
+                    version: targetVersion,
+                },
+                submitter
+            );
         }
 
     async getMessageProxyForSchain() {
-        return await ethers.getContractAt("MessageProxyForSchain", this.abi.message_proxy_chain_address as string) as MessageProxyForSchain;
+        return await this.instance.getContract("MessageProxyForSchain") as MessageProxyForSchain;
+
     }
 
     getDeployedVersion = async () => {
@@ -37,10 +53,10 @@ class ImaSchainUpgrader extends Upgrader {
 
     setVersion = async (newVersion: string) => {
         const messageProxyForSchain = await this.getMessageProxyForSchain();
-        this.transactions.push({
-            to: messageProxyForSchain.address,
+        this.transactions.push(Transaction.from({
+            to: await messageProxyForSchain.getAddress(),
             data: messageProxyForSchain.interface.encodeFunctionData("setVersion", [newVersion])
-        });
+        }));
     }
 
     // deployNewContracts = () => { };
@@ -55,13 +71,19 @@ class ImaSchainUpgrader extends Upgrader {
     }
 }
 
-async function getImaSchainAbiAndAddress(): Promise<SkaleABIFile> {
+async function updateAbi(contracts: string[]) {
     if (!process.env.ABI) {
         console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
         process.exit(1);
     }
     const abiFilename = process.env.ABI;
-    return JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    for (const contract of contracts) {
+        const contractInterface = (await ethers.getContractFactory(contract)).interface;
+        abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
+    }
+    await fs.writeFile(abiFilename, JSON.stringify(abi, null, 4));
+    console.log(chalk.green(`ABI updated and saved to ${abiFilename}`));
 }
 
 async function main() {
@@ -69,10 +91,11 @@ async function main() {
     await manifestSetup(pathToManifest);
     const upgrader = new ImaSchainUpgrader(
         "2.1.0",
-        await getImaSchainAbiAndAddress(),
+        await getImaSchainInstance(),
         contracts
     );
     await upgrader.upgrade();
+    updateAbi(contracts);
 }
 
 if (require.main === module) {
