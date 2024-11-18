@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
 import { Transaction } from "ethers";
-import { getAbi, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { getAbi, getVersion, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
@@ -77,9 +77,7 @@ async function updateAbi(contracts: string[]) {
         process.exit(1);
     }
     const network = await ethers.provider.getNetwork();
-    const imaInstance = await getImaSchainInstance();
-    const messageProxyForSchain = (await imaInstance.getContract("MessageProxyForSchain")) as MessageProxyForSchain;
-    const version = await messageProxyForSchain.version();
+    const version = await getVersion();
     const abiFilename = process.env.ABI;
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
     for (const contract of contracts) {

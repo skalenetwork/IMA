@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from 'fs';
 import { Interface, Transaction } from "ethers";
-import { getAbi, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { getAbi, getVersion, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
@@ -138,9 +138,7 @@ async function updateAbi() {
         process.exit(1);
     }
     const network = await ethers.provider.getNetwork();
-    const imaInstance = await getImaMainnetInstance();
-    const messageProxyForMainnet = (await imaInstance.getContract("MessageProxyForMainnet")) as MessageProxyForMainnet;
-    const version = await messageProxyForMainnet.version();
+    const version = await getVersion();
     const abiFilename = process.env.ABI;
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
     for (const contract of contracts) {
