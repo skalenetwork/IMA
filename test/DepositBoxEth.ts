@@ -33,7 +33,7 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { getBalance, getPublicKey, stringToHex } from "./utils/helper";
+import { getBalance, getPublicKey } from "./utils/helper";
 
 import chai from "chai";
 import chaiAlmost from "chai-almost";
@@ -296,7 +296,7 @@ describe("DepositBoxEth", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(0n, stringToHex(error));
+                .withArgs(0n, ethers.toUtf8Bytes(error));
         });
 
         it("should rejected with message `Not enough money to finish this transaction` when "
@@ -334,7 +334,7 @@ describe("DepositBoxEth", () => {
                 const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
                 await expect(tx)
                     .to.emit(messageProxy, "PostMessageError")
-                    .withArgs(0n, stringToHex(error));
+                    .withArgs(0n, ethers.toUtf8Bytes(error));
             });
 
         it("should rejected with message `Not enough money to finish this transaction`", async () => {
@@ -373,7 +373,7 @@ describe("DepositBoxEth", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             await expect(tx)
                     .to.emit(messageProxy, "PostMessageError")
-                    .withArgs(0n, stringToHex(error));
+                    .withArgs(0n, ethers.toUtf8Bytes(error));
         });
 
         it("should rejected with message `null`", async () => {
@@ -414,7 +414,7 @@ describe("DepositBoxEth", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             await expect(tx)
                     .to.emit(messageProxy, "PostMessageError")
-                    .withArgs(0n, stringToHex(""));
+                    .withArgs(0n, ethers.toUtf8Bytes(""));
         });
 
         it("should transfer eth", async () => {
@@ -606,7 +606,7 @@ describe("DepositBoxEth", () => {
 
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(1n, stringToHex("Address: unable to send value, recipient may have reverted"));
+                .withArgs(1n, ethers.toUtf8Bytes("Address: unable to send value, recipient may have reverted"));
 
 
             expect(await depositBoxEth.approveTransfers(fallbackEthTester)).to.equal(wei);

@@ -46,13 +46,6 @@ export function stringFromHex(value: string) {
     return str;
 }
 
-export function stringToHex(str: string) {
-    const hex = Array.from(str)
-      .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
-      .join('');
-    return `0x${hex}`;
-}
-
 export function getPublicKey(wallet: HDNodeWallet | Wallet): [BytesLike, BytesLike] {
     const publicKey = secp256k1EC.keyFromPrivate(wallet.privateKey.slice(2)).getPublic();
     return [ethers.hexlify(publicKey.getX().toBuffer()), ethers.hexlify(publicKey.getY().toBuffer())]

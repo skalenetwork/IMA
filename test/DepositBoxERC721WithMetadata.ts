@@ -34,7 +34,7 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { getBalance, getPublicKey, stringToHex } from "./utils/helper";
+import { getBalance, getPublicKey } from "./utils/helper";
 
 import chai from "chai";
 import chaiAlmost from "chai-almost";
@@ -361,7 +361,7 @@ describe("DepositBoxERC721WithMetadata", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign);
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(0n, stringToHex("Given address is not a contract"));
+                .withArgs(0n, ethers.toUtf8Bytes("Given address is not a contract"));
         });
 
         it("should revert `Incorrect tokenId`", async () => {
@@ -382,7 +382,7 @@ describe("DepositBoxERC721WithMetadata", () => {
             const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign);
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(0n, stringToHex("Incorrect tokenId"));
+                .withArgs(0n, ethers.toUtf8Bytes("Incorrect tokenId"));
         });
 
         it("should transfer ERC721 token", async () => {

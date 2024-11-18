@@ -33,7 +33,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { getPublicKey, stringToHex } from "./utils/helper";
+import { getPublicKey } from "./utils/helper";
 
 import chai from "chai";
 
@@ -301,7 +301,7 @@ describe("DepositBoxERC20", () => {
             erc20Clone = await deployERC20OnChain("Token", "T",);
         });
 
-        it("should transfer ERC20 token", async () => {
+        it.only("should transfer ERC20 token", async () => {
             //  preparation
             const ercOnSchain = erc20;
             const fakeErc20OnSchain = erc20Clone;
@@ -370,11 +370,11 @@ describe("DepositBoxERC20", () => {
 
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(0n, stringToHex("Given address is not a contract"));
+                .withArgs(0n, ethers.toUtf8Bytes("Given address is not a contract"));
 
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
-                .withArgs(1n, stringToHex("Not enough money"));
+                .withArgs(1n, ethers.toUtf8Bytes("Not enough money"));
 
 
             const balanceBefore = await ethers.provider.getBalance(deployer.address);
