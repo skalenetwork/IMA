@@ -22,14 +22,6 @@
         "node_modules",
         "example",
         "build",
-        "test-tokens",
-        // TODO: Remove these excludes after closing https://github.com/skalenetwork/IMA/issues/1720
-        "migrations/deploySchain.ts",
-        "migrations/upgradeSchain.ts",
-        "migrations/transferOwnership.ts",
-        "migrations/submitTransactions.ts",
-        "migrations/hotfixUpgrade.ts",
-        "migrations/generateManifest.ts",
-        "migrations/deploySchain.ts"
+        "test-tokens"
     ]
 }
