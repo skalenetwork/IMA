@@ -49,30 +49,30 @@ perl -0777 -i -pe 's/await contractManagerInst\.setContractsAddress\( "MessagePr
 SKALE_MANAGER=$(cat data/skaleManagerComponents.json | jq -r .skale_manager_address)
 VERSION="$DEPLOYED_VERSION" TARGET=$SKALE_MANAGER npx hardhat run migrations/deployMainnet.ts --network localhost
 
-# TODO: uncomment upgrade schain test after closing issue https://github.com/skalenetwork/IMA/issues/1720
 
-# CHAIN_NAME_SCHAIN="Test" \
-# VERSION="$DEPLOYED_VERSION" \
-# URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
-# PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-# npx hardhat run migrations/deploySchain.ts --network schain
+CHAIN_NAME_SCHAIN="Test" \
+VERSION="$DEPLOYED_VERSION" \
+URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/deploySchain.ts --network schain
 
-# ABI_FILENAME_SCHAIN="proxySchain_Test.json"
-# ABI="data/$ABI_FILENAME_SCHAIN" \
-# MANIFEST=".openzeppelin/unknown-1337.json" \
-# VERSION="$DEPLOYED_VERSION" \
-# npx hardhat run migrations/changeManifest.ts --network localhost
+ABI_FILENAME_SCHAIN="proxySchain_Test.json"
+ABI="data/$ABI_FILENAME_SCHAIN" \
+MANIFEST=".openzeppelin/unknown-1337.json" \
+VERSION="$DEPLOYED_VERSION" \
+npx hardhat run migrations/changeManifest.ts --network localhost
 
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/.openzeppelin"
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/data/"
 cp "data/proxyMainnet.json" "$GITHUB_WORKSPACE/data"
-# cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
-# cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
+cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
+cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
 cd "$GITHUB_WORKSPACE"
 rm -rf "$DEPLOYED_DIR"
 
 MESSAGE_PROXY_FOR_MAINNET=$(cat data/proxyMainnet.json | jq -r .message_proxy_mainnet_address)
 TEST_UPGRADE=true \
+ABI="data/proxyMainnet.json" \
 TARGET="$MESSAGE_PROXY_FOR_MAINNET" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
@@ -80,12 +80,15 @@ npx hardhat run migrations/upgradeMainnet.ts --network localhost
 
 VERSION="$(git describe --tags | echo "$VERSION_TAG")"
 echo "$VERSION"
-# mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
 
+MESSAGE_PROXY_FOR_SCHAIN=$(cat data/$ABI_FILENAME_SCHAIN | jq -r .message_proxy_chain_address)
+
+# TODO: uncomment upgrade schain test after fixing the issue related to skale-contracts
 # ABI="data/$ABI_FILENAME_SCHAIN" \
 # MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 # CHAIN_NAME_SCHAIN="Test" \
 # ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+# TARGET="$MESSAGE_PROXY_FOR_SCHAIN" \
 # VERSION=$VERSION_TAG \
 # URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
 # PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
