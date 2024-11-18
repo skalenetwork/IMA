@@ -137,14 +137,19 @@ async function updateAbi() {
         console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
         process.exit(1);
     }
+    const network = await ethers.provider.getNetwork();
+    const imaInstance = await getImaMainnetInstance();
+    const messageProxyForMainnet = (await imaInstance.getContract("MessageProxyForMainnet")) as MessageProxyForMainnet;
+    const version = await messageProxyForMainnet.version();
     const abiFilename = process.env.ABI;
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
     for (const contract of contracts) {
         const contractInterface = (await ethers.getContractFactory(contract)).interface;
         abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
     }
-    await fs.writeFile(abiFilename, JSON.stringify(abi, null, 4));
-    console.log(chalk.green(`ABI updated and saved to ${abiFilename}`));
+    const newAbiFilename = `mainnet-ima-${version}-${network.name}.json`;
+    await fs.writeFile(newAbiFilename, JSON.stringify(abi, null, 4));
+    console.log(chalk.green(`ABI updated and saved to ${newAbiFilename}`));
 }
 
 async function main() {
