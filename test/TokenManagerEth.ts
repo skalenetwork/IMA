@@ -161,7 +161,7 @@ describe("TokenManagerEth", () => {
             .connect(deployer)
             .hasTokenManager(schainName2);
         // expectation
-        assert.isTrue(res);
+        assert(res);
     });
 
     it("should return false when invoke `hasTokenManager`", async () => {

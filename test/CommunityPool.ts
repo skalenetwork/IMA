@@ -85,7 +85,7 @@ describe("CommunityPool", () => {
 
         await communityPool.addSchainContract(schainName, fakeContractOnSchain);
 
-        assert.isTrue(await communityPool.hasSchainContract(schainName));
+        assert(await communityPool.hasSchainContract(schainName));
         await communityPool.addSchainContract(schainName, fakeContractOnSchain)
             .should.be.eventually.rejectedWith("SKALE chain is already set");
     });
@@ -94,7 +94,7 @@ describe("CommunityPool", () => {
         const fakeContractOnSchain = user.address;
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await communityPool.connect(user).addSchainContract(schainName, fakeContractOnSchain);
-        assert.isTrue(await communityPool.hasSchainContract(schainName));
+        assert(await communityPool.hasSchainContract(schainName));
         await communityPool.removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("Not authorized caller");
 
@@ -111,7 +111,7 @@ describe("CommunityPool", () => {
         const LINKER_ROLE = await communityPool.LINKER_ROLE();
         await communityPool.grantRole(LINKER_ROLE, user.address);
         await communityPool.connect(user).addSchainContract(schainName, fakeContractOnSchain);
-        assert.isTrue(await communityPool.hasSchainContract(schainName));
+        assert(await communityPool.hasSchainContract(schainName));
         await communityPool.connect(user).removeSchainContract(schainName);
         assert.isFalse(await communityPool.hasSchainContract(schainName));
         await communityPool.connect(user).removeSchainContract(schainName)
@@ -350,7 +350,7 @@ describe("CommunityPool", () => {
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice);
             assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
-            assert.isTrue(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
+            assert(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice });
             assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
         });
@@ -363,7 +363,7 @@ describe("CommunityPool", () => {
             const gasPriceDuringGasSpikes = BigInt(gasPrice) * 2n;
             assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
-            assert.isTrue(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
+            assert(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await messageProxyTester
                 .connect(deployer)
                 .refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice: gasPriceDuringGasSpikes });
