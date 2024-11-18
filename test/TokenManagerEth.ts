@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai from "chai";
+import chai, { assert } from "chai";
 import {
     CommunityLocker,
     EthErc20,
@@ -53,8 +53,6 @@ import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
 const schainHash = ethers.id(schainName);
-
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 
 describe("TokenManagerEth", () => {
     let deployer: SignerWithAddress;
@@ -163,7 +161,7 @@ describe("TokenManagerEth", () => {
             .connect(deployer)
             .hasTokenManager(schainName2);
         // expectation
-        expect(res).to.be.true;
+        assert.isTrue(res);
     });
 
     it("should return false when invoke `hasTokenManager`", async () => {
@@ -174,7 +172,7 @@ describe("TokenManagerEth", () => {
             .connect(deployer)
             .hasTokenManager(schainName2);
         // expectation
-        expect(res).to.be.false;
+        assert.isFalse(res);
     });
 
     it("should invoke `removeTokenManager` without mistakes", async () => {

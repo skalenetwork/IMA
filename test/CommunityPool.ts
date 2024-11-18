@@ -10,7 +10,7 @@ import {
 
 import { getBalance } from "./utils/helper";
 
-import chai from "chai";
+import chai, { assert } from "chai";
 import chaiAlmost from "chai-almost";
 
 chai.should();
@@ -33,7 +33,6 @@ import { BigNumberish, toNumber } from "ethers";
 import { expect } from "chai";
 import { deployMessages } from "./utils/deploy/messages";
 
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 
 describe("CommunityPool", () => {
     let deployer: SignerWithAddress;
@@ -86,7 +85,7 @@ describe("CommunityPool", () => {
 
         await communityPool.addSchainContract(schainName, fakeContractOnSchain);
 
-        expect(await communityPool.hasSchainContract(schainName)).to.be.true;
+        assert.isTrue(await communityPool.hasSchainContract(schainName));
         await communityPool.addSchainContract(schainName, fakeContractOnSchain)
             .should.be.eventually.rejectedWith("SKALE chain is already set");
     });
@@ -95,14 +94,14 @@ describe("CommunityPool", () => {
         const fakeContractOnSchain = user.address;
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await communityPool.connect(user).addSchainContract(schainName, fakeContractOnSchain);
-        expect(await communityPool.hasSchainContract(schainName)).to.be.true;
+        assert.isTrue(await communityPool.hasSchainContract(schainName));
         await communityPool.removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("Not authorized caller");
 
         await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
         await communityPool.removeSchainContract(schainName);
 
-        expect(await communityPool.hasSchainContract(schainName)).to.be.false;
+        assert.isFalse(await communityPool.hasSchainContract(schainName));
         await communityPool.removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("SKALE chain is not set");
     });
@@ -112,9 +111,9 @@ describe("CommunityPool", () => {
         const LINKER_ROLE = await communityPool.LINKER_ROLE();
         await communityPool.grantRole(LINKER_ROLE, user.address);
         await communityPool.connect(user).addSchainContract(schainName, fakeContractOnSchain);
-        expect(await communityPool.hasSchainContract(schainName)).to.be.true;
+        assert.isTrue(await communityPool.hasSchainContract(schainName));
         await communityPool.connect(user).removeSchainContract(schainName);
-        expect(await communityPool.hasSchainContract(schainName)).to.be.false;
+        assert.isFalse(await communityPool.hasSchainContract(schainName));
         await communityPool.connect(user).removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("SKALE chain is not set");
     });
@@ -349,11 +348,11 @@ describe("CommunityPool", () => {
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester);
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice);
-            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
-            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
+            assert.isTrue(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice });
-            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
         });
 
         it("should lock user with extra low balance", async () => {
@@ -362,13 +361,13 @@ describe("CommunityPool", () => {
             const gasPrice = tx.gasPrice as BigNumberish;
             const wei = BigInt(minTransactionGas) * BigInt(gasPrice);
             const gasPriceDuringGasSpikes = BigInt(gasPrice) * 2n;
-            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
-            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
+            assert.isTrue(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
             await messageProxyTester
                 .connect(deployer)
                 .refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, { gasPrice: gasPriceDuringGasSpikes });
-            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            assert.isFalse(await communityPoolTester.activeUsers(user.address, schainHashRGBU));
         });
     });
 });
