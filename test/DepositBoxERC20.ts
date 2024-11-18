@@ -301,7 +301,7 @@ describe("DepositBoxERC20", () => {
             erc20Clone = await deployERC20OnChain("Token", "T",);
         });
 
-        it.only("should transfer ERC20 token", async () => {
+        it("should transfer ERC20 token", async () => {
             //  preparation
             const ercOnSchain = erc20;
             const fakeErc20OnSchain = erc20Clone;
