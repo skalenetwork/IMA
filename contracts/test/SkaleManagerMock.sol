@@ -22,11 +22,11 @@
 pragma solidity 0.8.16;
 
 import "./TestContractManager.sol";
-interface ISkaleManager {
+interface ISkaleManagerMock {
     function setVersion(string calldata newVersion) external;
 }
 
-contract SkaleManager is ISkaleManager, ContractManager {
+contract SkaleManagerMock is ISkaleManagerMock, ContractManager {
 
     ContractManager public contractManager;
 

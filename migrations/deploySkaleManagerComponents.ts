@@ -113,7 +113,7 @@ async function main() {
     console.log("Contract Nodes deployed to", nodesAddress);
 
     console.log("Deploy SkaleManager");
-    const skaleManagerFactory = await ethers.getContractFactory("SkaleManager");
+    const skaleManagerFactory = await ethers.getContractFactory("SkaleManagerMock");
     const skaleManager = await skaleManagerFactory.deploy(contractManager);
     const skaleManagerAddress = await skaleManager.getAddress();
     console.log("Contract SkaleManager deployed to", skaleManagerAddress);
