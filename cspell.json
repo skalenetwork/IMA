@@ -1,0 +1,22 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "ignorePaths": [
+        ".gitignore",
+        "artifacts/**",
+        "cache/**",
+        "coverage/**",
+        "coverage.json",
+        "data/**",
+        "typechain-types/**",
+        "**/venv/**"
+    ],
+    "dictionaries": ["domain-terms", "libraries", "names", "skale-terms", "solidity"],
+    "dictionaryDefinitions": [
+        { "name": "skale-terms", "path": "dictionary/skale-terms.txt"},
+        { "name": "libraries", "path": "dictionary/libraries.txt"},
+        { "name": "domain-terms", "path": "dictionary/domain-terms.txt"},
+        { "name": "names", "path": "dictionary/names.txt"},
+        { "name": "solidity", "path": "dictionary/solidity.txt"}
+    ]
+}
