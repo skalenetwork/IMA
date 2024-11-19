@@ -32,7 +32,7 @@
         "axios": "^0.21.4",
         "dotenv": "^16.0.0",
         "ethers": "^6.1.0",
-        "hardhat": "^2.22.15"
+        "hardhat": "^2.22.16"
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
