@@ -52,15 +52,15 @@ async function main() {
         const newImplementation = await (
                 await ethers.getContractFactory("MessageProxyForSchain")
             ).deploy();
-        await newImplementation.deployTransaction.wait();
-        console.log(`Deployed on address ${newImplementation.address}`)
+        await newImplementation.waitForDeployment();
+        console.log(`Deployed on address ${await newImplementation.getAddress()}`)
 
         console.log("Upgrade a proxy");
         const proxyAdmin = (new ethers.Contract(proxyAdminAddress, ProxyAdminArtifacts.abi, ethers.provider))
             .connect((await ethers.getSigners())[0]) as ProxyAdmin;
-        const upgradeTransaction = await proxyAdmin.upgrade(messageProxyAddress, newImplementation.address);
+        const upgradeTransaction = await proxyAdmin.upgrade(messageProxyAddress, await newImplementation.getAddress());
         const receipt = await upgradeTransaction.wait();
-        if (receipt.status === 1) {
+        if (receipt?.status === 1) {
             console.log("Successfully upgraded");
         } else {
             console.log("Something went wrong");

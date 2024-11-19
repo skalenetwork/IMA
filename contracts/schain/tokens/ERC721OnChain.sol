@@ -104,7 +104,7 @@ contract ERC721OnChain is
     )
         public
         view
-        override(AccessControlEnumerableUpgradeable, ERC721Upgradeable)
+        override(AccessControlEnumerableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

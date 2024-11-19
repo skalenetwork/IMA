@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { ContractManager, KeyStorageMock } from "../../../typechain";
-import { stringKeccak256 } from "../helper";
 
 const BLSPublicKey = {
     x: {
@@ -17,14 +16,15 @@ export async function setCommonPublicKey(
     contractManager: ContractManager,
     schainName: string
 ) {
+    const schainHash = ethers.id(schainName);
     const factory = await ethers.getContractFactory("KeyStorageMock");
     let keyStorageInstance: KeyStorageMock;
     if (await contractManager.getContract("KeyStorage") === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
         keyStorageInstance = await factory.deploy() as KeyStorageMock;
-        await contractManager.setContractsAddress("KeyStorage", keyStorageInstance.address);
+        await contractManager.setContractsAddress("KeyStorage", keyStorageInstance);
     } else {
         keyStorageInstance = factory.attach(await contractManager.getContract("KeyStorage")) as KeyStorageMock;
     }
-    await keyStorageInstance.setBlsCommonPublicKeyForSchain(stringKeccak256(schainName), BLSPublicKey);
+    await keyStorageInstance.setBlsCommonPublicKeyForSchain(schainHash, BLSPublicKey);
 }

@@ -8,9 +8,12 @@ export async function deployLinker(
     const factory = await ethers.getContractFactory("Linker");
     const instance = await upgrades.deployProxy(
         factory,
-        [contractManager.address, messageProxy.address],
+        [
+            await contractManager.getAddress(),
+            await messageProxy.getAddress()
+        ],
         {"initializer": "initialize(address,address)"}
-    ) as Linker;
-    await instance.registerMainnetContract(instance.address);
+    ) as unknown as Linker;
+    await instance.registerMainnetContract(instance);
     return instance;
 }

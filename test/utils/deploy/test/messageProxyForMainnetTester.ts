@@ -12,9 +12,9 @@ export async function deployMessageProxyForMainnetTester(
     } else {
         const instance = await upgrades.deployProxy(
             factory,
-            [contractManager.address]
-        ) as MessageProxyForMainnetTester;
-        await contractManager.setContractsAddress(name, instance.address);
+            [await contractManager.getAddress()]
+        ) as unknown as MessageProxyForMainnetTester;
+        await contractManager.setContractsAddress(name, instance);
         return instance;
     }
 }

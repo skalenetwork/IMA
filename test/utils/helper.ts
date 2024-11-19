@@ -1,4 +1,4 @@
-import { Wallet, BytesLike } from "ethers";
+import { Wallet, BytesLike, HDNodeWallet } from "ethers";
 import { ethers } from "hardhat";
 
 import { ec } from "elliptic";
@@ -46,15 +46,11 @@ export function stringFromHex(value: string) {
     return str;
 }
 
-export function stringKeccak256(value: string): string {
-    return ethers.utils.solidityKeccak256(["string"], [value]);
-}
-
-export function getPublicKey(wallet: Wallet): [BytesLike, BytesLike] {
+export function getPublicKey(wallet: HDNodeWallet | Wallet): [BytesLike, BytesLike] {
     const publicKey = secp256k1EC.keyFromPrivate(wallet.privateKey.slice(2)).getPublic();
-    return [ethers.utils.hexlify(publicKey.getX().toBuffer()), ethers.utils.hexlify(publicKey.getY().toBuffer())]
+    return [ethers.hexlify(publicKey.getX().toBuffer()), ethers.hexlify(publicKey.getY().toBuffer())]
 }
 
 export async function getBalance(address: string): Promise<number> {
-    return parseFloat(ethers.utils.formatEther(await ethers.provider.getBalance(address)));
+    return parseFloat(ethers.formatEther(await ethers.provider.getBalance(address)));
 }

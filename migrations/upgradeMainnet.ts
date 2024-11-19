@@ -1,30 +1,44 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
-import { promises as fs } from "fs";
-import { AutoSubmitter, Upgrader } from "@skalenetwork/upgrade-tools";
-import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
-import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deployMainnet";
+import { promises as fs } from 'fs';
+import { Interface, Transaction } from "ethers";
+import { getAbi, getVersion, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
-import { Interface } from "@ethersproject/abi";
+import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 
+
+async function getImaMainnetInstance() {
+    if (!process.env.TARGET) {
+        console.log(chalk.red("Specify desired mainnet-ima instance"));
+        console.log(chalk.red("Set instance alias or MessageProxyForMainnet address to TARGET environment variable"));
+        process.exit(1);
+    }
+    const network = await skaleContracts.getNetworkByProvider(ethers.provider);
+    const project = network.getProject("mainnet-ima");
+    return await project.getInstance(process.env.TARGET);
+}
 
 class ImaMainnetUpgrader extends Upgrader {
 
     constructor(
         targetVersion: string,
-        abi: SkaleABIFile,
+        instance: Instance,
         contractNamesToUpgrade: string[],
-        submitter = new AutoSubmitter()) {
+        submitter?: Submitter) {
             super(
-                "proxyMainnet",
-                targetVersion,
-                abi,
-                contractNamesToUpgrade,
-                submitter);
+                {
+                    contractNamesToUpgrade,
+                    instance,
+                    name: "proxyMainnet",
+                    version: targetVersion,
+                },
+                submitter
+            );
         }
 
-    async getMessageProxyForMainnet() {
-        return await ethers.getContractAt("MessageProxyForMainnet", this.abi.message_proxy_mainnet_address as string) as MessageProxyForMainnet;
+    getMessageProxyForMainnet = async () => {
+        return await this.instance.getContract("MessageProxyForMainnet") as MessageProxyForMainnet;
     }
 
     getDeployedVersion = async () => {
@@ -38,10 +52,10 @@ class ImaMainnetUpgrader extends Upgrader {
 
     setVersion = async (newVersion: string) => {
         const messageProxyForMainnet = await this.getMessageProxyForMainnet();
-        this.transactions.push({
-            to: messageProxyForMainnet.address,
+        this.transactions.push(Transaction.from({
+            to: await messageProxyForMainnet.getAddress(),
             data: messageProxyForMainnet.interface.encodeFunctionData("setVersion", [newVersion])
-        });
+        }));
     }
 
     // deployNewContracts = () => { };
@@ -89,22 +103,22 @@ class ImaMainnetUpgrader extends Upgrader {
             contractManagerInterface,
             ethers.provider
         )
-        for (const contractName of contractsToDeploy) {
+        for (const contractName of contracts) {
             try {
                 const contractAddress = await contractManager.getContract(contractName);
                 console.log(`Address of ${contractName} is set to ${contractAddress}`);
             } catch {
                 // getContract failed because the contract is not set
-                const contractAddress = this.abi[`${getContractKeyInAbiFile(contractName)}_address`] as string;
-                this.transactions.push(
+                const contractAddress = await this.instance.getContract(contractName);
+                this.transactions.push(Transaction.from(
                     {
-                        to: contractManager.address,
+                        to: await contractManager.getAddress(),
                         data: contractManager.interface.encodeFunctionData(
                             "setContractsAddress",
                             [contractAddress]
                         )
                     }
-                )
+                ))
                 console.log(`Set ${contractName} address to ${contractAddress}`);
             }
         }
@@ -118,22 +132,32 @@ class ImaMainnetUpgrader extends Upgrader {
     }
 }
 
-async function getImaMainnetAbiAndAddress(): Promise<SkaleABIFile> {
+async function updateAbi() {
     if (!process.env.ABI) {
         console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
         process.exit(1);
     }
+    const network = await ethers.provider.getNetwork();
+    const version = await getVersion();
     const abiFilename = process.env.ABI;
-    return JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    for (const contract of contracts) {
+        const contractInterface = (await ethers.getContractFactory(contract)).interface;
+        abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
+    }
+    const newAbiFilename = `mainnet-ima-${version}-${network.name}.json`;
+    await fs.writeFile(newAbiFilename, JSON.stringify(abi, null, 4));
+    console.log(chalk.green(`ABI updated and saved to ${newAbiFilename}`));
 }
 
 async function main() {
     const upgrader = new ImaMainnetUpgrader(
         "2.1.0",
-        await getImaMainnetAbiAndAddress(),
+        await getImaMainnetInstance(),
         contracts
     );
     await upgrader.upgrade();
+    await updateAbi();
 }
 
 if (require.main === module) {

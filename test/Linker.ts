@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     ContractManager,
     DepositBoxEth,
@@ -33,7 +33,6 @@ import {
     Linker,
     MessageProxyForMainnet,
 } from "../typechain";
-import { stringKeccak256 } from "./utils/helper";
 
 
 chai.should();
@@ -49,10 +48,9 @@ import { deployContractManager } from "./utils/skale-manager-utils/contractManag
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
-const schainName = "TestSchain";
 
 describe("Linker", () => {
     let deployer: SignerWithAddress;
@@ -65,6 +63,8 @@ describe("Linker", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const schainName = "TestSchain";
+    const schainHash = ethers.id(schainName);
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -78,16 +78,16 @@ describe("Linker", () => {
         depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, linker, messageProxy);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
-        await linker.removeMainnetContract(depositBoxEth.address);
-        await linker.removeMainnetContract(depositBoxERC20.address);
-        await linker.removeMainnetContract(depositBoxERC721.address);
-        await linker.removeMainnetContract(linker.address);
+        await linker.removeMainnetContract(depositBoxEth);
+        await linker.removeMainnetContract(depositBoxERC20);
+        await linker.removeMainnetContract(depositBoxERC721);
+        await linker.removeMainnetContract(linker);
         await linker.grantRole(await linker.LINKER_ROLE(), deployer.address);
-        await linker.grantRole(await linker.LINKER_ROLE(), linker.address);
-        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
+        await linker.grantRole(await linker.LINKER_ROLE(), linker);
+        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-        await messageProxy.registerExtraContractForAll(linker.address);
+        await messageProxy.registerExtraContractForAll(linker);
     });
 
     it("should connect schain", async () => {
@@ -107,11 +107,11 @@ describe("Linker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(false);
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
+        await linker.connect(deployer).registerMainnetContract(depositBoxEth);
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(true);
 
         await linker.connect(deployer).connectSchain(schainName, [])
             .should.be.eventually.rejectedWith("Incorrect number of addresses");
@@ -134,20 +134,20 @@ describe("Linker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(linker.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxERC20)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxERC721)).to.equal(false);
+        expect(await linker.hasMainnetContract(linker)).to.equal(false);
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
-        await linker.connect(deployer).registerMainnetContract(linker.address);
+        await linker.connect(deployer).registerMainnetContract(depositBoxEth);
+        await linker.connect(deployer).registerMainnetContract(depositBoxERC20);
+        await linker.connect(deployer).registerMainnetContract(depositBoxERC721);
+        await linker.connect(deployer).registerMainnetContract(linker);
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(linker.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxERC20)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxERC721)).to.equal(true);
+        expect(await linker.hasMainnetContract(linker)).to.equal(true);
 
         await linker.connect(deployer).connectSchain(schainName, [])
             .should.be.eventually.rejectedWith("Incorrect number of addresses");
@@ -174,10 +174,10 @@ describe("Linker", () => {
     it("should invoke `disconnectSchain` without mistakes", async () => {
         const tokenManagerAddress = user.address;
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
-        await linker.connect(deployer).registerMainnetContract(linker.address);
+        await linker.connect(deployer).registerMainnetContract(depositBoxEth);
+        await linker.connect(deployer).registerMainnetContract(depositBoxERC20);
+        await linker.connect(deployer).registerMainnetContract(depositBoxERC721);
+        await linker.connect(deployer).registerMainnetContract(linker);
 
         await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
 
@@ -193,17 +193,17 @@ describe("Linker", () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxERC20)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxERC721)).to.equal(false);
 
-        await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
+        await linker.connect(deployer).registerMainnetContract(depositBoxEth);
+        await linker.connect(deployer).registerMainnetContract(depositBoxERC20);
+        await linker.connect(deployer).registerMainnetContract(depositBoxERC721);
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(true);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxERC20)).to.equal(true);
+        expect(await linker.hasMainnetContract(depositBoxERC721)).to.equal(true);
 
         expect(await linker.hasMainnetContract(nullAddress)).to.equal(false);
         expect(await linker.hasMainnetContract(tokenManagerAddress)).to.equal(false);
@@ -227,42 +227,43 @@ describe("Linker", () => {
 
         expect(await linker.hasMainnetContract(nullAddress)).to.equal(false);
 
-        await linker.connect(deployer).removeMainnetContract(depositBoxEth.address);
-        await linker.connect(deployer).removeMainnetContract(depositBoxERC20.address);
-        await linker.connect(deployer).removeMainnetContract(depositBoxERC721.address);
+        await linker.connect(deployer).removeMainnetContract(depositBoxEth);
+        await linker.connect(deployer).removeMainnetContract(depositBoxERC20);
+        await linker.connect(deployer).removeMainnetContract(depositBoxERC721);
 
-        expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
-        expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxEth)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxERC20)).to.equal(false);
+        expect(await linker.hasMainnetContract(depositBoxERC721)).to.equal(false);
     });
 
     it("should kill schain by schain owner first", async () => {
         // schain owner is user
+
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(0);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(0);
         await linker.connect(user).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(1);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(1);
         await linker.connect(user).kill(schainName).should.be.eventually.rejectedWith("Already killed or incorrect sender");
         await linker.connect(deployer).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(false);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(3);
+        expect(await linker.isNotKilled(schainHash)).to.equal(false);
+        expect(await linker.statuses(schainHash)).to.equal(3);
     });
 
     it("should kill schain by deployer first", async () => {
         // schain owner is user
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(0);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(0);
         await linker.connect(deployer).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(true);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(2);
+        expect(await linker.isNotKilled(schainHash)).to.equal(true);
+        expect(await linker.statuses(schainHash)).to.equal(2);
         await linker.connect(user).kill(schainName);
-        expect(await linker.isNotKilled(stringKeccak256(schainName))).to.equal(false);
-        expect(await linker.statuses(stringKeccak256(schainName))).to.equal(3);
+        expect(await linker.isNotKilled(schainHash)).to.equal(false);
+        expect(await linker.statuses(schainHash)).to.equal(3);
     });
 
 });

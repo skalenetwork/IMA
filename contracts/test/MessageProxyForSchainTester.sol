@@ -43,7 +43,7 @@ interface IMessageProxyForSchainTester {
 }
 
 
-contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {    
+contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {
 
     IEtherbaseUpgradeable public etherbase = ETHERBASE;
 

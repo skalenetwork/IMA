@@ -37,7 +37,7 @@ function validateInteger( value, radix ) {
           ( !isNaN( parseInt( value, radix ) ) )
       )
           return true;
-  } catch ( err ) {
+  } catch {
       return false;
   }
 }
@@ -48,7 +48,7 @@ function toInteger( value, radix ) {
       if( !validateInteger( value, radix ) )
           return NaN;
       return parseInt( value, radix );
-  } catch ( err ) {
+  } catch {
       return false;
   }
 }
@@ -77,7 +77,7 @@ function verifyArgumentIsArrayOfIntegers( joArg ) {
           newValue[index] = toInteger( newValue[index], undefined );
       }
       return newValue;
-  } catch ( err ) {
+  } catch {
       console.log( "(OWASP) CRITICAL ERROR: value " + joArg.value + " of argument " + joArg.name + " must be valid integer array" );
       process.exit( 126 );
   }
