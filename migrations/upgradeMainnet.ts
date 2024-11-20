@@ -109,17 +109,20 @@ class ImaMainnetUpgrader extends Upgrader {
                 console.log(`Address of ${contractName} is set to ${contractAddress}`);
             } catch {
                 // getContract failed because the contract is not set
-                const contractAddress = await this.instance.getContract(contractName);
+                const contract = await this.instance.getContract(contractName);
                 this.transactions.push(Transaction.from(
                     {
                         to: await contractManager.getAddress(),
                         data: contractManager.interface.encodeFunctionData(
                             "setContractsAddress",
-                            [contractAddress]
+                            [
+                                contractName,
+                                await contract.getAddress()
+                            ]
                         )
                     }
                 ))
-                console.log(`Set ${contractName} address to ${contractAddress}`);
+                console.log(`Set ${contractName} address to ${await contract.getAddress()}`);
             }
         }
     };
