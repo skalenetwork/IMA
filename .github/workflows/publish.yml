@@ -9,6 +9,7 @@ on:
       - 'v*.*.*'
       - develop
       - beta
+      - release-candidate
       - stable
   push:
     tags:
