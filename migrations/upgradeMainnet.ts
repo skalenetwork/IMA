@@ -103,13 +103,18 @@ class ImaMainnetUpgrader extends Upgrader {
             contractManagerInterface,
             ethers.provider
         )
+        if (!process.env.ABI) {
+            console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+            process.exit(1);
+        }
+        const abi = JSON.parse(await fs.readFile(process.env.ABI, "utf-8"));
         for (const contractName of contracts) {
             try {
                 const contractAddress = await contractManager.getContract(contractName);
                 console.log(`Address of ${contractName} is set to ${contractAddress}`);
             } catch {
                 // getContract failed because the contract is not set
-                const contract = await this.instance.getContract(contractName);
+                const contractAddress = abi[`${getContractKeyInAbiFile(contractName)}_address`] as string;
                 this.transactions.push(Transaction.from(
                     {
                         to: await contractManager.getAddress(),
@@ -117,12 +122,12 @@ class ImaMainnetUpgrader extends Upgrader {
                             "setContractsAddress",
                             [
                                 contractName,
-                                await contract.getAddress()
+                                contractAddress
                             ]
                         )
                     }
                 ))
-                console.log(`Set ${contractName} address to ${await contract.getAddress()}`);
+                console.log(`Set ${contractName} address to ${contractAddress}`);
             }
         }
     };
@@ -154,10 +159,14 @@ async function updateAbi() {
 }
 
 async function main() {
-    const contractNamesToUpgrade = [
-        "MessageProxyForMainnet",
-        "CommunityPool"
-    ]
+    let contractNamesToUpgrade = contracts;
+    if (process.env.TEST_UPGRADE !== "true") {
+        contractNamesToUpgrade = [
+            "MessageProxyForMainnet",
+            "CommunityPool"
+        ]
+
+    }
     const upgrader = new ImaMainnetUpgrader(
         "2.1.0",
         await getImaMainnetInstance(),
