@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import minimist = require("minimist");
+import minimist from "minimist";
 
 const gasMultiplierParameter = "gas_multiplier";
 

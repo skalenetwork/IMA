@@ -1,5 +1,5 @@
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     ERC20OnChain
 } from "../typechain";
@@ -10,8 +10,7 @@ chai.use(chaiAsPromised);
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 
 describe("ERC20OnChain", () => {
@@ -36,7 +35,7 @@ describe("ERC20OnChain", () => {
         await eRC20OnChain.connect(deployer).mint(account, value);
         // expectation
         const balance = await eRC20OnChain.balanceOf(account);
-        parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(value);
+        balance.should.be.equal(value);
     });
 
     it("should invoke `burn`", async () => {
@@ -49,7 +48,7 @@ describe("ERC20OnChain", () => {
         await eRC20OnChain.connect(deployer).burn(amount);
         // expectation
         const balance = await eRC20OnChain.balanceOf(deployer.address);
-        parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(mintAmount - amount);
+        balance.should.be.equal(mintAmount - amount);
     });
 
     it("should invoke `burnFrom`", async () => {
@@ -65,6 +64,6 @@ describe("ERC20OnChain", () => {
         await eRC20OnChain.connect(deployer).burnFrom(account, amount);
         // expectation
         const balance = await eRC20OnChain.balanceOf(account);
-        parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(mintAmount - amount);
+       balance.should.be.equal(mintAmount - amount);
     });
 });

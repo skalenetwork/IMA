@@ -1,12 +1,13 @@
 import { createMultiSendTransaction } from "@skalenetwork/upgrade-tools";
 import { promises as fs } from "fs";
-import { UnsignedTransaction } from "ethers";
+import { Transaction } from "ethers";
 
 async function main() {
     if (!process.env.TRANSACTIONS || !process.env.SAFE) {
         console.log("Example of usage:");
         console.log("SAFE=0x13fD1622F0E7e50A87B79cb296cbAf18362631C0",
             "TRANSACTIONS=data/transactions-1.8.0-mainnet.json",
+            "CHAIN_ID=1",
             "npx hardhat run migrations/submitTransactions.ts --network mainnet");
         process.exit(1);
     }
@@ -14,15 +15,19 @@ async function main() {
         console.log("Private key is not set");
         process.exit(1);
     }
-
+    if (!process.env.CHAIN_ID) {
+        console.log("Chain ID is not set");
+        process.exit(1);
+    }
+    const chainId = BigInt(process.env.CHAIN_ID);
     const safe = process.env.SAFE;
     let privateKey = process.env.PRIVATE_KEY;
     if (!privateKey.startsWith("0x")) {
         privateKey = "0x" + privateKey;
     }
-    const safeTransactions = JSON.parse(await fs.readFile(process.env.TRANSACTIONS, "utf-8")) as UnsignedTransaction[];
+    const safeTransactions = JSON.parse(await fs.readFile(process.env.TRANSACTIONS, "utf-8")) as Transaction[];
 
-    await createMultiSendTransaction(safe, safeTransactions);
+    await createMultiSendTransaction(safe, chainId, safeTransactions);
     console.log("Done");
 }
 

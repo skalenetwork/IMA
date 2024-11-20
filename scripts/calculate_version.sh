@@ -18,20 +18,30 @@ if [ -z "$VERSION" ]; then
       exit 1
 fi
 
-LABEL="develop"
-for known in "beta" "stable"
-do
-    if [ "$BRANCH" = "$known" ]
-    then
-        LABEL="$BRANCH"
-    fi
-done
-
 git fetch --tags > /dev/null
+
+KNOWN_BRANCHES=('stable' 'release-candidate' 'beta')
+# Everything else will be marked as 'develop'
+
+declare -A SUFFIXES=(
+    ['release-candidate']='rc'
+)
+
+if [[ ! "${KNOWN_BRANCHES[@]}" =~ "$BRANCH" ]]
+then
+    BRANCH='develop'
+fi
+
+SUFFIX=$BRANCH
+if [[ -n "${SUFFIXES[$BRANCH]}" ]]
+then
+    SUFFIX="${SUFFIXES[$BRANCH]}"
+fi
+
 
 for (( NUMBER=0; ; NUMBER++ ))
 do
-    FULL_VERSION="$VERSION-$LABEL.$NUMBER"
+    FULL_VERSION="$VERSION-$SUFFIX.$NUMBER"
     TAG="$FULL_VERSION"
     if ! [[ $(git tag -l | grep "$TAG") ]]; then
         echo "$FULL_VERSION" | tr / -

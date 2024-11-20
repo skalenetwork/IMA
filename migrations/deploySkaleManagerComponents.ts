@@ -24,11 +24,12 @@
  */
 import { promises as fs } from 'fs';
 import { ethers } from "hardhat";
-import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
+import { getAbi } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { KeyStorageMock } from '../typechain';
 import { Wallet } from 'ethers';
-import { getPublicKey, stringKeccak256 } from '../test/utils/helper';
+import { getPublicKey } from '../test/utils/helper';
+import axios from 'axios';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -36,6 +37,16 @@ export function getContractKeyInAbiFile(contract: string) {
 
 export async function getManifestFile(): Promise<string> {
     return (await Manifest.forNetwork(ethers.provider)).file;
+}
+
+async function getLatestVersionOfSkaleManager(): Promise<string> {
+    try {
+        const response = await axios.get('https://raw.githubusercontent.com/skalenetwork/skale-manager/refs/heads/stable/VERSION');
+        return response.data.trim();
+    } catch (error) {
+        console.error('Failed to fetch the latest version of SkaleManager:', error);
+        throw error;
+    }
 }
 
 async function main() {
@@ -57,66 +68,88 @@ async function main() {
     }
 
     const schainName = process.env.CHAIN_NAME_SCHAIN;
+    const schainHash = ethers.id(schainName);
 
     console.log("Deploy ContractManager");
-    const contractManagerFactory = await getContractFactory("ContractManager");
+    const contractManagerFactory = await ethers.getContractFactory("ContractManager");
     const contractManager = await contractManagerFactory.deploy();
-    console.log("Contract ContractManager deployed to", contractManager.address);
+    const contractManagerAddress = await contractManager.getAddress();
+    console.log("Contract ContractManager deployed to", contractManagerAddress);
 
     console.log("Deploy Schains");
-    const schainsFactory = await getContractFactory("Schains");
+    const schainsFactory = await ethers.getContractFactory("Schains");
     const schains = await schainsFactory.deploy();
-    console.log("Contract Schains deployed to", schains.address);
+    const schainsAddress = await schains.getAddress();
+    console.log("Contract Schains deployed to", schainsAddress);
 
     console.log("Deploy SchainsInternal");
-    const schainsInternalFactory = await getContractFactory("SchainsInternal");
+    const schainsInternalFactory = await ethers.getContractFactory("SchainsInternal");
     const schainsInternal = await schainsInternalFactory.deploy();
-    console.log("Contract SchainsInternal deployed to", schainsInternal.address);
+    const schainsInternalAddress = await schainsInternal.getAddress();
+    console.log("Contract SchainsInternal deployed to", schainsInternalAddress);
 
     console.log("Deploy Wallets");
-    const walletsFactory = await getContractFactory("Wallets");
+    const walletsFactory = await ethers.getContractFactory("Wallets");
     const wallets = await walletsFactory.deploy();
-    console.log("Contract Wallets deployed to", wallets.address);
+    const walletsAddress = await wallets.getAddress();
+    console.log("Contract Wallets deployed to", walletsAddress);
 
     console.log("Deploy SkaleVerifier");
-    const skaleVerifierFactory = await getContractFactory("SkaleVerifierMock");
+    const skaleVerifierFactory = await ethers.getContractFactory("SkaleVerifierMock");
     const skaleVerifier = await skaleVerifierFactory.deploy();
-    console.log("Contract SkaleVerifier deployed to", skaleVerifier.address);
+    const skaleVerifierAddress = await skaleVerifier.getAddress();
+    console.log("Contract SkaleVerifier deployed to", skaleVerifierAddress);
 
     console.log("Deploy KeyStorage");
-    const keyStorageFactory = await getContractFactory("KeyStorageMock");
+    const keyStorageFactory = await ethers.getContractFactory("KeyStorageMock");
     const keyStorage = await keyStorageFactory.deploy() as KeyStorageMock;
-    console.log("Contract KeyStorage deployed to", keyStorage.address);
+    const keyStorageAddress = await keyStorage.getAddress();
+    console.log("Contract KeyStorage deployed to", keyStorageAddress);
 
     console.log("Deploy Nodes");
-    const nodesFactory = await getContractFactory("Nodes");
+    const nodesFactory = await ethers.getContractFactory("Nodes");
     const nodes = await nodesFactory.deploy();
-    console.log("Contract Nodes deployed to", nodes.address);
+    const nodesAddress = await nodes.getAddress();
+    console.log("Contract Nodes deployed to", nodesAddress);
+
+    console.log("Deploy SkaleManager");
+    const skaleManagerFactory = await ethers.getContractFactory("SkaleManagerMock");
+    const skaleManager = await skaleManagerFactory.deploy(contractManager);
+    const skaleManagerAddress = await skaleManager.getAddress();
+    console.log("Contract SkaleManager deployed to", skaleManagerAddress);
 
     console.log("Will set dependencies");
 
-    await schains.addContractManager( contractManager.address );
-    console.log("Add ContractManager address", contractManager.address, "as ContractManager to Contract Schains", schains.address, "\n");
-    await schainsInternal.addContractManager( contractManager.address );
-    console.log("Add ContractManager address", contractManager.address, "as ContractManager to Contract SchainsInternal", schainsInternal.address, "\n");
-    await wallets.addContractManager( contractManager.address );
-    console.log("Add ContractManager address", contractManager.address, "as ContractManager to Contract Wallets", wallets.address, "\n");
-    await contractManager.setContractsAddress( "Schains", schains.address );
-    console.log("Set Schains", schains.address, "to ContractManager", contractManager.address, "\n");
-    await contractManager.setContractsAddress( "SchainsInternal", schainsInternal.address );
-    console.log("Set SchainsInternal", schainsInternal.address, "to ContractManager", contractManager.address, "\n");
-    await contractManager.setContractsAddress( "Wallets", wallets.address );
-    console.log("Set Wallets", wallets.address, "to ContractManager", contractManager.address, "\n");
-    await contractManager.setContractsAddress( "SkaleVerifier", skaleVerifier.address );
-    console.log("Set SkaleVerifier", skaleVerifier.address, "to ContractManager", contractManager.address, "\n");
-    await contractManager.setContractsAddress( "KeyStorage", keyStorage.address );
-    console.log("Set KeyStorage", keyStorage.address, "to ContractManager", contractManager.address, "\n");
-    await contractManager.setContractsAddress( "Nodes", nodes.address );
-    console.log("Set Nodes", nodes.address, "to ContractManager", contractManager.address, "\n");
+    const versionOfSkaleManager = await getLatestVersionOfSkaleManager();
+
+    await skaleManager.setVersion(versionOfSkaleManager);
+    console.log("Set version", versionOfSkaleManager, "to SkaleManager", skaleManagerAddress, "\n");
+    await contractManager.setContractsAddress("ContractManager", contractManager);
+    console.log("Set ContractManager", contractManagerAddress, "to ContractManager", contractManagerAddress, "\n");
+    await schains.addContractManager(contractManager);
+    console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract Schains", schainsAddress, "\n");
+    await schainsInternal.addContractManager(contractManager);
+    console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract SchainsInternal", schainsInternalAddress, "\n");
+    await wallets.addContractManager(contractManager);
+    console.log("Add ContractManager address", contractManagerAddress, "as ContractManager to Contract Wallets", walletsAddress, "\n");
+    await contractManager.setContractsAddress("Schains", schains);
+    console.log("Set Schains", schainsAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("SchainsInternal", schainsInternal);
+    console.log("Set SchainsInternal", schainsInternalAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("Wallets", wallets);
+    console.log("Set Wallets", walletsAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier);
+    console.log("Set SkaleVerifier", skaleVerifierAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("KeyStorage", keyStorage);
+    console.log("Set KeyStorage", keyStorageAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("Nodes", nodes);
+    console.log("Set Nodes", nodesAddress, "to ContractManager", contractManagerAddress, "\n");
+    await contractManager.setContractsAddress("SkaleManager", skaleManager);
+    console.log("Set SkaleManager", skaleManagerAddress, "to ContractManager", contractManagerAddress, "\n");
     const nodeAddress1 = new Wallet(process.env.PRIVATE_KEY_FOR_ETHEREUM).connect(ethers.provider);
     const nodeAddress2 = new Wallet(process.env.PRIVATE_KEY_FOR_SCHAIN).connect(ethers.provider);
-    await owner.sendTransaction({to: nodeAddress1.address, value: ethers.utils.parseEther("1")});
-    await owner.sendTransaction({to: nodeAddress2.address, value: ethers.utils.parseEther("1")});
+    await owner.sendTransaction({to: nodeAddress1.address, value: ethers.parseEther("1")});
+    await owner.sendTransaction({to: nodeAddress2.address, value: ethers.parseEther("1")});
 
     const nodeCreationParams1 = {
         port: 1337,
@@ -142,7 +175,7 @@ async function main() {
     console.log("Create Node 1 with address", nodeAddress2.address, "\n");
     await schainsInternal.initializeSchain( schainName, owner.address, 1, 1 );
     console.log("Initialize Schain", schainName, "with address", owner.address, "\n");
-    await schainsInternal.connect(owner).addNodesToSchainsGroups(ethers.utils.id(schainName), [0, 1]);
+    await schainsInternal.connect(owner).addNodesToSchainsGroups(ethers.id(schainName), [0, 1]);
     console.log("Add Nodes 0 and 1 to schain", schainName, "\n");
     const BLSPublicKey = {
         x: {
@@ -154,20 +187,22 @@ async function main() {
             b: "14411459380456065006136894392078433460802915485975038137226267466736619639091"
         }
     };
-    await keyStorage.setBlsCommonPublicKeyForSchain( stringKeccak256(schainName), BLSPublicKey );
-    console.log("Set common public key in KeyStorage contract", keyStorage.address, "\n");
-    await wallets.rechargeSchainWallet( stringKeccak256(schainName), { value: "10000000000000000000" } ); // originally it was 1000000000000000000 = 1ETH
-    console.log("Recharge schain wallet in Wallets contract", wallets.address, "\n");
+    await keyStorage.setBlsCommonPublicKeyForSchain(schainHash, BLSPublicKey );
+    console.log("Set common public key in KeyStorage contract", keyStorageAddress, "\n");
+    await wallets.rechargeSchainWallet(schainHash, { value: "10000000000000000000" } ); // originally it was 1000000000000000000 = 1ETH
+    console.log("Recharge schain wallet in Wallets contract", walletsAddress, "\n");
 
     const jsonObject = {
-        contract_manager_address: contractManager.address,
+        contract_manager_address: contractManagerAddress,
         contract_manager_abi: getAbi(contractManager.interface),
-        schains_internal_address: schainsInternal.address,
+        schains_internal_address: schainsInternalAddress,
         schains_internal_abi: getAbi(schainsInternal.interface),
-        key_storage_address: keyStorage.address,
+        key_storage_address: keyStorageAddress,
         key_storage_abi: getAbi(keyStorage.interface),
-        wallets_address: wallets.address,
-        wallets_abi: getAbi(wallets.interface)
+        wallets_address: walletsAddress,
+        wallets_abi: getAbi(wallets.interface),
+        skale_manager_address: skaleManagerAddress,
+        skale_manager_abi: getAbi(skaleManager.interface),
     };
 
     await fs.writeFile( "data/skaleManagerComponents.json", JSON.stringify( jsonObject ) );

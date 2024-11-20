@@ -24,14 +24,13 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     CommunityLocker,
     MessageProxyForSchainWithoutSignature,
     MessagesTester,
     TokenManagerLinker,
 } from "../typechain";
-import { stringKeccak256 } from "./utils/helper";
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -40,11 +39,11 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
-import { BigNumber } from "ethers";
+import { BigNumberish } from "ethers";
 import { currentTime, skipTime } from "./utils/time";
 
 const schainName = "TestSchain";
@@ -58,7 +57,7 @@ describe("CommunityLocker", () => {
     let messages: MessagesTester;
     let communityLocker: CommunityLocker;
     let fakeCommunityPool: string;
-    const mainnetHash = stringKeccak256("Mainnet");
+    const mainnetHash = ethers.id("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -66,33 +65,33 @@ describe("CommunityLocker", () => {
 
     beforeEach(async () => {
         messages = await deployMessages();
-        fakeCommunityPool = messages.address;
+        fakeCommunityPool = user.address;
         const messageProxyForSchainWithoutSignatureFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
         messageProxyForSchain = await messageProxyForSchainWithoutSignatureFactory.deploy("MyChain") as MessageProxyForSchainWithoutSignature;
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
-        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain, tokenManagerLinker, fakeCommunityPool);
     })
 
     it("should activate user", async () => {
-        const schainHash = stringKeccak256("Schain");
+        const schainHash = ethers.id("Schain");
         const data = await messages.encodeActivateUserMessage(deployer.address);
         const fakeData = await messages.encodeTransferEthMessage(user.address, 1);
         await communityLocker.postMessage(mainnetHash, fakeCommunityPool, data)
             .should.be.eventually.rejectedWith("Sender is not a message proxy");
 
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, deployer.address, data)
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, deployer.address, data)
             .should.be.eventually.rejectedWith("Sender must be CommunityPool");
 
-        await messageProxyForSchain.postMessage(communityLocker.address, schainHash, fakeCommunityPool, data)
+        await messageProxyForSchain.postMessage(communityLocker, schainHash, fakeCommunityPool, data)
             .should.be.eventually.rejectedWith("Source chain name must be Mainnet");
 
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, fakeData)
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, fakeData)
             .should.be.eventually.rejectedWith("The message should contain a status of user");
 
         expect(await communityLocker.activeUsers(deployer.address)).to.be.equal(false);
 
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data)
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data)
             .should.be.eventually.rejectedWith("Active user statuses must be different");
         expect(await communityLocker.activeUsers(deployer.address)).to.be.equal(true);
     });
@@ -100,38 +99,38 @@ describe("CommunityLocker", () => {
     it("should activate and then lock user", async () => {
         const activateData = await messages.encodeActivateUserMessage(user.address);
         const lockData = await messages.encodeLockUserMessage(user.address);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, activateData);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, activateData);
         expect(await communityLocker.activeUsers(user.address)).to.be.equal(true);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, lockData);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, lockData);
         expect(await communityLocker.activeUsers(user.address)).to.be.equal(false);
     });
 
     it("should set time limit per message", async () => {
-        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(300);
+        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(300n);
         await communityLocker.setTimeLimitPerMessage("Mainnet", 0)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage("Mainnet", 0);
-        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(0);
+        expect(await communityLocker.timeLimitPerMessage(mainnetHash)).to.be.equal(0n);
     });
 
     it("should set time limit per message for schain", async () => {
         const anotherSchainName = "Schain Sierra";
-        const schainHash = ethers.utils.id(anotherSchainName);
-        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(0);
+        const schainHash = ethers.id(anotherSchainName);
+        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(0n);
         await communityLocker.setTimeLimitPerMessage(anotherSchainName, 1200)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage(schainName, 1200)
             .should.be.eventually.rejectedWith("Incorrect chain");
         await communityLocker.setTimeLimitPerMessage(anotherSchainName, 1200);
-        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(1200);
+        expect(await communityLocker.timeLimitPerMessage(schainHash)).to.be.equal(1200n);
     });
 
     it("should set gasprice", async () => {
-        const newBLSSignature: [BigNumber, BigNumber] = [
-            BigNumber.from("0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8"),
-            BigNumber.from("0x2e9a10a0baf75ccdbd2b5cf81491673108917ade57dea40d350d4cbebd7b0965")
+        const newBLSSignature: [BigNumberish, BigNumberish] = [
+            "0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8",
+            "0x2e9a10a0baf75ccdbd2b5cf81491673108917ade57dea40d350d4cbebd7b0965"
         ];
         const sign = {
             blsSignature: newBLSSignature,
@@ -142,8 +141,8 @@ describe("CommunityLocker", () => {
         const time = await currentTime();
         await communityLocker.setGasPrice(100, time + 200, sign).should.be.eventually.rejectedWith("Timestamp should not be in the future");
         await communityLocker.setGasPrice(100, time, sign);
-        expect(await communityLocker.mainnetGasPrice()).to.be.equal(100);
-        expect(await communityLocker.gasPriceTimestamp()).to.be.equal(time);
+        expect(await communityLocker.mainnetGasPrice()).to.be.equal(100n);
+        expect(await communityLocker.gasPriceTimestamp()).to.be.equal(BigInt(time));
 
         skipTime(60);
 
@@ -151,7 +150,7 @@ describe("CommunityLocker", () => {
         await communityLocker.setGasPrice(101, time, sign).should.be.eventually.rejectedWith("Gas price timestamp already updated");
         await communityLocker.setGasPrice(101, time + 70, sign).should.be.eventually.rejectedWith("Timestamp should not be in the future");
         await communityLocker.setGasPrice(101, time + 40, sign);
-        expect(await communityLocker.mainnetGasPrice()).to.be.equal(101);
-        expect(await communityLocker.gasPriceTimestamp()).to.be.equal(time + 40);
+        expect(await communityLocker.mainnetGasPrice()).to.be.equal(101n);
+        expect(await communityLocker.gasPriceTimestamp()).to.be.equal(BigInt(time + 40));
     });
 });
