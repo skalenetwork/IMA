@@ -10,6 +10,8 @@ test-tokens/typechain
 .openzeppelin/dev-*.json
 .openzeppelin/unknown-*.json
 .openzeppelin/.session
+.openzeppelin/holesky.json
+.openzeppelin/sepolia.json
 
 # predeployed generator artificats
 predeployed/test/additional.json

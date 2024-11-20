@@ -1,7 +1,6 @@
 import { initializeSchain, isSchainActive } from "./schainsInternal";
 import { ethers } from "hardhat";
 import { ContractManager, Wallets } from "../../../typechain";
-import { stringKeccak256 } from "../helper";
 
 const nameWallets = "Wallets";
 
@@ -16,8 +15,8 @@ export async function rechargeSchainWallet(
     if (await contractManager.getContract(nameWallets) === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
         walletsInstance = await walletsFactory.deploy() as Wallets;
-        await walletsInstance.addContractManager(contractManager.address);
-        await contractManager.setContractsAddress(nameWallets, walletsInstance.address);
+        await walletsInstance.addContractManager(contractManager);
+        await contractManager.setContractsAddress(nameWallets, walletsInstance);
     } else {
         walletsInstance = await walletsFactory.attach(await contractManager.getContract(nameWallets)) as Wallets;
     }
@@ -26,6 +25,6 @@ export async function rechargeSchainWallet(
     if ( !schainActive )
         await initializeSchain(contractManager, schainName, owner, 1, 1);
 
-    const schainHash = stringKeccak256(schainName);
+    const schainHash = ethers.id(schainName);
     await walletsInstance.rechargeSchainWallet(schainHash, {value: amountEth /*"1000000000000000000"*/});
 }

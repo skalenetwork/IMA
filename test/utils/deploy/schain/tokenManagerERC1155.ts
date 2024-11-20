@@ -1,11 +1,11 @@
 import { ethers, upgrades } from "hardhat";
-import { TokenManagerERC1155, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
+import { TokenManagerERC1155, TokenManagerLinker, CommunityLocker, MessageProxyForSchain } from "../../../../typechain";
 
 const name = "TokenManagerERC1155";
 
 export async function deployTokenManagerERC1155(
     schainName: string,
-    messageProxyForSchain: string,
+    messageProxyForSchain: MessageProxyForSchain,
     tokenManagerLinker: TokenManagerLinker,
     communityLocker: CommunityLocker,
     newDepositBox: string
@@ -15,11 +15,11 @@ export async function deployTokenManagerERC1155(
         factory,
         [
             schainName,
-            messageProxyForSchain,
-            tokenManagerLinker.address,
-            communityLocker.address,
+            await messageProxyForSchain.getAddress(),
+            await tokenManagerLinker.getAddress(),
+            await communityLocker.getAddress(),
             newDepositBox
         ]
-    ) as TokenManagerERC1155;
+    ) as unknown as TokenManagerERC1155;
     return instance;
 }

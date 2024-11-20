@@ -24,7 +24,7 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai, { assert } from "chai";
 import {
     CommunityLocker,
     EthErc20,
@@ -33,7 +33,7 @@ import {
     TokenManagerEth,
     TokenManagerLinker,
 } from "../typechain";
-import { stringKeccak256 } from "./utils/helper";
+
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -45,15 +45,14 @@ import { deployEthErc20 } from "./utils/deploy/schain/ethErc20";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
-const schainHash = stringKeccak256(schainName);
+const schainHash = ethers.id(schainName);
 
 describe("TokenManagerEth", () => {
     let deployer: SignerWithAddress;
@@ -67,7 +66,7 @@ describe("TokenManagerEth", () => {
     let communityLocker: CommunityLocker;
     let fakeDepositBox: string;
     let fakeCommunityPool: string;
-    const mainnetHash = stringKeccak256("Mainnet");
+    const mainnetHash = ethers.id("Mainnet");
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -75,14 +74,19 @@ describe("TokenManagerEth", () => {
 
     beforeEach(async () => {
         const keyStorage = await deployKeyStorageMock();
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage, schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
-        fakeDepositBox = tokenManagerLinker.address;
-        fakeCommunityPool = tokenManagerLinker.address;
-        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
+        fakeDepositBox = user.address;
+        fakeCommunityPool = user.address;
+        communityLocker = await deployCommunityLocker(
+            schainName,
+            messageProxyForSchain,
+            tokenManagerLinker,
+            fakeCommunityPool
+        );
         tokenManagerEth = await deployTokenManagerEth(
             schainName,
-            messageProxyForSchain.address,
+            messageProxyForSchain,
             tokenManagerLinker,
             communityLocker,
             fakeDepositBox,
@@ -91,19 +95,19 @@ describe("TokenManagerEth", () => {
         ethERC20 = await deployEthErc20(
             tokenManagerEth
         );
-        await tokenManagerLinker.registerTokenManager(tokenManagerEth.address);
-        await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
+        await tokenManagerLinker.registerTokenManager(tokenManagerEth);
+        await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20);
         messages = await deployMessages();
 
         const data = await messages.encodeActivateUserMessage(user.address);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data);
 
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
     });
 
     it("should set EthErc20 address", async () => {
-        const newEthErc20Address = tokenManagerLinker.address;
+        const newEthErc20Address = tokenManagerLinker;
         // only owner can set EthErc20 address:
         await tokenManagerEth.connect(user).setEthErc20Address(newEthErc20Address).should.be.rejected;
         await tokenManagerEth.connect(deployer).setEthErc20Address(newEthErc20Address);
@@ -126,6 +130,7 @@ describe("TokenManagerEth", () => {
         const tokenManagerAddress = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const schainName2 = "TestSchain2";
+        const schainHash = ethers.id(schainName2);
 
         // only owner can add deposit box:
         await tokenManagerEth.connect(user).addTokenManager(schainName2, tokenManagerAddress).should.be.rejected;
@@ -141,7 +146,7 @@ describe("TokenManagerEth", () => {
         await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).
             should.be.rejectedWith("Token Manager is already set");
 
-        const storedDepositBox = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
+        const storedDepositBox = await tokenManagerEth.tokenManagers(schainHash);
         expect(storedDepositBox).to.equal(tokenManagerAddress);
     });
 
@@ -156,7 +161,7 @@ describe("TokenManagerEth", () => {
             .connect(deployer)
             .hasTokenManager(schainName2);
         // expectation
-        expect(res).to.be.true;
+        assert(res);
     });
 
     it("should return false when invoke `hasTokenManager`", async () => {
@@ -167,7 +172,7 @@ describe("TokenManagerEth", () => {
             .connect(deployer)
             .hasTokenManager(schainName2);
         // expectation
-        expect(res).to.be.false;
+        assert.isFalse(res);
     });
 
     it("should invoke `removeTokenManager` without mistakes", async () => {
@@ -175,12 +180,13 @@ describe("TokenManagerEth", () => {
         const tokenManagerAddress = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const schainName2 = "TestSchain2";
+        const schainHash = ethers.id(schainName2);
         // add deposit box:
         await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress);
         // execution
         await tokenManagerEth.connect(deployer).removeTokenManager(schainName2);
         // expectation
-        const getMapping = await tokenManagerEth.tokenManagers(stringKeccak256(schainName2));
+        const getMapping = await tokenManagerEth.tokenManagers(schainHash);
         expect(getMapping).to.equal(nullAddress);
     });
 
@@ -193,26 +199,26 @@ describe("TokenManagerEth", () => {
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
-        const amount = BigNumber.from("60");
-        const amountAfter = BigNumber.from("54");
-        const amountTo = BigNumber.from("6");
-        await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerEth.address);
+        const amount = 60;
+        const amountAfter = 54;
+        const amountTo = 6;
+        await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerEth);
 
         await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
         await ethERC20.mint(user.address, amount);
 
-        // send Eth to a client on Mainnet:
+        // // send Eth to a client on Mainnet:
         await tokenManagerEth.connect(user).exitToMain(amountTo);
-        expect(BigNumber.from(await ethERC20.balanceOf(user.address)).toString()).to.be.equal(amountAfter.toString());
+        expect(await ethERC20.balanceOf(user.address)).to.be.equal(amountAfter.toString());
 
         let data1 = await messages.encodeLockUserMessage(user.address);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data1);
 
         await tokenManagerEth.connect(user).exitToMain(amountTo)
             .should.be.eventually.rejectedWith("Recipient must be active");
 
         data1 = await messages.encodeActivateUserMessage(user.address);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
+        await messageProxyForSchain.postMessage(communityLocker, mainnetHash, fakeCommunityPool, data1);
 
         await tokenManagerEth.connect(user).exitToMain(amountTo)
             .should.be.eventually.rejectedWith("Exceeded message rate limit");
@@ -241,14 +247,21 @@ describe("TokenManagerEth", () => {
             const amount = 10;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
             const sender = deployer.address;
-            // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
+            // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain`
             // to avoid `Not a sender` error
-            tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
+            tokenManagerEth = await deployTokenManagerEth(
+                schainName,
+                messageProxyForSchain,
+                tokenManagerLinker,
+                communityLocker,
+                fakeDepositBox,
+                await ethERC20.getAddress()
+            );
             // await tokenManagerEth.setContract("MessageProxy", deployer, {from: deployer});
             // execution
-            await tokenManagerEth
+            await messageProxyForSchain
                 .connect(deployer)
-                .postMessage(schainHash, sender, bytesData)
+                .postMessage(tokenManagerEth, schainHash, sender, bytesData)
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -256,9 +269,16 @@ describe("TokenManagerEth", () => {
             // for `Invalid data` message bytesData should be `0x`
             const bytesData = "0x";
             const sender = deployer.address;
-            // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
+            // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain`
             // to avoid `Not a sender` error
-            tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
+            tokenManagerEth = await deployTokenManagerEth(
+                schainName,
+                messageProxyForSchain,
+                tokenManagerLinker,
+                communityLocker,
+                fakeDepositBox,
+                await ethERC20.getAddress()
+            );
             // add schain to avoid the `Receiver chain is incorrect` error
             await tokenManagerEth
                 .connect(deployer)
@@ -272,9 +292,9 @@ describe("TokenManagerEth", () => {
 
         it("should transfer eth", async () => {
             //  preparation
-            await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth.address);
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth);
             const fromSchainName = "fromSchainName";
-            const fromSchainId = stringKeccak256(fromSchainName);
+            const fromSchainId = ethers.id(fromSchainName);
             const amount = "10";
             const sender = deployer.address;
             const to = user.address;
@@ -285,32 +305,31 @@ describe("TokenManagerEth", () => {
             await tokenManagerEth
                 .connect(deployer)
                 .addTokenManager(fromSchainName, deployer.address);
-            await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), tokenManagerEth.address);
-            await ethERC20.connect(deployer).grantRole(await ethERC20.BURNER_ROLE(), tokenManagerEth.address);
+            await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), tokenManagerEth);
+            await ethERC20.connect(deployer).grantRole(await ethERC20.BURNER_ROLE(), tokenManagerEth);
             // execution
             await messageProxyForSchain.postMessage(
-                tokenManagerEth.address,
+                tokenManagerEth,
                 fromSchainId,
                 sender,
                 bytesData
             ).should.be.eventually.rejectedWith("Receiver chain is incorrect");
 
             await messageProxyForSchain.postMessage(
-                tokenManagerEth.address,
+                tokenManagerEth,
                 mainnetHash,
                 sender,
                 bytesData
             ).should.be.eventually.rejectedWith("Receiver chain is incorrect");
 
             await messageProxyForSchain.postMessage(
-                tokenManagerEth.address,
+                tokenManagerEth,
                 mainnetHash,
                 fakeDepositBox,
                 bytesData
             );
             // expectation
-            expect(parseInt((BigNumber.from(await ethERC20.balanceOf(to))).toString(), 10))
-                .to.be.equal(parseInt(amount, 10));
+            expect(await ethERC20.balanceOf(to)).to.be.equal(amount);
         });
     });
 });

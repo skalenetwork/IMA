@@ -23,9 +23,9 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { solidity } from "ethereum-waffle";
+// import { solidity } from "ethereum-waffle";
 import chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import chai from "chai";
 import {
     CommunityLocker,
     CommunityPool,
@@ -47,7 +47,7 @@ import {
 
 chai.should();
 chai.use(chaiAsPromised);
-chai.use(solidity);
+// chai.use(solidity);
 
 import { deployLinker } from "../utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "../utils/deploy/mainnet/messageProxyForMainnet";
@@ -66,11 +66,11 @@ import { deployContractManager } from "../utils/skale-manager-utils/contractMana
 import { deployTokenManagerLinker } from "../utils/deploy/schain/tokenManagerLinker";
 import { deployMessageProxyForSchain } from "../utils/deploy/schain/messageProxyForSchain";
 
-import { stringKeccak256, getPublicKey } from "../utils/helper";
+import { getPublicKey } from "../utils/helper";
 
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, Wallet } from "ethers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { BigNumberish, HDNodeWallet, Wallet } from "ethers";
 
 import { expect } from "chai";
 import { deployCommunityLocker } from "../utils/deploy/schain/communityLocker";
@@ -81,7 +81,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let richGuy: SignerWithAddress;
-    let nodeAddress: Wallet;
+    let nodeAddress: HDNodeWallet;
 
     let imaLinker: Linker;
     let communityPool: CommunityPool;
@@ -104,14 +104,14 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let extensionSchain: ERC721ReferenceMintAndMetadataSchain;
 
     const schainName = "ExtensionChain";
-    const schainNameHash = stringKeccak256("ExtensionChain");
+    const schainNameHash = ethers.id("ExtensionChain");
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
         [deployer, user, richGuy] = await ethers.getSigners();
         nodeAddress = Wallet.createRandom().connect(ethers.provider);
-        const balanceRichGuy = await richGuy.getBalance();
-        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
+        const balanceRichGuy = await ethers.provider.getBalance(richGuy.address);
+        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy - BigInt(ethers.parseEther("1"))});
     })
 
     beforeEach(async () => {
@@ -123,17 +123,17 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         schainsInternal = await (await ethers.getContractFactory("SchainsInternal")).deploy() as SchainsInternal;
         skaleVerifier = await (await ethers.getContractFactory("SkaleVerifierMock")).deploy() as SkaleVerifierMock;
         wallets = await (await ethers.getContractFactory("Wallets")).deploy() as Wallets;
-        await contractManager.connect(deployer).setContractsAddress("KeyStorage", keyStorage.address);
-        await contractManager.connect(deployer).setContractsAddress("Nodes", nodes.address);
-        await contractManager.connect(deployer).setContractsAddress("Schains", schains.address);
-        await contractManager.connect(deployer).setContractsAddress("SchainsInternal", schainsInternal.address);
-        await contractManager.connect(deployer).setContractsAddress("SkaleVerifier", skaleVerifier.address);
-        await contractManager.connect(deployer).setContractsAddress("Wallets", wallets.address);
+        await contractManager.connect(deployer).setContractsAddress("KeyStorage", keyStorage);
+        await contractManager.connect(deployer).setContractsAddress("Nodes", nodes);
+        await contractManager.connect(deployer).setContractsAddress("Schains", schains);
+        await contractManager.connect(deployer).setContractsAddress("SchainsInternal", schainsInternal);
+        await contractManager.connect(deployer).setContractsAddress("SkaleVerifier", skaleVerifier);
+        await contractManager.connect(deployer).setContractsAddress("Wallets", wallets);
 
         // add ContractManager to contracts
-        await schains.connect(deployer).addContractManager(contractManager.address);
-        await schainsInternal.connect(deployer).addContractManager(contractManager.address);
-        await wallets.connect(deployer).addContractManager(contractManager.address);
+        await schains.connect(deployer).addContractManager(contractManager);
+        await schainsInternal.connect(deployer).addContractManager(contractManager);
+        await wallets.connect(deployer).addContractManager(contractManager);
 
         // setup 16 nodes
         const nodeCreationParams = {
@@ -191,36 +191,36 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
         const chainConnectorRole2 = await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE();
         await messageProxyForMainnet.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
-        await messageProxyForMainnet.connect(deployer).grantRole(chainConnectorRole2, imaLinker.address);
+        await messageProxyForMainnet.connect(deployer).grantRole(chainConnectorRole2, imaLinker);
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxEth.address)
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC20.address)
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC721.address)
-        // await messageProxyForMainnet.registerExtraContractForAll(communityPool.address)
+        // await messageProxyForMainnet.registerExtraContractForAll(communityPool)
 
         // IMA schain part deployment
-        messageProxyForSchain = await deployMessageProxyForSchain(keyStorage.address, schainName);
+        messageProxyForSchain = await deployMessageProxyForSchain(keyStorage, schainName);
         await keyStorage.connect(deployer).setBlsCommonPublicKey(BLSPublicKey);
-        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, imaLinker.address);
-        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, communityPool.address);
+        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, await imaLinker.getAddress());
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain, tokenManagerLinker, await communityPool.getAddress());
         // tokenManagerEth = await deployTokenManagerEth(
         //     schainName,
-        //     messageProxyForSchain.address,
+        //     messageProxyForSchain,
         //     tokenManagerLinker,
         //     communityLocker,
         //     depositBoxEth.address,
         //     "0x0000000000000000000000000000000000000000");
-        // tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
-        // tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC721.address);
+        // tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain, tokenManagerLinker, communityLocker, depositBoxERC20.address);
+        // tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain, tokenManagerLinker, communityLocker, depositBoxERC721.address);
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
         // await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth.address)
         // await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC20.address)
         // await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721.address)
-        // await messageProxyForSchain.registerExtraContractForAll(communityLocker.address)
+        // await messageProxyForSchain.registerExtraContractForAll(communityLocker)
 
         // ethERC20 = await deployEthErc20(tokenManagerEth);
         // await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
-        await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);
+        await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker);
         // await tokenManagerERC20.connect(deployer).grantRole(await tokenManagerERC20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         // await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
 
@@ -230,11 +230,11 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         // await lockAndDataForSchain.setContract("ERC20Module", erc20ModuleForSchain.address);
         // await lockAndDataForSchain.setContract("ERC721Module", erc721ModuleForSchain.address);
         // await lockAndDataForSchain.setContract("TokenManager", tokenManager.address);
-        // await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address);
+        // await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain);
         // await lockAndDataForSchain.setContract("TokenFactory", tokenFactory.address);
 
         // IMA registration
-        await imaLinker.connectSchain(schainName, [communityLocker.address, tokenManagerLinker.address]);
+        await imaLinker.connectSchain(schainName, [communityLocker, tokenManagerLinker]);
         // await communityPool.connect(user).rechargeUserWallet(schainName, { value: 1e18.toString() });
         // await lockAndDataForSchain.addDepositBox(depositBoxEth.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC20.address);
@@ -269,57 +269,57 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         const extensionMainnetFactory = await ethers.getContractFactory("ERC721ReferenceMintAndMetadataMainnet");
 
         extensionMainnet = await extensionMainnetFactory.deploy(
-            messageProxyForMainnet.address,
-            ERC721TokenOnMainnet.address,
+            messageProxyForMainnet,
+            ERC721TokenOnMainnet,
             schainName
         ) as ERC721ReferenceMintAndMetadataMainnet;
 
         extensionSchain = await extensionSchainFactory.deploy(
-            messageProxyForSchain.address,
-            ERC721TokenOnSchain.address,
-            extensionMainnet.address
+            messageProxyForSchain,
+            ERC721TokenOnSchain,
+            extensionMainnet
         ) as ERC721ReferenceMintAndMetadataSchain;
 
-        await extensionMainnet.connect(deployer).setSenderContractOnSchain(extensionSchain.address);
+        await extensionMainnet.connect(deployer).setSenderContractOnSchain(extensionSchain);
 
         // add minter role
         const minterRoleERC721 = await ERC721TokenOnMainnet.MINTER_ROLE();
-        await ERC721TokenOnMainnet.grantRole(minterRoleERC721, extensionMainnet.address);
+        await ERC721TokenOnMainnet.grantRole(minterRoleERC721, extensionMainnet);
     });
 
     it("should not send message if not registered", async () => {
         await ERC721TokenOnSchain.connect(user).setTokenURI(1, "MyToken1");
-        await ERC721TokenOnSchain.connect(user).approve(extensionSchain.address, 1);
+        await ERC721TokenOnSchain.connect(user).approve(extensionSchain, 1);
         await extensionSchain.connect(user).sendTokenToMainnet(user.address, 1).should.be.eventually.rejectedWith("Sender contract is not registered");
     });
 
     it("should send message", async () => {
         const tokenURI = "MyToken1";
-        const mainnetHash = stringKeccak256("Mainnet");
+        const mainnetHash = ethers.id("Mainnet");
         await ERC721TokenOnSchain.connect(user).setTokenURI(1, tokenURI);
-        await ERC721TokenOnSchain.connect(user).approve(extensionSchain.address, 1);
-        await messageProxyForSchain.connect(deployer).registerExtraContract("Mainnet", extensionSchain.address);
+        await ERC721TokenOnSchain.connect(user).approve(extensionSchain, 1);
+        await messageProxyForSchain.connect(deployer).registerExtraContract("Mainnet", extensionSchain);
         const res = await extensionSchain.connect(user).sendTokenToMainnet(user.address, 1);
 
-        const encodedData = ethers.utils.defaultAbiCoder.encode(["address", "uint", "string"], [user.address, 1, tokenURI]);
+        const encodedData = ethers.AbiCoder.defaultAbiCoder().encode(["address", "uint", "string"], [user.address, 1, tokenURI]);
         await expect(res)
             .to.emit(messageProxyForSchain, "OutgoingMessage")
-            .withArgs(mainnetHash, 0, extensionSchain.address, extensionMainnet.address, encodedData);
+            .withArgs(mainnetHash, 0, extensionSchain, extensionMainnet, encodedData);
     });
 
     it("should POST message for token 1", async () => {
         const dataToPost = await extensionSchain.connect(user).encodeParams(user.address, 1, "MyToken1");
         const message = {
             data: dataToPost,
-            destinationContract: extensionMainnet.address,
-            sender: extensionSchain.address,
+            destinationContract: extensionMainnet,
+            sender: extensionSchain,
         };
 
         // prepare BLS signature
         // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
-        const BlsSignature: [BigNumber, BigNumber] = [
-            BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
-            BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
+        const BlsSignature: [BigNumberish, BigNumberish] = [
+            "178325537405109593276798394634841698946852714038246117383766698579865918287",
+            "493565443574555904019191451171395204672818649274520396086461475162723833781",
         ];
         const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
         const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
@@ -355,14 +355,14 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         const message = {
             data: dataToPost,
             destinationContract: user.address,
-            sender: extensionSchain.address,
+            sender: extensionSchain,
         };
 
         // prepare BLS signature
         // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
-        const BlsSignature: [BigNumber, BigNumber] = [
-            BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
-            BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
+        const BlsSignature: [BigNumberish, BigNumberish] = [
+            "178325537405109593276798394634841698946852714038246117383766698579865918287",
+            "493565443574555904019191451171395204672818649274520396086461475162723833781",
         ];
         const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
         const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
@@ -388,22 +388,22 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             0,
             [message],
             sign
-        )).to.emit(messageProxyForMainnet, "PostMessageError").withArgs(0, ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Destination contract is not a contract")));
+        )).to.emit(messageProxyForMainnet, "PostMessageError").withArgs(0, ethers.hexlify(ethers.toUtf8Bytes("Destination contract is not a contract")));
     });
 
     it("should POST message for token 5", async () => {
         const dataToPost = await extensionSchain.connect(user).encodeParams(user.address, 5, "MyToken5Unique");
         const message = {
             data: dataToPost,
-            destinationContract: extensionMainnet.address,
-            sender: extensionSchain.address,
+            destinationContract: extensionMainnet,
+            sender: extensionSchain,
         };
 
         // prepare BLS signature
         // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
-        const BlsSignature: [BigNumber, BigNumber] = [
-            BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
-            BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
+        const BlsSignature: [BigNumberish, BigNumberish] = [
+            "178325537405109593276798394634841698946852714038246117383766698579865918287",
+            "493565443574555904019191451171395204672818649274520396086461475162723833781"
         ];
         const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
         const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";

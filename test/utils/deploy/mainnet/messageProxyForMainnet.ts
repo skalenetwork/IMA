@@ -10,8 +10,8 @@ export async function deployMessageProxyForMainnet(
     if (await contractManager.getContract(name) !== "0x0000000000000000000000000000000000000000") {
         return factory.attach(await contractManager.getContract(name)) as MessageProxyForMainnet;
     } else {
-        const instance = await upgrades.deployProxy(factory, [contractManager.address]) as MessageProxyForMainnet;
-        await contractManager.setContractsAddress(name, instance.address);
+        const instance = await upgrades.deployProxy(factory, [await contractManager.getAddress()]) as unknown as MessageProxyForMainnet;
+        await contractManager.setContractsAddress(name, instance);
         return instance;
     }
 }
