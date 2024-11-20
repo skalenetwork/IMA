@@ -1,0 +1,2 @@
+predeployed-generator>=1.2.0
+setuptools
