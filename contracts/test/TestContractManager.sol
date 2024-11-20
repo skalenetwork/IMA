@@ -73,8 +73,6 @@ contract ContractManager is IContractManagerTester {
         returns (address contractAddress)
     {
         contractAddress = contracts[keccak256(abi.encodePacked(name))];
-        if (contractAddress == address(0)) {
-            revert(name.strConcat(" contract has not been found"));
-        }
+        require(contractAddress != address(0), "Contract has not been found");
     }
 }
