@@ -154,10 +154,14 @@ async function updateAbi() {
 }
 
 async function main() {
+    const contractNamesToUpgrade = [
+        "MessageProxyForMainnet",
+        "CommunityPool"
+    ]
     const upgrader = new ImaMainnetUpgrader(
         "2.1.0",
         await getImaMainnetInstance(),
-        contracts
+        contractNamesToUpgrade
     );
     await upgrader.upgrade();
     await updateAbi();
