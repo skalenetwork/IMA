@@ -103,19 +103,27 @@ class ImaMainnetUpgrader extends Upgrader {
             contractManagerInterface,
             ethers.provider
         )
+        if (!process.env.ABI) {
+            console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+            process.exit(1);
+        }
+        const abi = JSON.parse(await fs.readFile(process.env.ABI, "utf-8"));
         for (const contractName of contracts) {
             try {
                 const contractAddress = await contractManager.getContract(contractName);
                 console.log(`Address of ${contractName} is set to ${contractAddress}`);
             } catch {
                 // getContract failed because the contract is not set
-                const contractAddress = await this.instance.getContract(contractName);
+                const contractAddress = abi[`${getContractKeyInAbiFile(contractName)}_address`] as string;
                 this.transactions.push(Transaction.from(
                     {
                         to: await contractManager.getAddress(),
                         data: contractManager.interface.encodeFunctionData(
                             "setContractsAddress",
-                            [contractAddress]
+                            [
+                                contractName,
+                                contractAddress
+                            ]
                         )
                     }
                 ))
@@ -151,10 +159,17 @@ async function updateAbi() {
 }
 
 async function main() {
+    let contractNamesToUpgrade = [
+        "MessageProxyForMainnet",
+        "CommunityPool"
+    ]
+    if (process.env.UPGRADE_ALL) {
+        contractNamesToUpgrade = contracts;
+    }
     const upgrader = new ImaMainnetUpgrader(
         "2.1.0",
         await getImaMainnetInstance(),
-        contracts
+        contractNamesToUpgrade
     );
     await upgrader.upgrade();
     await updateAbi();

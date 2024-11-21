@@ -71,7 +71,7 @@ cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
 
 MESSAGE_PROXY_FOR_MAINNET=$(cat data/proxyMainnet.json | jq -r .message_proxy_mainnet_address)
-TEST_UPGRADE=true \
+UPGRADE_ALL=true \
 ABI="data/proxyMainnet.json" \
 TARGET="$MESSAGE_PROXY_FOR_MAINNET" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
@@ -87,6 +87,7 @@ MESSAGE_PROXY_FOR_SCHAIN=$(cat data/$ABI_FILENAME_SCHAIN | jq -r .message_proxy_
 # ABI="data/$ABI_FILENAME_SCHAIN" \
 # MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 # CHAIN_NAME_SCHAIN="Test" \
+# UPGRADE_ALL=true \
 # ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 # TARGET="$MESSAGE_PROXY_FOR_SCHAIN" \
 # VERSION=$VERSION_TAG \
