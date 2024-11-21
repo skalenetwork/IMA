@@ -159,13 +159,12 @@ async function updateAbi() {
 }
 
 async function main() {
-    let contractNamesToUpgrade = contracts;
-    if (process.env.TEST_UPGRADE !== "true") {
-        contractNamesToUpgrade = [
-            "MessageProxyForMainnet",
-            "CommunityPool"
-        ]
-
+    let contractNamesToUpgrade = [
+        "MessageProxyForMainnet",
+        "CommunityPool"
+    ]
+    if (process.env.UPGRADE_ALL) {
+        contractNamesToUpgrade = contracts;
     }
     const upgrader = new ImaMainnetUpgrader(
         "2.1.0",

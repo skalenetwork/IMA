@@ -38,6 +38,10 @@ contract ContractManager is IContractManagerTester {
 
     event ContractUpgraded(string contractsName, address contractsAddress);
 
+    error ContractNotFound(
+        string contractName
+    );
+
     constructor() {
         owner = msg.sender;
     }
@@ -73,6 +77,8 @@ contract ContractManager is IContractManagerTester {
         returns (address contractAddress)
     {
         contractAddress = contracts[keccak256(abi.encodePacked(name))];
-        require(contractAddress != address(0), "Contract has not been found");
+        if (contractAddress == address(0)) {
+            revert ContractNotFound(name);
+        }
     }
 }
