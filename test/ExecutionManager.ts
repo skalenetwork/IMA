@@ -1,10 +1,6 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
-import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
-import { ContractManager, ExecutionManager, MessageProxyForSchain } from "../typechain";
-import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
-import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
+import { ExecutionManager, MessageProxyForSchain } from "../typechain";
 import { deployExecutionManager } from "./utils/deploy/schain/executionManager";
 import { AgentMock } from "./utils/agent/AgentMock";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
