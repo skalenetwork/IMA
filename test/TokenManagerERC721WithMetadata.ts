@@ -83,7 +83,7 @@ describe("TokenManagerERC721WithMetadata", () => {
 
     beforeEach(async () => {
         const keyStorage = await deployKeyStorageMock();
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage, schainName);
+        messageProxyForSchain = await deployMessageProxyForSchainTester(schainName, keyStorage);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         messages = await deployMessages();
         fakeDepositBox = user.address;
@@ -215,7 +215,7 @@ describe("TokenManagerERC721WithMetadata", () => {
             erc721OnTargetChain = await deployERC721OnChain("NewToke1n", "NTN1");
 
             const keyStorage2 = await deployKeyStorageMock();
-            messageProxyForSchain2 = await deployMessageProxyForSchainTester(keyStorage2, newSchainName);
+            messageProxyForSchain2 = await deployMessageProxyForSchainTester(newSchainName, keyStorage2);
             tokenManagerLinker2 = await deployTokenManagerLinker(messageProxyForSchain2, deployer.address);
             communityLocker2 = await deployCommunityLocker(newSchainName, messageProxyForSchain2, tokenManagerLinker2, fakeCommunityPool);
             tokenManagerERC721WithMetadata2 = await deployTokenManagerERC721WithMetadata(
@@ -1181,7 +1181,7 @@ describe("TokenManagerERC721WithMetadata", () => {
             const erc721OnTargetZChain = await deployERC721OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ, newSchainNameZ);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(newSchainNameZ, keyStorageZ);
             const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
             const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ, tokenManagerLinkerZ, fakeCommunityPool);
             const tokenManagerERC721WithMetadataZ = await deployTokenManagerERC721WithMetadata(

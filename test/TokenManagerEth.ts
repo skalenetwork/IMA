@@ -74,7 +74,7 @@ describe("TokenManagerEth", () => {
 
     beforeEach(async () => {
         const keyStorage = await deployKeyStorageMock();
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage, schainName);
+        messageProxyForSchain = await deployMessageProxyForSchainTester(schainName, keyStorage);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         fakeDepositBox = user.address;
         fakeCommunityPool = user.address;
