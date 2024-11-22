@@ -7,9 +7,9 @@ export async function deployMessageProxyForMainnetTester(
     contractManager: ContractManager
 ) {
     const factory = await ethers.getContractFactory(name);
-    if (await contractManager.getContract(name) !== "0x0000000000000000000000000000000000000000") {
-        return factory.attach(await contractManager.getContract(name)) as MessageProxyForMainnetTester;
-    } else {
+    try {
+        await contractManager.getContract(name);
+    } catch {
         const instance = await upgrades.deployProxy(
             factory,
             [await contractManager.getAddress()]
@@ -17,4 +17,5 @@ export async function deployMessageProxyForMainnetTester(
         await contractManager.setContractsAddress(name, instance);
         return instance;
     }
+    return factory.attach(await contractManager.getContract(name)) as MessageProxyForMainnetTester;
 }

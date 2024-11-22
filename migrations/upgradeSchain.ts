@@ -92,10 +92,15 @@ async function updateAbi(contracts: string[]) {
 async function main() {
     const pathToManifest: string = process.env.MANIFEST || "";
     await manifestSetup(pathToManifest);
+    let contractNamesToUpgrade: string[] = [
+    ]
+    if (process.env.UPGRADE_ALL) {
+        contractNamesToUpgrade = contracts;
+    }
     const upgrader = new ImaSchainUpgrader(
         "2.1.0",
         await getImaSchainInstance(),
-        contracts
+        contractNamesToUpgrade
     );
     await upgrader.upgrade();
     updateAbi(contracts);
