@@ -26,16 +26,27 @@ from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradea
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/IExecutionManager.sol";
 import {IMessageProxyForSchain} from "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
-import {RoleRequired} from "../CommonErrors.sol";
+import {RoleRequired} from "../../CommonErrors.sol";
+import {MetaActionId, Protocol} from "./Protocol.sol";
 
 contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
+
+    struct MetaActionContainer {
+        uint96 version;
+        address sender;
+        MetaActionId id;
+        Protocol.MetaActionStatus status;
+        // Protocol.MetaAction metaAction;
+    }
 
     bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
 
     IMessageProxyForSchain public messageProxy;
     EnumerableMap.Bytes32ToAddressMap private _remoteExecutionManagers;
     string public testMessage;
+    mapping (address sender => uint256 nonce) public nonces;
+    mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
 
     modifier onlyController() {
         if (!hasRole(CONTROLLER_ROLE, msg.sender)) {
@@ -76,12 +87,35 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _remoteExecutionManagers.set(SchainHash.unwrap(schainHash), executionManagerAddress);
     }
 
+    function execute() external {
+        _processMetaAction(_createMetaAction(msg.sender));
+    }
+
     // Internal
+
+    function _createMetaAction(address sender) private returns (MetaActionContainer storage metaActionContainer) {
+        MetaActionId id = _generateMetaActionId(sender);
+        metaActions[id] = MetaActionContainer({
+            version: Protocol.VERSION,
+            sender: sender,
+            id: id,
+            status: Protocol.MetaActionStatus.EXECUTING
+        });
+        return metaActions[id];
+    }
+
+    function _processMetaAction(MetaActionContainer storage metaAction) private {
+
+    }
+
+    function _generateMetaActionId(address sender) private returns (MetaActionId) {
+        return MetaActionId.wrap(keccak256(abi.encode(block.chainid, sender, nonces[sender]++)));
+    }
 
     function _getRemoteExecutionManager(
         SchainHash schainHash
     )
-        internal
+        private
         view
         returns (ExecutionManager executionManager)
     {

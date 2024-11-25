@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
+ *   Protocol.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2024-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -21,9 +21,37 @@
 
 pragma solidity 0.8.27;
 
+import {SchainHash} from "@skalenetwork/ima-interfaces/schain/IExecutionManager.sol";
 
-error AddressIsNotSet();
-error IsNotContract(address account);
-error NotEnoughFunds();
-error RoleRequired(bytes32 role);
-error TokensTransferFailure();
+type MetaActionId is bytes32;
+
+
+library Protocol {
+
+    struct Action {
+        bytes data;
+    }
+
+    enum MetaActionStatus {
+        SUCCEED,
+        EXECUTING,
+        FAILED
+    }
+
+    struct MetaAction {
+        SchainHash targetChainHash;
+        bytes actions;
+        bytes nextMetaAction;
+        bytes postActions;
+    }
+
+    uint96 constant public VERSION = 1;
+
+    function encodeActions(Action[] memory actions) internal pure returns (bytes memory encodedAction) {
+        return abi.encode(actions);
+    }
+
+    function decodeActions(bytes memory encodedActions) internal pure returns (Action[] memory actions) {
+        return abi.decode(encodedActions, (Action[]));
+    }
+}
