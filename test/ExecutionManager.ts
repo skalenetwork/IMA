@@ -74,4 +74,25 @@ describe("ExecutionManager", () => {
 
         expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
     })
+
+    it("should execute empty action", async () => {
+        const schains = await setupMultipleSchains(2);
+        const agent = new AgentMock();
+        for (const [schainName, schainSetup] of schains) {
+            await agent.registerSchain(schainName, schainSetup.messageProxy);
+        }
+
+        const [sourceSchainName, targetSchainName] = [...schains.keys()];
+
+        await schains.get(sourceSchainName)?.executionManager.connect(user).execute(
+            ethers.id(targetSchainName),
+            message
+        );
+
+        await agent.deliverMessages();
+
+        expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
+
+        await agent.deliverMessages();
+    });
 });

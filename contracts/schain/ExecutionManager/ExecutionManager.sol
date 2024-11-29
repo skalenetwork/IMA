@@ -31,13 +31,15 @@ import {MetaActionId, Protocol} from "./Protocol.sol";
 
 contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
+    using Protocol for MetaActionId;
+    using Protocol for Protocol.MetaAction;
 
     struct MetaActionContainer {
         uint96 version;
         address sender;
         MetaActionId id;
         Protocol.MetaActionStatus status;
-        // Protocol.MetaAction metaAction;
+        Protocol.MetaAction metaAction;
     }
 
     bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
@@ -48,9 +50,24 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     mapping (address sender => uint256 nonce) public nonces;
     mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
 
+    error MetaActionNotFound(
+        MetaActionId id
+    );
+
+    error SenderIsNotMessageProxy(
+        address sender
+    );
+
     modifier onlyController() {
         if (!hasRole(CONTROLLER_ROLE, msg.sender)) {
             revert RoleRequired(CONTROLLER_ROLE);
+        }
+        _;
+    }
+
+    modifier onlyMessageProxy() {
+        if (msg.sender != messageProxy) {
+            revert SenderIsNotMessageProxy(msg.sender);
         }
         _;
     }
@@ -64,8 +81,8 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         SchainHash,
         address,
         bytes calldata data
-    ) external override {
-        testMessage = abi.decode(data, (string));
+    ) external onlyMessageProxy override {
+        _processMessage(data);
     }
 
     function testSend(SchainHash targetChainHash, string calldata message) external override {
@@ -91,7 +108,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _processMetaAction(_createMetaAction(msg.sender));
     }
 
-    // Internal
+    // Private
 
     function _createMetaAction(address sender) private returns (MetaActionContainer storage metaActionContainer) {
         MetaActionId id = _generateMetaActionId(sender);
@@ -104,7 +121,50 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return metaActions[id];
     }
 
+    function _processMessage(bytes memory message) private {
+        Protocol.MessageType messageType = Protocol.getMessageType(message);
+        if (messageType == Protocol.MessageType.META_ACTION) {
+            Protocol.MetaAction memory metaAction = Protocol.decodeMetaAction(message);
+            _processMetaAction(metaAction);
+        } else {
+            revert Protocol.UnknownMessageType(messageType);
+        }
+    }
+
     function _processMetaAction(MetaActionContainer storage metaAction) private {
+        _executeActions(metaAction);
+        _sendNextMetaAction(metaAction);
+    }
+
+    function _processMetaActionConfirmation(MetaActionContainer storage metaAction) private {
+        if (!_isSource(metaAction)) {
+            _sendConfirmation(metaAction);
+        }
+    }
+
+    function _executeMetaAction(MetaActionContainer storage metaAction) private {
+
+    }
+
+    function _postExecuteMetaAction(MetaActionContainer storage metaAction) private {
+
+    }
+
+    function _sendNextMetaAction(MetaActionContainer storage metaAction) private {
+        Protocol.MetaAction storage nextMetaAction = metaAction.metaAction.nextMetaAction;
+        if (nextMetaAction.empty()) {
+            _processMetaActionConfirmation(metaAction);
+        } else {
+            SchainHash targetChainHash = nextMetaAction.targetChainHash;
+            messageProxy.postOutgoingMessage(
+                targetChainHash,
+                address(_getRemoteExecutionManager(targetChainHash)),
+                Protocol.encodeMetaAction(nextMetaAction)
+            );
+        }
+    }
+
+    function _sendConfirmation(MetaActionContainer storage metaAction) private {
 
     }
 
@@ -120,5 +180,16 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         returns (ExecutionManager executionManager)
     {
         executionManager = ExecutionManager(_remoteExecutionManagers.get(SchainHash.unwrap(schainHash)));
+    }
+
+    function _getMetaAction(MetaActionId id) private view returns (MetaActionContainer storage metaAction) {
+        if (!metaActions[id].id.isZero()) {
+            revert MetaActionNotFound(id);
+        }
+        return metaActions[id];
+    }
+
+    function _isSource(MetaActionContainer storage metaAction) private view returns (bool result) {
+        return metaAction.sender != address(0);
     }
 }

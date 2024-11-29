@@ -45,7 +45,35 @@ library Protocol {
         bytes postActions;
     }
 
+    struct Confirmation {
+        MetaActionId metaActionId;
+    }
+
+    enum MessageType {
+        CONFIRMATION,
+        META_ACTION
+    }
+
+    struct Message {
+        uint96 version;
+        MessageType messageType;
+        bytes data;
+    }
+
     uint96 constant public VERSION = 1;
+
+    error IncompatibleVersion(
+        uint96 version
+    );
+
+    error UnknownMessageType(
+        MessageType messageType
+    );
+
+    error IncorrectMessageType(
+        MessageType received,
+        MessageType required
+    );
 
     function encodeActions(Action[] memory actions) internal pure returns (bytes memory encodedAction) {
         return abi.encode(actions);
@@ -53,5 +81,43 @@ library Protocol {
 
     function decodeActions(bytes memory encodedActions) internal pure returns (Action[] memory actions) {
         return abi.decode(encodedActions, (Action[]));
+    }
+
+    function encodeMetaAction(MetaAction storage metaAction) internal view returns (bytes memory message) {
+        return abi.encode(Message({
+            version: VERSION,
+            messageType: MessageType.META_ACTION,
+            data: abi.encode(metaAction)
+        }));
+    }
+
+    function decodeMetaAction(bytes memory rawMessage) internal view returns (MetaAction memory metaAction) {
+        Message memory message = abi.decode(rawMessage, [Message]);
+        if (message.version != VERSION) {
+            revert IncompatibleVersion(version);
+        }
+        if (message.messageType != MessageType.META_ACTION) {
+            revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
+        }
+        return abi.decode(message.data, [MetaAction]);
+    }
+
+    function encodeConfirmation(Confirmation memory confirmation) internal pure returns (bytes encodedConfirmation) {
+        return abi.encode([VERSION, confirmation]);
+    }
+
+    function getMessageType(bytes memory message) internal pure returns (MessageType messageType) {
+        (uint96 version, messageType) = abi.decode(message, [uint96, MessageType]);
+        if (version != VERSION) {
+            revert IncompatibleVersion(version);
+        }
+    }
+
+    function isZero(MetaActionId id) internal pure returns (bool result) {
+        return MetaActionId.unwrap(id) == bytes32(0);
+    }
+
+    function empty(MetaAction storage metaAction) internal view returns (bool result) {
+        return metaAction.targetChainHash
     }
 }
