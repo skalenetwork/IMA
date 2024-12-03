@@ -85,8 +85,7 @@ describe("ExecutionManager", () => {
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
 
         await schains.get(sourceSchainName)?.executionManager.connect(user).execute(
-            ethers.id(targetSchainName),
-            message
+            ethers.id(targetSchainName)
         );
 
         await agent.deliverMessages();

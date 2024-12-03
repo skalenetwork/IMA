@@ -37,6 +37,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     struct MetaActionContainer {
         uint96 version;
         address sender;
+        SchainHash sourceChain;
         MetaActionId id;
         Protocol.MetaActionStatus status;
         Protocol.MetaAction metaAction;
@@ -58,6 +59,15 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         address sender
     );
 
+    error SourceChainIsNotRegistered(
+        SchainHash chainHash
+    );
+
+    error SenderIsNotExecutionManager(
+        SchainHash sourceChainHash,
+        address sender
+    );
+
     modifier onlyController() {
         if (!hasRole(CONTROLLER_ROLE, msg.sender)) {
             revert RoleRequired(CONTROLLER_ROLE);
@@ -66,7 +76,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     modifier onlyMessageProxy() {
-        if (msg.sender != messageProxy) {
+        if (msg.sender != address(messageProxy)) {
             revert SenderIsNotMessageProxy(msg.sender);
         }
         _;
@@ -78,11 +88,17 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function postMessage(
-        SchainHash,
-        address,
+        SchainHash sourceChain,
+        address sender,
         bytes calldata data
     ) external onlyMessageProxy override {
-        _processMessage(data);
+        if (!_remoteExecutionManagers.contains(SchainHash.unwrap(sourceChain))) {
+            revert SourceChainIsNotRegistered(sourceChain);
+        }
+        if (address(_getRemoteExecutionManager(sourceChain)) != sender) {
+            revert SenderIsNotExecutionManager(sourceChain, sender);
+        }
+        _processMessage(data, sourceChain);
     }
 
     function testSend(SchainHash targetChainHash, string calldata message) external override {
@@ -104,28 +120,60 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _remoteExecutionManagers.set(SchainHash.unwrap(schainHash), executionManagerAddress);
     }
 
-    function execute() external {
-        _processMetaAction(_createMetaAction(msg.sender));
+    function execute(SchainHash targetChain) external {
+        // TODO: create non empty meta action
+        _processMetaAction(
+            _createMetaAction(
+                msg.sender,
+                Protocol.MetaAction({
+                    id: MetaActionId.wrap(0),
+                    targetChainHash: targetChain,
+                    actions: "",
+                    nextMetaAction: "",
+                    postActions: ""
+                })
+            )
+        );
     }
 
     // Private
 
-    function _createMetaAction(address sender) private returns (MetaActionContainer storage metaActionContainer) {
+    function _createMetaAction(
+        address sender,
+        Protocol.MetaAction memory metaAction
+    )
+        private
+        returns (MetaActionContainer storage metaActionContainer)
+    {
         MetaActionId id = _generateMetaActionId(sender);
         metaActions[id] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: sender,
+            sourceChain: SchainHash.wrap(bytes32(0)),
             id: id,
-            status: Protocol.MetaActionStatus.EXECUTING
+            status: Protocol.MetaActionStatus.EXECUTING,
+            metaAction: metaAction
         });
         return metaActions[id];
     }
 
-    function _processMessage(bytes memory message) private {
+    function _receiveMetaAction(bytes memory message, SchainHash sourceChain) private {
+        Protocol.MetaAction memory metaAction = Protocol.decodeMetaAction(message);
+        metaActions[metaAction.id] = MetaActionContainer({
+            version: Protocol.VERSION,
+            sender: address(0),
+            sourceChain: sourceChain,
+            id: metaAction.id,
+            status: Protocol.MetaActionStatus.EXECUTING,
+            metaAction: metaAction
+        });
+        _processMetaAction(metaActions[metaAction.id]);
+    }
+
+    function _processMessage(bytes memory message, SchainHash sourceChain) private {
         Protocol.MessageType messageType = Protocol.getMessageType(message);
         if (messageType == Protocol.MessageType.META_ACTION) {
-            Protocol.MetaAction memory metaAction = Protocol.decodeMetaAction(message);
-            _processMetaAction(metaAction);
+            _receiveMetaAction(message, sourceChain);
         } else {
             revert Protocol.UnknownMessageType(messageType);
         }
@@ -137,12 +185,13 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _processMetaActionConfirmation(MetaActionContainer storage metaAction) private {
-        if (!_isSource(metaAction)) {
+        _postExecuteMetaAction(metaAction);
+        if (!_isOrigin(metaAction)) {
             _sendConfirmation(metaAction);
         }
     }
 
-    function _executeMetaAction(MetaActionContainer storage metaAction) private {
+    function _executeActions(MetaActionContainer storage metaAction) private {
 
     }
 
@@ -165,7 +214,15 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _sendConfirmation(MetaActionContainer storage metaAction) private {
-
+        SchainHash targetChainHash = metaAction.sourceChain;
+        Protocol.Confirmation memory confirmation = Protocol.Conformation({
+            id: metaAction.id
+        });
+        messageProxy.postOutgoingMessage(
+            targetChainHash,
+            address(_getRemoteExecutionManager(targetChainHash)),
+            Protocol.encodeConfirmation(confirmation)
+        );
     }
 
     function _generateMetaActionId(address sender) private returns (MetaActionId) {
@@ -189,7 +246,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return metaActions[id];
     }
 
-    function _isSource(MetaActionContainer storage metaAction) private view returns (bool result) {
+    function _isOrigin(MetaActionContainer storage metaAction) private view returns (bool result) {
         return metaAction.sender != address(0);
     }
 }
