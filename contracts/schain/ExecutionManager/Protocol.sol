@@ -80,6 +80,14 @@ library Protocol {
         return abi.encode(actions);
     }
 
+    function decodeMetaAction(bytes memory encodedMetaAction) internal pure returns (MetaAction memory metaAction) {
+        return abi.decode(encodedMetaAction, (MetaAction));
+    }
+
+    function encodeMetaAction(MetaAction memory metaAction) internal pure returns (bytes memory encodedMetaAction) {
+        return abi.encode(metaAction);
+    }
+
     function decodeActions(bytes memory encodedActions) internal pure returns (Action[] memory actions) {
         return abi.decode(encodedActions, (Action[]));
     }
@@ -92,7 +100,7 @@ library Protocol {
         }));
     }
 
-    function decodeMetaAction(bytes memory rawMessage) internal view returns (MetaAction memory metaAction) {
+    function decodeMetaActionMessage(bytes memory rawMessage) internal view returns (MetaAction memory metaAction) {
         Message memory message = abi.decode(rawMessage, (Message));
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
@@ -125,5 +133,9 @@ library Protocol {
 
     function empty(MetaAction storage metaAction) internal view returns (bool result) {
         return SchainHash.unwrap(metaAction.targetChainHash) != bytes32(0);
+    }
+
+    function hasNextMetaAction(Protocol.MetaAction storage metaAction) internal view returns (bool result) {
+        return metaAction.nextMetaAction.length > 0;
     }
 }

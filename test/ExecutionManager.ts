@@ -90,6 +90,8 @@ describe("ExecutionManager", () => {
 
         await agent.deliverMessages();
 
+        expect(await schains.get(targetSchainName)?.executionManager.getMetaActionStatus()).to.be.equal(MetaActionStatus.SUCCEED);
+
         expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
 
         await agent.deliverMessages();

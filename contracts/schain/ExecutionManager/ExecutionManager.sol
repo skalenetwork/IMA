@@ -136,6 +136,10 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         );
     }
 
+    function getMetaActionStatus(MetaActionId id) external view returns (Protocol.MetaActionStatus status) {
+        return _getMetaAction(id).status;
+    }
+
     // Private
 
     function _createMetaAction(
@@ -200,28 +204,28 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _sendNextMetaAction(MetaActionContainer storage metaAction) private {
-        Protocol.MetaAction storage nextMetaAction = metaAction.metaAction.nextMetaAction;
-        if (nextMetaAction.empty()) {
-            _processMetaActionConfirmation(metaAction);
-        } else {
+        if (metaAction.metaAction.hasNextMetaAction()) {
+            Protocol.MetaAction memory nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
             SchainHash targetChainHash = nextMetaAction.targetChainHash;
             messageProxy.postOutgoingMessage(
                 targetChainHash,
                 address(_getRemoteExecutionManager(targetChainHash)),
                 Protocol.encodeMetaAction(nextMetaAction)
             );
+        } else {
+            _processMetaActionConfirmation(metaAction);
         }
     }
 
     function _sendConfirmation(MetaActionContainer storage metaAction) private {
         SchainHash targetChainHash = metaAction.sourceChain;
-        Protocol.Confirmation memory confirmation = Protocol.Conformation({
-            id: metaAction.id
+        Protocol.Confirmation memory confirmation = Protocol.Confirmation({
+            metaActionId: metaAction.id
         });
         messageProxy.postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
-            Protocol.encodeConfirmation(confirmation)
+            Protocol.encodeConfirmationMessage(confirmation)
         );
     }
 
