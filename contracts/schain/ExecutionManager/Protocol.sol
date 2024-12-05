@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.27;
 
+import "hardhat/console.sol";
+
 import {SchainHash} from "@skalenetwork/ima-interfaces/schain/IExecutionManager.sol";
 
 type MetaActionId is bytes32;
@@ -39,7 +41,6 @@ library Protocol {
     }
 
     struct MetaAction {
-        MetaActionId id;
         SchainHash targetChainHash;
         bytes actions;
         bytes nextMetaAction;
@@ -58,7 +59,8 @@ library Protocol {
     struct Message {
         uint96 version;
         MessageType messageType;
-        bytes data;
+        MetaActionId metaActionId;
+        bytes payload;
     }
 
     uint96 constant public VERSION = 1;
@@ -92,39 +94,39 @@ library Protocol {
         return abi.decode(encodedActions, (Action[]));
     }
 
-    function encodeMetaActionMessage(MetaAction storage metaAction) internal view returns (bytes memory message) {
+    function encodeMetaActionMessage(MetaActionId id, MetaAction storage metaAction) internal pure returns (bytes memory message) {
         return abi.encode(Message({
             version: VERSION,
             messageType: MessageType.META_ACTION,
-            data: abi.encode(metaAction)
+            metaActionId: id,
+            payload: encodeMetaAction(metaAction)
         }));
     }
 
-    function decodeMetaActionMessage(bytes memory rawMessage) internal view returns (MetaAction memory metaAction) {
-        Message memory message = abi.decode(rawMessage, (Message));
+    function decodeMetaActionMessage(Message memory message) internal pure returns (MetaAction memory metaAction) {
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
         if (message.messageType != MessageType.META_ACTION) {
             revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
         }
-        return abi.decode(message.data, (MetaAction));
+        return abi.decode(message.payload, (MetaAction));
     }
 
-    function encodeConfirmationMessage(Confirmation memory confirmation) internal pure returns (bytes memory encodedConfirmation) {
+    function encodeConfirmationMessage(MetaActionId id, Confirmation memory confirmation) internal pure returns (bytes memory encodedConfirmation) {
         return abi.encode(Message({
             version: VERSION,
             messageType: MessageType.CONFIRMATION,
-            data: abi.encode(confirmation)
+            metaActionId: id,
+            payload: abi.encode(confirmation)
         }));
     }
 
-    function getMessageType(bytes memory message) internal pure returns (MessageType) {
-        (uint96 version, MessageType messageType) = abi.decode(message, (uint96, MessageType));
-        if (version != VERSION) {
-            revert IncompatibleVersion(version);
+    function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
+        message = abi.decode(encodedMessage, (Message));
+        if (message.version != VERSION) {
+            revert IncompatibleVersion(message.version);
         }
-        return messageType;
     }
 
     function isZero(MetaActionId id) internal pure returns (bool result) {

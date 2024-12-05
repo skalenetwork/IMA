@@ -71,8 +71,7 @@ export class AgentMock {
             assert(transaction);
             for (const log of transaction.logs) {
                 const logDescription = messageProxy.interface.parseLog(log);
-                assert(logDescription);
-                if (logDescription.name === "OutgoingMessage" && logDescription.args.dstChainHash === ethers.id(targetSchainName)) {
+                if (logDescription && logDescription.name === "OutgoingMessage" && logDescription.args.dstChainHash === ethers.id(targetSchainName)) {
                     const message = {
                         sender: logDescription.args.srcContract,
                         destinationContract: logDescription.args.dstContract,

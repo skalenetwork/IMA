@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.27;
 
+import "hardhat/console.sol";
+
 import {AccessControlEnumerableUpgradeable}
 from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
@@ -50,6 +52,10 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     string public testMessage;
     mapping (address sender => uint256 nonce) public nonces;
     mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
+
+    event MetaActionCreated(
+        MetaActionId id
+    );
 
     error MetaActionNotFound(
         MetaActionId id
@@ -92,10 +98,13 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         address sender,
         bytes calldata data
     ) external onlyMessageProxy override {
+        console.log("Process incoming message");
         if (!_remoteExecutionManagers.contains(SchainHash.unwrap(sourceChain))) {
+            console.log("SourceChainIsNotRegistered");
             revert SourceChainIsNotRegistered(sourceChain);
         }
         if (address(_getRemoteExecutionManager(sourceChain)) != sender) {
+            console.log("SenderIsNotExecutionManager");
             revert SenderIsNotExecutionManager(sourceChain, sender);
         }
         _processMessage(data, sourceChain);
@@ -120,24 +129,21 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _remoteExecutionManagers.set(SchainHash.unwrap(schainHash), executionManagerAddress);
     }
 
-    function execute(SchainHash targetChain) external {
-        // TODO: create non empty meta action
+    function execute(Protocol.MetaAction calldata metaAction) external {
         _processMetaAction(
             _createMetaAction(
                 msg.sender,
-                Protocol.MetaAction({
-                    id: MetaActionId.wrap(0),
-                    targetChainHash: targetChain,
-                    actions: "",
-                    nextMetaAction: "",
-                    postActions: ""
-                })
+                metaAction
             )
         );
     }
 
     function getMetaActionStatus(MetaActionId id) external view returns (Protocol.MetaActionStatus status) {
         return _getMetaAction(id).status;
+    }
+
+    function encodeMetaAction(Protocol.MetaAction calldata metaAction) external pure returns (bytes memory encodedMetaAction) {
+        return Protocol.encodeMetaAction(metaAction);
     }
 
     // Private
@@ -158,28 +164,34 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             status: Protocol.MetaActionStatus.EXECUTING,
             metaAction: metaAction
         });
+
+        emit MetaActionCreated(id);
+
         return metaActions[id];
     }
 
-    function _receiveMetaAction(bytes memory message, SchainHash sourceChain) private {
-        Protocol.MetaAction memory metaAction = Protocol.decodeMetaAction(message);
-        metaActions[metaAction.id] = MetaActionContainer({
+    function _receiveMetaAction(Protocol.Message memory message, SchainHash sourceChain) private {
+        Protocol.MetaAction memory metaAction = Protocol.decodeMetaActionMessage(message);
+        metaActions[message.metaActionId] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: address(0),
             sourceChain: sourceChain,
-            id: metaAction.id,
+            id: message.metaActionId,
             status: Protocol.MetaActionStatus.EXECUTING,
             metaAction: metaAction
         });
-        _processMetaAction(metaActions[metaAction.id]);
+        _processMetaAction(metaActions[message.metaActionId]);
     }
 
-    function _processMessage(bytes memory message, SchainHash sourceChain) private {
-        Protocol.MessageType messageType = Protocol.getMessageType(message);
-        if (messageType == Protocol.MessageType.META_ACTION) {
+    function _processMessage(bytes memory encodedMessage, SchainHash sourceChain) private {
+        console.log("Parse message type");
+        Protocol.Message memory message = Protocol.decodeMessage(encodedMessage);
+        console.log("MessageType:");
+        console.log(uint(message.messageType));
+        if (message.messageType == Protocol.MessageType.META_ACTION) {
             _receiveMetaAction(message, sourceChain);
         } else {
-            revert Protocol.UnknownMessageType(messageType);
+            revert Protocol.UnknownMessageType(message.messageType);
         }
     }
 
@@ -225,7 +237,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         messageProxy.postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
-            Protocol.encodeConfirmationMessage(confirmation)
+            Protocol.encodeConfirmationMessage(metaAction.id, confirmation)
         );
     }
 
@@ -244,7 +256,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _getMetaAction(MetaActionId id) private view returns (MetaActionContainer storage metaAction) {
-        if (!metaActions[id].id.isZero()) {
+        if (metaActions[id].id.isZero()) {
             revert MetaActionNotFound(id);
         }
         return metaActions[id];

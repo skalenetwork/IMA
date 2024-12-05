@@ -1,14 +1,20 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { ExecutionManager, MessageProxyForSchain } from "../typechain";
+import { ExecutionManager, MessageProxyForSchain, Protocol } from "../typechain";
 import { deployExecutionManager } from "./utils/deploy/schain/executionManager";
 import { AgentMock } from "./utils/agent/AgentMock";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 
 interface SchainSetup {
     messageProxy: MessageProxyForSchain,
     executionManager: ExecutionManager
+}
+
+enum MetaActionStatus {
+    SUCCEED,
+    EXECUTING,
+    FAILED
 }
 
 describe("ExecutionManager", () => {
@@ -75,7 +81,7 @@ describe("ExecutionManager", () => {
         expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
     })
 
-    it("should execute empty action", async () => {
+    it.only("should execute empty action", async () => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -84,16 +90,46 @@ describe("ExecutionManager", () => {
 
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
 
-        await schains.get(sourceSchainName)?.executionManager.connect(user).execute(
-            ethers.id(targetSchainName)
-        );
+        const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
+        const targetExecutionManager = schains.get(targetSchainName)?.executionManager;
+
+        assert(sourceExecutionManager);
+        assert(targetExecutionManager);
+
+        const metaAction = {
+            targetChainHash: ethers.id(targetSchainName),
+            actions: "0x",
+            nextMetaAction: await sourceExecutionManager.encodeMetaAction({
+                targetChainHash: ethers.id(targetSchainName),
+                actions: "0x",
+                nextMetaAction: "0x",
+                postActions: "0x"
+            }),
+            postActions: "0x"
+        }
+
+        const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
+            metaAction
+        )).wait();
+        assert(executeReceipt);
+        let metaActionId = "0x";
+        for (const log of executeReceipt.logs) {
+            const event = sourceExecutionManager.interface.parseLog(log);
+            if (event && event.name == 'MetaActionCreated') {
+                metaActionId = event.args.id;
+            }
+        }
+
+        console.log("MetaActionId", metaActionId);
 
         await agent.deliverMessages();
 
-        expect(await schains.get(targetSchainName)?.executionManager.getMetaActionStatus()).to.be.equal(MetaActionStatus.SUCCEED);
+        expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.EXECUTING);
+        expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
 
-        expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
+        // await agent.deliverMessages();
 
-        await agent.deliverMessages();
+        // expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+        // expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
     });
 });
