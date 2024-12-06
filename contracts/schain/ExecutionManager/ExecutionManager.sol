@@ -99,6 +99,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         bytes calldata data
     ) external onlyMessageProxy override {
         console.log("Process incoming message");
+        console.log(address(this));
         if (!_remoteExecutionManagers.contains(SchainHash.unwrap(sourceChain))) {
             console.log("SourceChainIsNotRegistered");
             revert SourceChainIsNotRegistered(sourceChain);
@@ -189,7 +190,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         console.log("MessageType:");
         console.log(uint(message.messageType));
         if (message.messageType == Protocol.MessageType.META_ACTION) {
+            console.log("Process meta action");
             _receiveMetaAction(message, sourceChain);
+        } else if (message.messageType == Protocol.MessageType.CONFIRMATION) {
+            console.log("Process confirmation");
+            _processMetaActionConfirmation(_getMetaAction(message.metaActionId));
         } else {
             revert Protocol.UnknownMessageType(message.messageType);
         }
@@ -201,7 +206,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _processMetaActionConfirmation(MetaActionContainer storage metaAction) private {
+        console.log("in _processMetaActionConfirmation");
         _postExecuteMetaAction(metaAction);
+        metaAction.status = Protocol.MetaActionStatus.SUCCEED;
+        console.log("Set status to ");
+        console.log(uint(metaAction.status));
         if (!_isOrigin(metaAction)) {
             _sendConfirmation(metaAction);
         }
@@ -222,7 +231,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             messageProxy.postOutgoingMessage(
                 targetChainHash,
                 address(_getRemoteExecutionManager(targetChainHash)),
-                Protocol.encodeMetaAction(nextMetaAction)
+                Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction)
             );
         } else {
             _processMetaActionConfirmation(metaAction);

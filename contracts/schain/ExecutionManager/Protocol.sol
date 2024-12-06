@@ -48,7 +48,7 @@ library Protocol {
     }
 
     struct Confirmation {
-        MetaActionId metaActionId;
+        MetaActionId metaActionId; // TODO: remove or replace
     }
 
     enum MessageType {
@@ -94,7 +94,7 @@ library Protocol {
         return abi.decode(encodedActions, (Action[]));
     }
 
-    function encodeMetaActionMessage(MetaActionId id, MetaAction storage metaAction) internal pure returns (bytes memory message) {
+    function encodeMetaActionMessage(MetaActionId id, MetaAction memory metaAction) internal pure returns (bytes memory message) {
         return abi.encode(Message({
             version: VERSION,
             messageType: MessageType.META_ACTION,
@@ -123,7 +123,9 @@ library Protocol {
     }
 
     function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
+        console.log("in decodeMessage");
         message = abi.decode(encodedMessage, (Message));
+        console.log("after decode");
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
