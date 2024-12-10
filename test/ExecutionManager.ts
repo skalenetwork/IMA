@@ -81,7 +81,7 @@ describe("ExecutionManager", () => {
         expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
     })
 
-    it.only("should execute empty action", async () => {
+    it("should execute empty action", async () => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -107,6 +107,45 @@ describe("ExecutionManager", () => {
             }),
             postActions: "0x"
         }
+
+        const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
+            metaAction
+        )).wait();
+        assert(executeReceipt);
+        let metaActionId = "0x";
+        for (const log of executeReceipt.logs) {
+            const event = sourceExecutionManager.interface.parseLog(log);
+            if (event && event.name == 'MetaActionCreated') {
+                metaActionId = event.args.id;
+            }
+        }
+
+        console.log("MetaActionId", metaActionId);
+
+        await agent.deliverMessages();
+
+        expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+        expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+    });
+
+    it.only("should execute send action", async () => {
+        const schains = await setupMultipleSchains(2);
+        const agent = new AgentMock();
+        for (const [schainName, schainSetup] of schains) {
+            await agent.registerSchain(schainName, schainSetup.messageProxy);
+        }
+
+        const [sourceSchainName, targetSchainName] = [...schains.keys()];
+
+        const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
+        const targetExecutionManager = schains.get(targetSchainName)?.executionManager;
+
+        assert(sourceExecutionManager);
+        assert(targetExecutionManager);
+
+        const metaAction = await sourceExecutionManager.createMetaAction(
+            bytes32,(bytes32,bytes)[]
+        );
 
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
             metaAction

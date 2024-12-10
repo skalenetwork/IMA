@@ -23,7 +23,8 @@ pragma solidity 0.8.27;
 
 import "hardhat/console.sol";
 
-import {SchainHash} from "@skalenetwork/ima-interfaces/schain/IExecutionManager.sol";
+import {SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
+import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 
 type MetaActionId is bytes32;
 
@@ -31,7 +32,8 @@ type MetaActionId is bytes32;
 library Protocol {
 
     struct Action {
-        bytes data;
+        ExecutorId executor;
+        bytes arguments;
     }
 
     enum MetaActionStatus {

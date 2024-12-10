@@ -26,7 +26,7 @@ import "hardhat/console.sol";
 import {AccessControlEnumerableUpgradeable}
 from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/IExecutionManager.sol";
+import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IMessageProxyForSchain} from "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
 import {RoleRequired} from "../../CommonErrors.sol";
 import {MetaActionId, Protocol} from "./Protocol.sol";
@@ -130,7 +130,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _remoteExecutionManagers.set(SchainHash.unwrap(schainHash), executionManagerAddress);
     }
 
-    function execute(Protocol.MetaAction calldata metaAction) external {
+    function execute(
+        Protocol.MetaAction calldata metaAction
+    )
+        external
+    {
         _processMetaAction(
             _createMetaAction(
                 msg.sender,
@@ -143,8 +147,38 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return _getMetaAction(id).status;
     }
 
-    function encodeMetaAction(Protocol.MetaAction calldata metaAction) external pure returns (bytes memory encodedMetaAction) {
-        return Protocol.encodeMetaAction(metaAction);
+    function createMetaAction(
+        SchainHash targetChain,
+        Protocol.Action[] memory actions
+    )
+        external
+        pure
+        returns (Protocol.MetaAction memory metaAction)
+    {
+        return Protocol.MetaAction({
+            targetChainHash: targetChain,
+            actions: Protocol.encodeActions(actions),
+            nextMetaAction: "0x",
+            postActions: "0x"
+        });
+    }
+
+    function createMetaAction(
+        SchainHash targetChain,
+        Protocol.Action[] memory actions,
+        bytes memory encodedNextMetaAction,
+        Protocol.Action[] memory postActions
+    )
+        external
+        pure
+        returns (Protocol.MetaAction memory metaAction)
+    {
+        return Protocol.MetaAction({
+            targetChainHash: targetChain,
+            actions: Protocol.encodeActions(actions),
+            nextMetaAction: encodedNextMetaAction,
+            postActions: Protocol.encodeActions(postActions)
+        });
     }
 
     // Private
