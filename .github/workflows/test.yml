@@ -1,0 +1,140 @@
+# This is a basic workflow to help you get started with Actions
+
+name: test
+
+on:
+  push:
+    branches-ignore:
+      - 'docs-v*'
+  pull_request:
+    branches-ignore:
+      - 'docs-v*'
+
+env:
+  NODE_VERSION: 18
+  PYTHON_VERSION: 3.8
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  test-contracts:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Install PYTHON
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: scripts/requirements.txt
+
+    - name: Install NODE JS
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install project
+      run: yarn install
+
+    - name: Install slither
+      run: pip3 install -r scripts/requirements.txt
+
+    - name: Lint solidity
+      run: yarn lint
+
+    - name: Compile typescript
+      run: yarn tsc
+
+    - name: Lint typescript
+      run: yarn eslint
+
+    - name: Slither checks
+      run: yarn slither
+
+    - name: Test ABI generation
+      env:
+        VERSION: "0.0.0"
+      run: npx hardhat run scripts/generateAbi.ts
+
+    - name: Gas calculation test
+      run: npx hardhat test gas/calculateGas.ts
+
+    - name: Test deploy
+      run: bash ./scripts/test_deploy.sh
+
+    - name: Test upgrade
+      run: bash scripts/test_upgrade.sh
+
+    - name: Run tests
+      run: |
+        npx hardhat coverage --solcoverjs .solcover.js
+        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
+
+  test-predeployed:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Install PYTHON
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: predeployed/test/requirements.txt
+
+    - name: Install NODE JS
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install project
+      run: |
+        yarn install
+        yarn compile
+
+    - name: Install python testing staff
+      run: pip3 install -r predeployed/test/requirements.txt
+
+    - name: Install geth
+      run: |
+        sudo add-apt-repository -y ppa:ethereum/ethereum
+        sudo apt install ethereum
+
+    - name: Build predeployed pip package
+      env:
+        VERSION: "0.0.0"
+      run: |
+        python3 -m pip install build==0.4.0
+        ./predeployed/scripts/build_package.sh
+
+    - name: Test predeployed pip package
+      env:
+        PYTHONPATH: src
+      run: |
+        killall -9 node || true # stop any ganache-cli, etc
+        killall -9 geth || true # stop any geth, etc
+        echo "-------------- checking occupied ports"
+        netstat -ltnp
+        echo "-------------- running tests"
+        ./predeployed/test/prepare_environment.sh
+        ./predeployed/test/test.sh
+
+    - name: Test ABIs generation
+      env:
+        VERSION: "0.0.0"
+      run: |
+        python3 -m venv predeployed/scripts/venv
+        source predeployed/scripts/venv/bin/activate
+        pip install predeployed/dist/ima_predeployed-*.whl
+        python predeployed/scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+
+
+

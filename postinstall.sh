@@ -5,7 +5,7 @@ DIRECTORY_WITH_TESTS=$DIRECTORY_OF_THIS_SCRIPT/test
 DIRECTORY_WITH_TEST_TOKENS=$DIRECTORY_OF_THIS_SCRIPT/test-tokens
 
 echo " "
-if [ -d "$DIRECTORY_WITH_TESTS" ] 
+if [ -d "$DIRECTORY_WITH_TESTS" ]
 then
     echo " "
     echo "----- installing in test -------------------------------------------------------------------"
@@ -14,24 +14,24 @@ then
     yarn install
     cd ..
 else
-    echo "We do not have directory with tests at path $DIRECTORY_WITH_TESTS" 
+    echo "We do not have directory with tests at path $DIRECTORY_WITH_TESTS"
 fi
 
 echo " "
 echo "----- installing in proxy ------------------------------------------------------------------"
 echo " "
-cd ./proxy
+cd ./
 yarn install
 cd ..
 
-if [ -d "$DIRECTORY_WITH_TEST_TOKENS" ] 
+if [ -d "$DIRECTORY_WITH_TEST_TOKENS" ]
 then
     echo " "
     echo "----- installing in test-tokens ------------------------------------------------------------"
     echo " "
     cd ./test-tokens
-    yarn install 
+    yarn install
     cd ..
 else
-    echo "We do not have directory with test tokens at path $DIRECTORY_WITH_TEST_TOKENS" 
+    echo "We do not have directory with test tokens at path $DIRECTORY_WITH_TEST_TOKENS"
 fi
