@@ -66,7 +66,7 @@ cp "data/proxyMainnet.json" "$GITHUB_WORKSPACE/data"
 cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/data/"
 cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
 cd "$GITHUB_WORKSPACE"
-rm -rf "$DEPLOYED_DIR"
+rm -r --interactive=never "$DEPLOYED_DIR"
 
 MESSAGE_PROXY_FOR_MAINNET=$(cat data/proxyMainnet.json | jq -r .message_proxy_mainnet_address)
 UPGRADE_ALL=true \
