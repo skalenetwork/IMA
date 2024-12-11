@@ -43,6 +43,9 @@ VERSION="$DEPLOYED_VERSION" \
 PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" \
 PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
 npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
+# TODO: remove this line after upgrading to 2.2.0
+perl -0777 -i -pe 's/await contractManagerInst\.setContractsAddress\( "MessageProxyForMainnet",[^\}]*console\.log\( "Successfully registered MessageProxy in ContractManager" \);/await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);\nawait contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);\nawait contractManagerInst.setContractsAddress( "Linker", deployed.get( "Linker" )?.address);\nfor (const contractName of contractsToDeploy) {\n    const contract = deployed.get(contractName);\n    if (contract === undefined) {\n        throw new Error(`\${contractName} was not found`);\n    }\n    await contractManagerInst.setContractsAddress( contractName, contract.address);\n}\nconsole.log( "Successfully registered MessageProxy in ContractManager" );/s' migrations/deployMainnet.ts
+# end of TODO
 SKALE_MANAGER=$(cat data/skaleManagerComponents.json | jq -r .skale_manager_address)
 VERSION="$DEPLOYED_VERSION" TARGET=$SKALE_MANAGER npx hardhat run migrations/deployMainnet.ts --network localhost
 

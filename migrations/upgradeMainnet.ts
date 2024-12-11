@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from 'fs';
-import { Transaction } from "ethers";
+import { Interface, Transaction } from "ethers";
 import { getAbi, getVersion, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
@@ -60,7 +60,77 @@ class ImaMainnetUpgrader extends Upgrader {
 
     // deployNewContracts = () => { };
 
-    // initialize = () => { };
+    initialize = async () => {
+        const contractManagerAddress = await (await this.getMessageProxyForMainnet()).contractManagerOfSkaleManager();
+        const contractManagerInterface = new Interface([{
+            "type": "function",
+            "name": "getContract",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "name"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": "contractAddress"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "setContractsAddress",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "contractsName"
+                },
+                {
+                    "type": "address",
+                    "name": "newContractsAddress"
+                }
+            ],
+            "outputs": []
+        }]);
+        const contractManager = new ethers.Contract(
+            contractManagerAddress,
+            contractManagerInterface,
+            ethers.provider
+        )
+        if (!process.env.ABI) {
+            console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+            process.exit(1);
+        }
+        const abi = JSON.parse(await fs.readFile(process.env.ABI, "utf-8"));
+        for (const contractName of contracts) {
+            try {
+                const contractAddress = await contractManager.getContract(contractName);
+                console.log(`Address of ${contractName} is set to ${contractAddress}`);
+            } catch {
+                // getContract failed because the contract is not set
+                const contractAddress = abi[`${getContractKeyInAbiFile(contractName)}_address`] as string;
+                this.transactions.push(Transaction.from(
+                    {
+                        to: await contractManager.getAddress(),
+                        data: contractManager.interface.encodeFunctionData(
+                            "setContractsAddress",
+                            [
+                                contractName,
+                                contractAddress
+                            ]
+                        )
+                    }
+                ))
+                console.log(`Set ${contractName} address to ${contractAddress}`);
+            }
+        }
+    };
 
     _getContractKeyInAbiFile(contract: string) {
         if (contract === "MessageProxyForMainnet") {
@@ -83,18 +153,21 @@ async function updateAbi() {
         const contractInterface = (await ethers.getContractFactory(contract)).interface;
         abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
     }
-    const newAbiFilename = `data/mainnet-ima-${version}-${network.name}.json`;
+    const newAbiFilename = `mainnet-ima-${version}-${network.name}.json`;
     await fs.writeFile(newAbiFilename, JSON.stringify(abi, null, 4));
     console.log(chalk.green(`ABI updated and saved to ${newAbiFilename}`));
 }
 
 async function main() {
-    let contractNamesToUpgrade: string[] = []
+    let contractNamesToUpgrade = [
+        "MessageProxyForMainnet",
+        "CommunityPool"
+    ]
     if (process.env.UPGRADE_ALL) {
         contractNamesToUpgrade = contracts;
     }
     const upgrader = new ImaMainnetUpgrader(
-        "2.2.0",
+        "2.1.0",
         await getImaMainnetInstance(),
         contractNamesToUpgrade
     );

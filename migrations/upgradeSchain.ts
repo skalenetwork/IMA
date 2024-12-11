@@ -84,7 +84,7 @@ async function updateAbi(contracts: string[]) {
         const contractInterface = (await ethers.getContractFactory(contract)).interface;
         abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
     }
-    const newAbiFilename = `data/schain-ima-${version}-${network.name}.json`;
+    const newAbiFilename = `schain-ima-${version}-${network.name}.json`;
     await fs.writeFile(newAbiFilename, JSON.stringify(abi, null, 4));
     console.log(chalk.green(`ABI updated and saved to ${newAbiFilename}`));
 }
@@ -98,7 +98,7 @@ async function main() {
         contractNamesToUpgrade = contracts;
     }
     const upgrader = new ImaSchainUpgrader(
-        "2.2.0",
+        "2.1.0",
         await getImaSchainInstance(),
         contractNamesToUpgrade
     );
