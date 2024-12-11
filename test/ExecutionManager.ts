@@ -5,6 +5,7 @@ import { deployExecutionManager } from "./utils/deploy/schain/executionManager";
 import { AgentMock } from "./utils/agent/AgentMock";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { assert, expect } from "chai";
+import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 
 interface SchainSetup {
     messageProxy: MessageProxyForSchain,
@@ -136,6 +137,8 @@ describe("ExecutionManager", () => {
         }
 
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
+        const sourceSchainHash = ethers.id(sourceSchainName);
+        const targetSchainHash = ethers.id(targetSchainName);
 
         const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
         const targetExecutionManager = schains.get(targetSchainName)?.executionManager;
@@ -143,8 +146,22 @@ describe("ExecutionManager", () => {
         assert(sourceExecutionManager);
         assert(targetExecutionManager);
 
+        const token = await deployERC20OnChain("D2", "D2");
+        const value = ethers.parseEther("1");
+        await token.mint(user, value);
+
+        const send = await ethers.getContractAt(
+            "Send",
+            await sourceExecutionManager.getExecutorAddress(
+                ethers.id("Send")
+            )
+        );
         const metaAction = await sourceExecutionManager.createMetaAction(
-            bytes32,(bytes32,bytes)[]
+            targetSchainHash,
+            {
+                executor: ethers.id("Send"),
+                arguments: await send.encodeArguments(user)
+            }
         );
 
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(

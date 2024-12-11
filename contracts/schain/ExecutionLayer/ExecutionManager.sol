@@ -28,8 +28,10 @@ from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradea
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IMessageProxyForSchain} from "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
+import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {RoleRequired} from "../../CommonErrors.sol";
 import {MetaActionId, Protocol} from "./Protocol.sol";
+import {Executor} from "./Executor.sol";
 
 contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
@@ -49,6 +51,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     IMessageProxyForSchain public messageProxy;
     EnumerableMap.Bytes32ToAddressMap private _remoteExecutionManagers;
+    EnumerableMap.Bytes32ToAddressMap private _executors;
     string public testMessage;
     mapping (address sender => uint256 nonce) public nonces;
     mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
@@ -130,6 +133,16 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _remoteExecutionManagers.set(SchainHash.unwrap(schainHash), executionManagerAddress);
     }
 
+    function setExecutor(
+        ExecutorId id,
+        Executor executorAddress
+    )
+        external
+        onlyController
+    {
+        _executors.set(ExecutorId.unwrap(id), address(executorAddress));
+    }
+
     function execute(
         Protocol.MetaAction calldata metaAction
     )
@@ -181,6 +194,10 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         });
     }
 
+    function getExecutorAddress(ExecutorId id) external view returns (Executor executor) {
+        return Executor(_executors.get(ExecutorId.unwrap(id)));
+    }
+
     // Private
 
     function _createMetaAction(
@@ -197,7 +214,12 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             sourceChain: SchainHash.wrap(bytes32(0)),
             id: id,
             status: Protocol.MetaActionStatus.EXECUTING,
-            metaAction: metaAction
+            metaAction: Protocol.MetaAction({
+                targetChainHash: SchainHash.wrap(bytes32(0)),
+                actions: "",
+                nextMetaAction: Protocol.encodeMetaAction(metaAction),
+                postActions: ""
+            })
         });
 
         emit MetaActionCreated(id);
