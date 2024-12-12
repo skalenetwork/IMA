@@ -156,13 +156,13 @@ describe("ExecutionManager", () => {
                 ethers.id("Send")
             )
         );
-        const metaAction = await sourceExecutionManager.createMetaAction(
+        const metaAction = (await sourceExecutionManager.createMetaAction(
             targetSchainHash,
-            {
+            [{
                 executor: ethers.id("Send"),
                 arguments: await send.encodeArguments(user)
-            }
-        );
+            }]
+        )).toObject();
 
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
             metaAction
@@ -182,5 +182,7 @@ describe("ExecutionManager", () => {
 
         expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
         expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+
+
     });
 });

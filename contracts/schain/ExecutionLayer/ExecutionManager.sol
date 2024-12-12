@@ -171,8 +171,8 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return Protocol.MetaAction({
             targetChainHash: targetChain,
             actions: Protocol.encodeActions(actions),
-            nextMetaAction: "0x",
-            postActions: "0x"
+            nextMetaAction: "",
+            postActions: ""
         });
     }
 
