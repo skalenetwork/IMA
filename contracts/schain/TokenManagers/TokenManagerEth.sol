@@ -19,8 +19,9 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
+import {SchainHash} from "@skalenetwork/ima-interfaces/DomainTypes.sol";
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerEth.sol";
 
 import "../../Messages.sol";
@@ -37,7 +38,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
 
     IEthErc20 public ethErc20;
 
-    /// Create a new token manager    
+    /// Create a new token manager
 
     /**
      * @dev Register EthErc20 token.
@@ -50,7 +51,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
 
     /**
      * @dev Move ETH from schain to mainnet.
-     * 
+     *
      * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
     function exitToMain(uint256 amount) external override {
@@ -63,12 +64,12 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
      * or SKALE chains.
      *
      * Requirements:
-     * 
+     *
      * - MessageProxy must be the sender.
      * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
-        bytes32 fromChainHash,
+        SchainHash fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -114,7 +115,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
     /**
      * @dev Checks whether sender contract is DepositBox.
      */
-    function _checkSender(bytes32 fromChainHash, address sender) internal view override returns (bool) {
+    function _checkSender(SchainHash fromChainHash, address sender) internal view override returns (bool) {
         return fromChainHash == MAINNET_HASH && sender == depositBox;
     }
 
@@ -122,7 +123,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
      * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
      */
     function _exit(
-        bytes32 chainHash,
+        SchainHash chainHash,
         address messageReceiver,
         address to,
         uint256 amount

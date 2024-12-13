@@ -1011,6 +1011,11 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.9.6.tgz#38b21708a719da647de4bb0e4802ee235a0d24df"
   integrity sha512-m4iHazOsOCv1DgM7eD7GupTJ+NFVujRZt1wzddDPSVGpWdKq1SKkla5htKG7+IS4d2XOCtzkUNwRZ7Vq5aEUMA==
 
+"@openzeppelin/contracts@^5.1.0-rc.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.1.0.tgz#4e61162f2a2bf414c4e10c45eca98ce5f1aadbd4"
+  integrity sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==
+
 "@openzeppelin/defender-sdk-base-client@^1.14.4", "@openzeppelin/defender-sdk-base-client@^1.15.0":
   version "1.15.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/defender-sdk-base-client/-/defender-sdk-base-client-1.15.0.tgz#5c6af6929c399dd7ef9ca1eb4ca042ae7e772367"
@@ -1281,12 +1286,12 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1.tgz#97ed2069256a835efa1b088a58de17e2783a9e71"
   integrity sha512-CgAo41sSL1KT9e1d3sUTxW5WPbEvHQwoqo3hLt+VW/6kGYukCuW4AHWMyDr5Jjw9KtjDKSOySDcoukhaeKxToQ==
 
-"@skalenetwork/ima-interfaces@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0.tgz#93cb73a5200f7d9753a44c1be3e15156e7ceaf9c"
-  integrity sha512-Kqm45GHQl56H4pqdWHIcTUfFrE60LAUKI3j2CecebN0T9rKa0DDokvE42VDa3PfK2z6XIJxh7SkF+i6NsLbpjA==
+"@skalenetwork/ima-interfaces@^2.0.0-execution-layer.13":
+  version "2.0.0-execution-layer.13"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-execution-layer.13.tgz#5ed8e488f6cec755b15aefcbff2a4333596e51b8"
+  integrity sha512-SyrKE8qGtXq9QVcn5Z4yT5CgLpG79yLxcs8KuygiFEXopdYbM2tuQHIspVBSL+6UtIUYRz40g7IZN1vdVY+RcQ==
   dependencies:
-    "@skalenetwork/skale-manager-interfaces" "^0.1.2"
+    "@skalenetwork/skale-manager-interfaces" "^3.2.0-develop.0"
 
 "@skalenetwork/skale-contracts-ethers-v6@^1.0.2-develop.30":
   version "1.0.2-develop.30"
@@ -1310,10 +1315,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-2.0.0.tgz#afb63131e5c498cfa69219567f9f52b85f0856c9"
   integrity sha512-Pge3p4vpeNaXHjwntX+8b38NEcT81a67I32bbnU+l1uSo4kmyXd0VblHMO84H1Azr9TzF3ZmNCG+GI2yntSx2w==
 
-"@skalenetwork/skale-manager-interfaces@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-0.1.2.tgz#88e543c8cc298cd0cc9559892d746d2d74786da8"
-  integrity sha512-gapSQJahwWMlTB/xp/kMzB6k+9+Skx/N0fvEloiW4CUrkGkSa8+fj16YmUXX45p1hOc45W+JydiJPNgZtx32Dg==
+"@skalenetwork/skale-manager-interfaces@^3.2.0-develop.0":
+  version "3.2.0-paymaster.2"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-3.2.0-paymaster.2.tgz#6b114041b623a030331e0a7853a2eab136fc2daf"
+  integrity sha512-tmqWNkafjJxIZNVp2EmysvXor5F4G+f5A4qTMWqCZ7yMrCAvGzTETpMiHGjJJCUwSIaaqd62DjDjQi69r+BUkg==
 
 "@skalenetwork/upgrade-tools@3.0.0-develop.34":
   version "3.0.0-develop.34"
