@@ -38,6 +38,10 @@ contract ContractManager is IContractManagerTester {
 
     event ContractUpgraded(string contractsName, address contractsAddress);
 
+    error ContractNotFound(
+        string contractName
+    );
+
     constructor() {
         owner = msg.sender;
     }
@@ -64,7 +68,17 @@ contract ContractManager is IContractManagerTester {
     /**
      * @dev Returns the contract address for a given contractName.
      */
-    function getContract(string calldata contractName) external view override returns (address) {
-        return contracts[keccak256(abi.encodePacked(contractName))];
+    function getContract(
+        string memory name
+    )
+        public
+        view
+        override
+        returns (address contractAddress)
+    {
+        contractAddress = contracts[keccak256(abi.encodePacked(name))];
+        if (contractAddress == address(0)) {
+            revert ContractNotFound(name);
+        }
     }
 }

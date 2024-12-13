@@ -23,7 +23,7 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
 
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
-ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
+ACCOUNTS_FILENAME="$DEPLOYED_DIR/generatedAccounts.json"
 GANACHE=$(npx ganache \
     --😈 \
     --miner.blockGasLimit 12000000 \
@@ -32,7 +32,7 @@ GANACHE=$(npx ganache \
     --wallet.accountKeysPath "$ACCOUNTS_FILENAME" \
 )
 
-cd "$DEPLOYED_DIR/proxy"
+cd "$DEPLOYED_DIR"
 yarn install
 PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
 PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[0].value')
@@ -43,11 +43,8 @@ VERSION="$DEPLOYED_VERSION" \
 PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" \
 PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
 npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
-# TODO: remove this line after upgrading to 2.2.0
-perl -0777 -i -pe 's/await contractManagerInst\.setContractsAddress\( "MessageProxyForMainnet",[^\}]*console\.log\( "Successfully registered MessageProxy in ContractManager" \);/await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);\nawait contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);\nawait contractManagerInst.setContractsAddress( "Linker", deployed.get( "Linker" )?.address);\nfor (const contractName of contractsToDeploy) {\n    const contract = deployed.get(contractName);\n    if (contract === undefined) {\n        throw new Error(`\${contractName} was not found`);\n    }\n    await contractManagerInst.setContractsAddress( contractName, contract.address);\n}\nconsole.log( "Successfully registered MessageProxy in ContractManager" );/s' migrations/deployMainnet.ts
-# end of TODO
 SKALE_MANAGER=$(cat data/skaleManagerComponents.json | jq -r .skale_manager_address)
-VERSION="$DEPLOYED_VERSION" TARGET=$SKALE_MANAGER npx hardhat run migrations/deployMainnet.ts --network localhost
+VERSION="$DEPLOYED_VERSION" SKALE_MANAGER_ADDRESS=$SKALE_MANAGER npx hardhat run migrations/deployMainnet.ts --network localhost
 
 
 CHAIN_NAME_SCHAIN="Test" \
@@ -56,6 +53,7 @@ URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
 PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
 npx hardhat run migrations/deploySchain.ts --network schain
 
+cp "$GITHUB_WORKSPACE/migrations/generateManifest.ts" "$DEPLOYED_DIR/migrations/generateManifest.ts"
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 ABI="data/$ABI_FILENAME_SCHAIN" \
 MANIFEST=".openzeppelin/unknown-1337.json" \
@@ -71,7 +69,7 @@ cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
 
 MESSAGE_PROXY_FOR_MAINNET=$(cat data/proxyMainnet.json | jq -r .message_proxy_mainnet_address)
-TEST_UPGRADE=true \
+UPGRADE_ALL=true \
 ABI="data/proxyMainnet.json" \
 TARGET="$MESSAGE_PROXY_FOR_MAINNET" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
@@ -87,6 +85,7 @@ MESSAGE_PROXY_FOR_SCHAIN=$(cat data/$ABI_FILENAME_SCHAIN | jq -r .message_proxy_
 # ABI="data/$ABI_FILENAME_SCHAIN" \
 # MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 # CHAIN_NAME_SCHAIN="Test" \
+# UPGRADE_ALL=true \
 # ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 # TARGET="$MESSAGE_PROXY_FOR_SCHAIN" \
 # VERSION=$VERSION_TAG \
