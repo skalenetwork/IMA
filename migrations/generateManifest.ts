@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { networkNames } from "@openzeppelin/upgrades-core";
 import { promises as fs } from "fs";
@@ -92,6 +92,11 @@ async function readValidations() {
     }
 }
 
+async function getManifestAdmin(abi: {[ key in string ]: string | []}) {
+    const randomProxy = abi[getContractKeyInAbiFile(contracts[0]) + "_address"] as string;
+    return await upgrades.erc1967.getAdminAddress(randomProxy);
+}
+
 export async function generateManifest(addresses: Addresses) {
     const newManifest: ManifestData = emptyManifest();
     newManifest.admin = getDeployment(addresses.admin);
@@ -106,12 +111,13 @@ export async function generateManifest(addresses: Addresses) {
 }
 
 export async function importAddresses(manifest: ManifestData, abi: {[ key in string ]: string | []}) {
-    if (!manifest.admin) {
+    const manifestAdminAddress = await getManifestAdmin(abi);
+    if (!manifestAdminAddress) {
         throw Error("Proxy admin is missing in manifest file");
     }
     const addresses: Addresses = {};
-    addresses.admin = manifest.admin.address;
-    console.log("Admin address", manifest.admin.address, "imported");
+    addresses.admin = manifestAdminAddress;
+    console.log("Admin address", manifestAdminAddress, "imported");
     for (const contract of contracts) {
         const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
         if (Array.isArray(proxyAddress)) {
