@@ -26,11 +26,13 @@ import "hardhat/console.sol";
 import {AccessControlEnumerableUpgradeable}
 from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
-import {IMessageProxyForSchain} from "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
+import {ITokenManagerERC20} from "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {RoleRequired} from "../../CommonErrors.sol";
-import {MetaActionId, Protocol} from "./Protocol.sol";
+import {TokenManagerERC20} from "../TokenManagers/TokenManagerERC20.sol";
+import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
 import {Executor} from "./Executor.sol";
 
 contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
@@ -49,7 +51,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
 
-    IMessageProxyForSchain public messageProxy;
+    TokenManagerERC20 public erc20TokenManager;
     EnumerableMap.Bytes32ToAddressMap private _remoteExecutionManagers;
     EnumerableMap.Bytes32ToAddressMap private _executors;
     string public testMessage;
@@ -85,14 +87,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     modifier onlyMessageProxy() {
-        if (msg.sender != address(messageProxy)) {
+        if (msg.sender != erc20TokenManager.messageProxy.address) {
             revert SenderIsNotMessageProxy(msg.sender);
         }
         _;
     }
 
-    function initialize(IMessageProxyForSchain messageProxyAddress) external override initializer {
-        messageProxy = messageProxyAddress;
+    function initialize(ITokenManagerERC20 erc20TokenManagerAddress) external override initializer {
+        erc20TokenManager = TokenManagerERC20(address(erc20TokenManagerAddress));
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -115,7 +117,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function testSend(SchainHash targetChainHash, string calldata message) external override {
-        messageProxy.postOutgoingMessage(
+        erc20TokenManager.messageProxy().postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
             abi.encode(message)
@@ -144,15 +146,18 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function execute(
-        Protocol.MetaAction calldata metaAction
+        Protocol.MetaAction calldata metaAction,
+        TokenInfo[] calldata tokens
     )
         external
     {
         _processMetaAction(
             _createMetaAction(
                 msg.sender,
-                metaAction
-            )
+                metaAction,
+                tokens
+            ),
+            tokens
         );
     }
 
@@ -202,7 +207,8 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     function _createMetaAction(
         address sender,
-        Protocol.MetaAction memory metaAction
+        Protocol.MetaAction memory metaAction,
+        TokenInfo[] memory tokens
     )
         private
         returns (MetaActionContainer storage metaActionContainer)
@@ -224,11 +230,13 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
         emit MetaActionCreated(id);
 
+        _pullTokensFromSender(sender, tokens);
+
         return metaActions[id];
     }
 
     function _receiveMetaAction(Protocol.Message memory message, SchainHash sourceChain) private {
-        Protocol.MetaAction memory metaAction = Protocol.decodeMetaActionMessage(message);
+        (Protocol.MetaAction memory metaAction, TokenInfo[] memory tokens) = Protocol.decodeMetaActionMessage(message);
         metaActions[message.metaActionId] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: address(0),
@@ -237,7 +245,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             status: Protocol.MetaActionStatus.EXECUTING,
             metaAction: metaAction
         });
-        _processMetaAction(metaActions[message.metaActionId]);
+        _processMetaAction(metaActions[message.metaActionId], tokens);
     }
 
     function _processMessage(bytes memory encodedMessage, SchainHash sourceChain) private {
@@ -256,9 +264,9 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         }
     }
 
-    function _processMetaAction(MetaActionContainer storage metaAction) private {
-        _executeActions(metaAction);
-        _sendNextMetaAction(metaAction);
+    function _processMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
+        TokenInfo[] memory tokensAfterActions = _executeActions(metaAction, tokens);
+        _sendNextMetaAction(metaAction, tokensAfterActions);
     }
 
     function _processMetaActionConfirmation(MetaActionContainer storage metaAction) private {
@@ -272,22 +280,27 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         }
     }
 
-    function _executeActions(MetaActionContainer storage metaAction) private {
-
+    function _executeActions(
+        MetaActionContainer storage metaAction,
+        TokenInfo[] memory tokens
+    )
+        private
+        returns (TokenInfo[] memory resultTokens)
+    {
     }
 
     function _postExecuteMetaAction(MetaActionContainer storage metaAction) private {
 
     }
 
-    function _sendNextMetaAction(MetaActionContainer storage metaAction) private {
+    function _sendNextMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         if (metaAction.metaAction.hasNextMetaAction()) {
             Protocol.MetaAction memory nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
             SchainHash targetChainHash = nextMetaAction.targetChainHash;
-            messageProxy.postOutgoingMessage(
+            erc20TokenManager.messageProxy().postOutgoingMessage(
                 targetChainHash,
                 address(_getRemoteExecutionManager(targetChainHash)),
-                Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction)
+                Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens)
             );
         } else {
             _processMetaActionConfirmation(metaAction);
@@ -299,7 +312,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         Protocol.Confirmation memory confirmation = Protocol.Confirmation({
             metaActionId: metaAction.id
         });
-        messageProxy.postOutgoingMessage(
+        erc20TokenManager.messageProxy().postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
             Protocol.encodeConfirmationMessage(metaAction.id, confirmation)
@@ -308,6 +321,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     function _generateMetaActionId(address sender) private returns (MetaActionId) {
         return MetaActionId.wrap(keccak256(abi.encode(block.chainid, sender, nonces[sender]++)));
+    }
+
+    function _pullTokensFromSender(address sender, TokenInfo[] memory tokens) private {
+        uint256 tokensLength = tokens.length;
+        for (uint256 i = 0; i < tokensLength; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+            token.transferFrom(sender, address(this), tokens[i].number);
+        }
     }
 
     function _getRemoteExecutionManager(

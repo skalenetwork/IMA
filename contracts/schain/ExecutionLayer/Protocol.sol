@@ -25,6 +25,7 @@ import "hardhat/console.sol";
 
 import {SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
+import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
 
 type MetaActionId is bytes32;
 
@@ -96,23 +97,37 @@ library Protocol {
         return abi.decode(encodedActions, (Action[]));
     }
 
-    function encodeMetaActionMessage(MetaActionId id, MetaAction memory metaAction) internal pure returns (bytes memory message) {
+    function encodeMetaActionMessage(
+        MetaActionId id,
+        MetaAction memory metaAction,
+        TokenInfo[] memory tokens
+    )
+        internal
+        pure
+        returns (bytes memory message)
+    {
         return abi.encode(Message({
             version: VERSION,
             messageType: MessageType.META_ACTION,
             metaActionId: id,
-            payload: encodeMetaAction(metaAction)
+            payload: abi.encode(encodeMetaAction(metaAction), tokens)
         }));
     }
 
-    function decodeMetaActionMessage(Message memory message) internal pure returns (MetaAction memory metaAction) {
+    function decodeMetaActionMessage(
+        Message memory message
+    )
+        internal
+        pure
+        returns (MetaAction memory metaAction, TokenInfo[] memory tokens)
+    {
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
         if (message.messageType != MessageType.META_ACTION) {
             revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
         }
-        return abi.decode(message.payload, (MetaAction));
+        return abi.decode(message.payload, (MetaAction, TokenInfo[]));
     }
 
     function encodeConfirmationMessage(MetaActionId id, Confirmation memory confirmation) internal pure returns (bytes memory encodedConfirmation) {
