@@ -143,7 +143,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         uint256 amount,
         address receiver
     )
-        public
+        external
         override
         rightTransaction(targetSchainName, receiver)
     {
