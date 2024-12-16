@@ -336,6 +336,43 @@ describe("TokenManagerERC20", () => {
             outgoingMessagesCounter.should.be.equal(1);
         });
 
+        it("should invoke `transferToSchainERC20Direct` without mistakes", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20Direct(newSchainName, erc20OnOriginChain, amount, deployer.address)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20Direct("Mainnet", erc20OnOriginChain, amount, deployer.address)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202);
+
+            const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnOriginChain, deployer.address, amount, amount, { name: "NewToken", symbol: "NTN", decimals: 18 });
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20Direct(newSchainName, erc20OnOriginChain, amount, deployer.address)
+                .should.emit(messageProxyForSchain, "OutgoingMessage")
+                .withArgs(newSchainId, 0, tokenManagerErc20, tokenManagerErc202, data);
+
+            // expectation:
+            const outgoingMessagesCounter = await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName);
+            outgoingMessagesCounter.should.be.deep.equal(1n);
+        });
+
         it("should reject `transferToSchainERC20` when executing earlier than allowed", async () => {
             const amount = "20000000000000000";
             await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20);
