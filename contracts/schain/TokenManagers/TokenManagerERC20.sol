@@ -132,6 +132,27 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     }
 
     /**
+     * @dev Move tokens from schain to schain to specified receiver.
+     *
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {receiver} address.
+     */
+    function transferToSchainERC20Direct(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 amount,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(targetSchainName, receiver)
+    {
+        SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount);
+    }
+
+    /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
      *
@@ -304,7 +325,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
