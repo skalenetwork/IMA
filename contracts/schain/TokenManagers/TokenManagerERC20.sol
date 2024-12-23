@@ -124,11 +124,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     )
         external
         override
-        rightTransaction(targetSchainName, msg.sender)
     {
-        SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
+        transferToSchainERC20Direct(targetSchainName, contractOnMainnet, amount, msg.sender);
     }
 
     /**
@@ -210,6 +207,27 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             newCommunityLocker,
             newDepositBox
         );
+    }
+
+    /**
+     * @dev Move tokens from schain to schain to specified receiver.
+     *
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {receiver} address.
+     */
+    function transferToSchainERC20Direct(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 amount,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(targetSchainName, receiver)
+    {
+        SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount);
     }
 
     // private
@@ -304,7 +322,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
