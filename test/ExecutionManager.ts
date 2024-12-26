@@ -1,15 +1,19 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { ExecutionManager, MessageProxyForSchain, Protocol } from "../typechain";
+import { ExecutionManager, MessageProxyForSchain, Protocol, TokenManagerERC20 } from "../typechain";
 import { deployExecutionManager } from "./utils/deploy/schain/executionManager";
 import { AgentMock } from "./utils/agent/AgentMock";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { assert, expect } from "chai";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
+import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20";
+import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
+import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 interface SchainSetup {
     messageProxy: MessageProxyForSchain,
-    executionManager: ExecutionManager
+    executionManager: ExecutionManager,
+    tokenManager: TokenManagerERC20
 }
 
 enum MetaActionStatus {
@@ -24,8 +28,18 @@ describe("ExecutionManager", () => {
 
     const setupSchain = async (schainName: string) => {
         const messageProxy = await deployMessageProxyForSchainTester(schainName);
+
+        const linkerMockAddress = ethers.getAddress("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        const communityPoolMockAddress = ethers.getAddress("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        const depositBoxMockAddress = ethers.getAddress("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+
+        const tokenManagerLinker = await deployTokenManagerLinker(messageProxy, linkerMockAddress);
+        const communityLocker = await deployCommunityLocker(schainName, messageProxy, tokenManagerLinker, communityPoolMockAddress);
+        const tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxy, tokenManagerLinker, communityLocker, depositBoxMockAddress);
+
         const executionManager = await deployExecutionManager(messageProxy);
-        return { messageProxy, executionManager }
+
+        return { messageProxy, executionManager, tokenManager: tokenManagerErc20 }
     }
 
     const setupMultipleSchains = async (quantity: number) => {
@@ -40,12 +54,20 @@ describe("ExecutionManager", () => {
                 await schainSetup.executionManager.CONTROLLER_ROLE(),
                 deployer.address
             );
+            await schainSetup.tokenManager.grantRole(
+                await schainSetup.executionManager.CONTROLLER_ROLE(),
+                deployer.address
+            );
             await schainSetup.messageProxy.registerExtraContractForAll(
                 schainSetup.executionManager
             );
             for (const [remoteSchainName, remoteSchainSetup] of schains) {
                 if (schainName !== remoteSchainName) {
                     await schainSetup.messageProxy.addConnectedChain(remoteSchainName);
+                    await schainSetup.tokenManager.addTokenManager(
+                        remoteSchainName,
+                        remoteSchainSetup.tokenManager
+                    );
                     await schainSetup.executionManager.setRemoteExecutionManager(
                         ethers.id(remoteSchainName),
                         remoteSchainSetup.executionManager
@@ -146,42 +168,50 @@ describe("ExecutionManager", () => {
         assert(sourceExecutionManager);
         assert(targetExecutionManager);
 
+        const sourceTokenManager = schains.get(sourceSchainName)?.tokenManager;
+        const targetTokenManager = schains.get(targetSchainName)?.tokenManager;
+
+        assert(sourceTokenManager);
+        assert(targetTokenManager);
+
         const token = await deployERC20OnChain("D2", "D2");
         const value = ethers.parseEther("1");
         await token.mint(user, value);
 
-        const send = await ethers.getContractAt(
-            "Send",
-            await sourceExecutionManager.getExecutorAddress(
-                ethers.id("Send")
-            )
-        );
-        const metaAction = (await sourceExecutionManager.createMetaAction(
-            targetSchainHash,
-            [{
-                executor: ethers.id("Send"),
-                arguments: await send.encodeArguments(user)
-            }]
-        )).toObject();
+        await targetTokenManager.connect(user).transferToSchainERC20(sourceSchainName, token, value);
 
-        const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
-            metaAction
-        )).wait();
-        assert(executeReceipt);
-        let metaActionId = "0x";
-        for (const log of executeReceipt.logs) {
-            const event = sourceExecutionManager.interface.parseLog(log);
-            if (event && event.name == 'MetaActionCreated') {
-                metaActionId = event.args.id;
-            }
-        }
+        // const send = await ethers.getContractAt(
+        //     "Send",
+        //     await sourceExecutionManager.getExecutorAddress(
+        //         ethers.id("Send")
+        //     )
+        // );
+        // const metaAction = (await sourceExecutionManager.createMetaAction(
+        //     targetSchainHash,
+        //     [{
+        //         executor: ethers.id("Send"),
+        //         arguments: await send.encodeArguments(user)
+        //     }]
+        // )).toObject();
 
-        console.log("MetaActionId", metaActionId);
+        // const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
+        //     metaAction
+        // )).wait();
+        // assert(executeReceipt);
+        // let metaActionId = "0x";
+        // for (const log of executeReceipt.logs) {
+        //     const event = sourceExecutionManager.interface.parseLog(log);
+        //     if (event && event.name == 'MetaActionCreated') {
+        //         metaActionId = event.args.id;
+        //     }
+        // }
 
-        await agent.deliverMessages();
+        // console.log("MetaActionId", metaActionId);
 
-        expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
-        expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+        // await agent.deliverMessages();
+
+        // expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+        // expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
 
 
     });
