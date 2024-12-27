@@ -294,12 +294,24 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _sendNextMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
+        console.log("_sendNextMetaAction");
         if (metaAction.metaAction.hasNextMetaAction()) {
+            console.log("has next");
             Protocol.MetaAction memory nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
             SchainHash targetChainHash = nextMetaAction.targetChainHash;
-            erc20TokenManager.messageProxy().postOutgoingMessage(
+            address remoteExecutionManagerAddress = address(_getRemoteExecutionManager(targetChainHash));
+
+            for (uint256 i = 0; i < tokens.length; ++i) {
+                erc20TokenManager.transferToSchainERC20Direct(
+                    targetSchainName,
+                    tokens[i].token,
+                    tokens[i].number,
+                    remoteExecutionManagerAddress);
+            }
+
+            erc20TokenManager.messageProxy.postOutgoingMessage(
                 targetChainHash,
-                address(_getRemoteExecutionManager(targetChainHash)),
+                remoteExecutionManagerAddress,
                 Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens)
             );
         } else {

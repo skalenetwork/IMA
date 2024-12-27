@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { ExecutionManager, MessageProxyForSchain, Protocol, TokenManagerERC20 } from "../typechain";
+import { ExecutionManager, MessageProxyForSchain, Protocol, TokenManagerERC20, TokenManagerLinker } from "../typechain";
 import { deployExecutionManager } from "./utils/deploy/schain/executionManager";
 import { AgentMock } from "./utils/agent/AgentMock";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
@@ -11,9 +11,10 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 interface SchainSetup {
-    messageProxy: MessageProxyForSchain,
-    executionManager: ExecutionManager,
-    tokenManager: TokenManagerERC20
+    messageProxy: MessageProxyForSchain;
+    executionManager: ExecutionManager;
+    tokenManager: TokenManagerERC20;
+    tokenManagerLinker: TokenManagerLinker;
 }
 
 enum MetaActionStatus {
@@ -39,7 +40,12 @@ describe("ExecutionManager", () => {
 
         const executionManager = await deployExecutionManager(messageProxy);
 
-        return { messageProxy, executionManager, tokenManager: tokenManagerErc20 }
+        return {
+            messageProxy,
+            executionManager,
+            tokenManager: tokenManagerErc20,
+            tokenManagerLinker
+        }
     }
 
     const setupMultipleSchains = async (quantity: number) => {
@@ -50,16 +56,17 @@ describe("ExecutionManager", () => {
         }
 
         for (const [schainName, schainSetup] of schains) {
-            await schainSetup.executionManager.grantRole(
-                await schainSetup.executionManager.CONTROLLER_ROLE(),
-                deployer.address
-            );
-            await schainSetup.tokenManager.grantRole(
-                await schainSetup.executionManager.CONTROLLER_ROLE(),
-                deployer.address
+            await schainSetup.messageProxy.registerExtraContractForAll(
+                schainSetup.tokenManager
             );
             await schainSetup.messageProxy.registerExtraContractForAll(
                 schainSetup.executionManager
+            );
+            await schainSetup.tokenManagerLinker.registerTokenManager(schainSetup.tokenManager);
+            await schainSetup.tokenManager.enableAutomaticDeploy();
+            await schainSetup.executionManager.grantRole(
+                await schainSetup.executionManager.CONTROLLER_ROLE(),
+                deployer.address
             );
             for (const [remoteSchainName, remoteSchainSetup] of schains) {
                 if (schainName !== remoteSchainName) {
@@ -178,26 +185,40 @@ describe("ExecutionManager", () => {
         const value = ethers.parseEther("1");
         await token.mint(user, value);
 
-        await targetTokenManager.connect(user).transferToSchainERC20(sourceSchainName, token, value);
+        await token.connect(user).approve(targetTokenManager, value);
+        await targetTokenManager.connect(user).transferToSchainERC20(
+            sourceSchainName,
+            token, value
+        );
 
-        // const send = await ethers.getContractAt(
-        //     "Send",
-        //     await sourceExecutionManager.getExecutorAddress(
-        //         ethers.id("Send")
-        //     )
-        // );
-        // const metaAction = (await sourceExecutionManager.createMetaAction(
-        //     targetSchainHash,
-        //     [{
-        //         executor: ethers.id("Send"),
-        //         arguments: await send.encodeArguments(user)
-        //     }]
-        // )).toObject();
+        await agent.deliverMessages();
 
-        // const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
-        //     metaAction
-        // )).wait();
-        // assert(executeReceipt);
+        const cloneAddress = await sourceTokenManager.clonesErc20(targetSchainHash, token);
+        const clone = await ethers.getContractAt("ERC20OnChain", cloneAddress);
+
+        expect(await token.balanceOf(user)).to.be.equal(0n);
+        expect(await clone.balanceOf(user)).to.be.equal(value);
+
+        const send = await ethers.getContractAt(
+            "Send",
+            await sourceExecutionManager.getExecutorAddress(
+                ethers.id("Send")
+            )
+        );
+        const metaAction = (await sourceExecutionManager.createMetaAction(
+            targetSchainHash,
+            [{
+                executor: ethers.id("Send"),
+                arguments: await send.encodeArguments(user)
+            }]
+        )).toObject();
+
+        await clone.connect(user).approve(sourceExecutionManager, value);
+        const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
+            metaAction,
+            [{token: clone, number: value}]
+        )).wait();
+        assert(executeReceipt);
         // let metaActionId = "0x";
         // for (const log of executeReceipt.logs) {
         //     const event = sourceExecutionManager.interface.parseLog(log);
