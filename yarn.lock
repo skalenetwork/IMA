@@ -1286,10 +1286,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1.tgz#97ed2069256a835efa1b088a58de17e2783a9e71"
   integrity sha512-CgAo41sSL1KT9e1d3sUTxW5WPbEvHQwoqo3hLt+VW/6kGYukCuW4AHWMyDr5Jjw9KtjDKSOySDcoukhaeKxToQ==
 
-"@skalenetwork/ima-interfaces@2.0.0-add-receiver-field-for-chain-to-chain-transfers.1":
-  version "2.0.0-add-receiver-field-for-chain-to-chain-transfers.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-add-receiver-field-for-chain-to-chain-transfers.1.tgz#24621a1510e3df52506bb16884a58f54f8af1e34"
-  integrity sha512-NLGuHXAWS5t6QoaxZNShG92VhmBsbV4MCbmWiaDQbrjUDyyi2LzzCEuzDjvlLqMRUpE/2ztPRBOjqMg7dzeLGg==
+"@skalenetwork/ima-interfaces@2.0.0-schain-hash-transfer.1":
+  version "2.0.0-schain-hash-transfer.1"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-schain-hash-transfer.1.tgz#100afb1ab3c8236baca32f05814ebde39a6d6dd1"
+  integrity sha512-HYP1Recwn8By2OrshFmOQBX2mdmMK9p/sSHam1gyjql4Da+PompjGg0DbkWUB3rk/PYahoKyPXJnIwmVLja9rw==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^3.2.0-develop.0"
 
