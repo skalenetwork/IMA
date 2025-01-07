@@ -225,7 +225,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     )
         public
         override
-        rightTransaction(targetSchainName, receiver)
     {
         SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
         transferToSchainHashERC20Direct(targetSchainHash, contractOnMainnet, amount, receiver);
