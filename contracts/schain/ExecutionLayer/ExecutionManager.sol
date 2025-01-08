@@ -30,6 +30,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {ITokenManagerERC20} from "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
+import {IMessageProxy} from "@skalenetwork/ima-interfaces/IMessageProxy.sol";
 import {RoleRequired} from "../../CommonErrors.sol";
 import {TokenManagerERC20} from "../TokenManagers/TokenManagerERC20.sol";
 import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
@@ -236,7 +237,10 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _receiveMetaAction(Protocol.Message memory message, SchainHash sourceChain) private {
+        console.log("_receiveMetaAction");
         (Protocol.MetaAction memory metaAction, TokenInfo[] memory tokens) = Protocol.decodeMetaActionMessage(message);
+        console.log("Number of tokens");
+        console.log(tokens.length);
         metaActions[message.metaActionId] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: address(0),
@@ -265,6 +269,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _processMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
+        console.log("_processMetaAction");
         TokenInfo[] memory tokensAfterActions = _executeActions(metaAction, tokens);
         _sendNextMetaAction(metaAction, tokensAfterActions);
     }
@@ -287,6 +292,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         private
         returns (TokenInfo[] memory resultTokens)
     {
+        console.log("_executeActions");
     }
 
     function _postExecuteMetaAction(MetaActionContainer storage metaAction) private {
@@ -302,14 +308,15 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             address remoteExecutionManagerAddress = address(_getRemoteExecutionManager(targetChainHash));
 
             for (uint256 i = 0; i < tokens.length; ++i) {
-                erc20TokenManager.transferToSchainERC20Direct(
-                    targetSchainName,
+                erc20TokenManager.transferToSchainHashERC20Direct(
+                    targetChainHash,
                     tokens[i].token,
                     tokens[i].number,
                     remoteExecutionManagerAddress);
             }
 
-            erc20TokenManager.messageProxy.postOutgoingMessage(
+            IMessageProxy messageProxy = IMessageProxy(erc20TokenManager.messageProxy.address);
+            messageProxy.postOutgoingMessage(
                 targetChainHash,
                 remoteExecutionManagerAddress,
                 Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens)

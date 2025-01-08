@@ -219,21 +219,19 @@ describe("ExecutionManager", () => {
             [{token: clone, number: value}]
         )).wait();
         assert(executeReceipt);
-        // let metaActionId = "0x";
-        // for (const log of executeReceipt.logs) {
-        //     const event = sourceExecutionManager.interface.parseLog(log);
-        //     if (event && event.name == 'MetaActionCreated') {
-        //         metaActionId = event.args.id;
-        //     }
-        // }
+        let metaActionId = "0x";
+        for (const log of executeReceipt.logs) {
+            const event = sourceExecutionManager.interface.parseLog(log);
+            if (event && event.name == 'MetaActionCreated') {
+                metaActionId = event.args.id;
+            }
+        }
 
-        // console.log("MetaActionId", metaActionId);
+        console.log("MetaActionId", metaActionId);
 
-        // await agent.deliverMessages();
+        await agent.deliverMessages();
 
-        // expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
-        // expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
-
-
+        expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+        expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
     });
 });
