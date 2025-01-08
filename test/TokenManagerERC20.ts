@@ -1272,6 +1272,7 @@ describe("TokenManagerERC20", () => {
 
             const newSchainNameZ = "NewChainZ";
 
+            // cspell:words NTNZ
             const erc20OnTargetZChain = await deployERC20OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
@@ -1382,7 +1383,7 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20
                 .connect(user)
                 .exitToMainERC20(erc20OnOriginChain, amount)
-                .should.be.eventually.rejectedWith("Main chain token could not be transfered to Mainnet");
+                .should.be.eventually.rejectedWith("Main chain token could not be transferred to Mainnet");
 
             await tokenManagerErc20
                 .connect(user)
