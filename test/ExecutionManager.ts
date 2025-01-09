@@ -201,7 +201,7 @@ describe("ExecutionManager", () => {
 
         const send = await ethers.getContractAt(
             "Send",
-            await sourceExecutionManager.getExecutorAddress(
+            await sourceExecutionManager.getExecutor(
                 ethers.id("Send")
             )
         );

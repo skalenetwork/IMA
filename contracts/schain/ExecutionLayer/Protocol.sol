@@ -94,6 +94,11 @@ library Protocol {
     }
 
     function decodeActions(bytes memory encodedActions) internal pure returns (Action[] memory actions) {
+        console.log("decodeActions");
+        console.log(encodedActions.length);
+        if (encodedActions.length == 0) {
+            return new Action[](0);
+        }
         return abi.decode(encodedActions, (Action[]));
     }
 
@@ -110,7 +115,7 @@ library Protocol {
             version: VERSION,
             messageType: MessageType.META_ACTION,
             metaActionId: id,
-            payload: abi.encode(encodeMetaAction(metaAction), tokens)
+            payload: abi.encode(metaAction, tokens)
         }));
     }
 
@@ -121,12 +126,15 @@ library Protocol {
         pure
         returns (MetaAction memory metaAction, TokenInfo[] memory tokens)
     {
+        console.log("decodeMetaActionMessage");
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
+        console.log("Version checked");
         if (message.messageType != MessageType.META_ACTION) {
             revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
         }
+        console.log("Message type checked");
         return abi.decode(message.payload, (MetaAction, TokenInfo[]));
     }
 

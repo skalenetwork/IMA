@@ -200,7 +200,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         });
     }
 
-    function getExecutorAddress(ExecutorId id) external view returns (Executor executor) {
+    function getExecutor(ExecutorId id) public view returns (Executor executor) {
         return Executor(_executors.get(ExecutorId.unwrap(id)));
     }
 
@@ -293,6 +293,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         returns (TokenInfo[] memory resultTokens)
     {
         console.log("_executeActions");
+        Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.actions);
+        TokenInfo[] memory currentTokens = tokens;
+        for (uint256 i = 0; i < actions.length; ++i) {
+            Executor executor = getExecutor(actions[i].executor);
+            // TODO: add gas limit guard
+            currentTokens = executor.execute(currentTokens, actions[i].arguments);
+        }
+        resultTokens = currentTokens;
     }
 
     function _postExecuteMetaAction(MetaActionContainer storage metaAction) private {
@@ -302,7 +310,8 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function _sendNextMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         console.log("_sendNextMetaAction");
         if (metaAction.metaAction.hasNextMetaAction()) {
-            console.log("has next");
+            console.log("tokens length");
+            console.log(tokens.length);
             Protocol.MetaAction memory nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
             SchainHash targetChainHash = nextMetaAction.targetChainHash;
             address remoteExecutionManagerAddress = address(_getRemoteExecutionManager(targetChainHash));
