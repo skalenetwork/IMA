@@ -317,6 +317,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             address remoteExecutionManagerAddress = address(_getRemoteExecutionManager(targetChainHash));
 
             for (uint256 i = 0; i < tokens.length; ++i) {
+                console.log(address(erc20TokenManager));
                 erc20TokenManager.transferToSchainHashERC20Direct(
                     targetChainHash,
                     tokens[i].token,
@@ -324,8 +325,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
                     remoteExecutionManagerAddress);
             }
 
-            IMessageProxy messageProxy = IMessageProxy(erc20TokenManager.messageProxy.address);
-            messageProxy.postOutgoingMessage(
+            erc20TokenManager.messageProxy().postOutgoingMessage(
                 targetChainHash,
                 remoteExecutionManagerAddress,
                 Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens)

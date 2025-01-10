@@ -38,7 +38,7 @@ describe("ExecutionManager", () => {
         const communityLocker = await deployCommunityLocker(schainName, messageProxy, tokenManagerLinker, communityPoolMockAddress);
         const tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxy, tokenManagerLinker, communityLocker, depositBoxMockAddress);
 
-        const executionManager = await deployExecutionManager(messageProxy);
+        const executionManager = await deployExecutionManager(tokenManagerErc20);
 
         return {
             messageProxy,
