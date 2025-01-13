@@ -318,10 +318,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
             for (uint256 i = 0; i < tokens.length; ++i) {
                 console.log(address(erc20TokenManager));
+                IERC20(tokens[i].token).approve(address(erc20TokenManager), tokens[i].value);
                 erc20TokenManager.transferToSchainHashERC20Direct(
                     targetChainHash,
-                    tokens[i].token,
-                    tokens[i].number,
+                    tokens[i].origin,
+                    tokens[i].value,
                     remoteExecutionManagerAddress);
             }
 
@@ -355,7 +356,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         uint256 tokensLength = tokens.length;
         for (uint256 i = 0; i < tokensLength; ++i) {
             IERC20 token = IERC20(tokens[i].token);
-            token.transferFrom(sender, address(this), tokens[i].number);
+            token.transferFrom(sender, address(this), tokens[i].value);
         }
     }
 

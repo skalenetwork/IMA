@@ -216,7 +216,7 @@ describe("ExecutionManager", () => {
         await clone.connect(user).approve(sourceExecutionManager, value);
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, number: value}]
+            [{token: clone, value: value, origin: token}]
         )).wait();
         assert(executeReceipt);
         let metaActionId = "0x";

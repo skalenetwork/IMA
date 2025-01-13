@@ -40,7 +40,7 @@ contract Send is Executor {
     {
         address target = abi.decode(arguments, (address));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20(inputTokens[0].token).transfer(target, inputTokens[i].number);
+            IERC20(inputTokens[0].token).transfer(target, inputTokens[i].value);
         }
         return new TokenInfo[](0);
     }
