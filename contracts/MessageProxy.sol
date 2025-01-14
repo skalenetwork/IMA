@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.27;
 
+import "hardhat/console.sol";
+
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
@@ -338,6 +340,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             outgoingMessageCounter,
             connectedChains[targetChainHash].lastOutgoingMessageBlockId
         );
+
+        console.log("Post outgoing message");
+        console.log(connectedChains[targetChainHash].outgoingMessageCounter);
+
         connectedChains[targetChainHash].outgoingMessageCounter++;
         connectedChains[targetChainHash].lastOutgoingMessageBlockId = block.number;
     }
@@ -467,23 +473,28 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
             return;
         }
+        console.log("Start message processing");
         try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data
         ) {
+            console.log("Successfully processed message");
             return;
         } catch Error(string memory reason) {
+            console.log("Error");
             emit PostMessageError(
                 counter,
                 _getSlice(bytes(reason), REVERT_REASON_LENGTH)
             );
         } catch Panic(uint errorCode) {
-               emit PostMessageError(
+            console.log("Panic");
+            emit PostMessageError(
                 counter,
                 abi.encodePacked(errorCode)
             );
         } catch (bytes memory revertData) {
+            console.log("Unknown error");
             emit PostMessageError(
                 counter,
                 _getSlice(revertData, REVERT_REASON_LENGTH)

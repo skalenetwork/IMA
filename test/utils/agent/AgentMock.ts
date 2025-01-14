@@ -26,7 +26,7 @@ export class AgentMock {
                     const incomingCounter = await target.getIncomingMessagesCounter(sourceSchainName);
                     if (outgoingCounter > incomingCounter) {
                         const messages = await this.getMessages(source, targetSchainName, incomingCounter);
-                        await target.postIncomingMessages(
+                        const response = await target.postIncomingMessages(
                             sourceSchainName,
                             incomingCounter,
                             messages,
@@ -37,6 +37,15 @@ export class AgentMock {
                                 counter: 0
                             }
                         )
+                        const receipt = await response.wait();
+                        assert(receipt);
+                        for (const log of receipt.logs) {
+                            const event = target.interface.parseLog(log);
+                            if (event && event.name == 'PostMessageError') {
+                                console.log(`Error when process message #${event.args.msgCounter}`);
+                                console.log(event.args.message);
+                            }
+                        }
                     }
                 }
             }
