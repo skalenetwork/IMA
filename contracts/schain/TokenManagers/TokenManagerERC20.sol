@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.27;
 
+// cspell:words IERC20Upgradeable
+
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
@@ -223,9 +225,27 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     )
         public
         override
-        rightTransaction(targetSchainName, receiver)
     {
         SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
+        transferToSchainHashERC20Direct(targetSchainHash, contractOnMainnet, amount, receiver);
+    }
+
+    /**
+     * @dev Move tokens from schain to schain to specified receiver.
+     *
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainHash} schain for {receiver} address.
+     */
+    function transferToSchainHashERC20Direct(
+        SchainHash targetSchainHash,
+        address contractOnMainnet,
+        uint256 amount,
+        address receiver
+    )
+        public
+        override
+        onlySchainTarget(targetSchainHash, receiver)
+    {
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount);
     }
@@ -318,7 +338,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         );
         bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
         if (isMainChainToken) {
-            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transferred to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),

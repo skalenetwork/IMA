@@ -135,12 +135,16 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      */
     modifier rightTransaction(string memory targetSchainName, address to) {
         SchainHash targetSchainHash = SchainHash.wrap(keccak256(abi.encodePacked(targetSchainName)));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
-        require(to != address(0), "Incorrect receiver address");
-        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        _checkTargetChainAndReceiver(targetSchainHash, to);
+        _;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only if
+     * a message does not aim mainnet, target SKALE chain has token manager and receiver is set.
+     */
+    modifier onlySchainTarget(SchainHash targetSchainHash, address to) {
+        _checkTargetChainAndReceiver(targetSchainHash, to);
         _;
     }
 
@@ -272,5 +276,14 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      */
     function _checkSender(SchainHash fromChainHash, address sender) internal view virtual returns (bool) {
         return fromChainHash == MAINNET_HASH ? sender == depositBox : sender == tokenManagers[fromChainHash];
+    }
+
+    function _checkTargetChainAndReceiver(SchainHash targetSchainHash, address to) private view {
+        require(
+            targetSchainHash != MAINNET_HASH,
+            "This function is not for transferring to Mainnet"
+        );
+        require(to != address(0), "Incorrect receiver address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
     }
 }

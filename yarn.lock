@@ -1702,12 +1702,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@skalenetwork/ima-interfaces@npm:2.0.0-add-receiver-field-for-chain-to-chain-transfers.1":
-  version: 2.0.0-add-receiver-field-for-chain-to-chain-transfers.1
-  resolution: "@skalenetwork/ima-interfaces@npm:2.0.0-add-receiver-field-for-chain-to-chain-transfers.1"
+"@skalenetwork/ima-interfaces@npm:2.0.0-develop.98":
+  version: 2.0.0-develop.98
+  resolution: "@skalenetwork/ima-interfaces@npm:2.0.0-develop.98"
   dependencies:
     "@skalenetwork/skale-manager-interfaces": "npm:^3.2.0-develop.0"
-  checksum: 10c0/a7608dae7dbcd372ec10b4db784664e556607e6ed9fa7e038f00c0d06fadbf586bffbd6d854f35f9b174c67c5802c461b9803aea5a763a60897b4381e74907d9
+  checksum: 10c0/a7a2548741833e3683bf338d44e82ebb28283b9d5f10f3ca7f9e5ffea84431212f400128e7aa0a08577825b479e7a2a9724238cc262234b23642ca0dff2abcef
   languageName: node
   linkType: hard
 
@@ -6798,7 +6798,7 @@ __metadata:
     "@openzeppelin/hardhat-upgrades": "npm:^3.1.1"
     "@safe-global/api-kit": "npm:2.5.4"
     "@skalenetwork/etherbase-interfaces": "npm:^0.0.1-develop.20"
-    "@skalenetwork/ima-interfaces": "npm:2.0.0-add-receiver-field-for-chain-to-chain-transfers.1"
+    "@skalenetwork/ima-interfaces": "npm:2.0.0-develop.98"
     "@skalenetwork/skale-manager-interfaces": "npm:2.0.0"
     "@skalenetwork/upgrade-tools": "npm:3.0.0-develop.35"
     "@typechain/ethers-v6": "npm:^0.5.1"
