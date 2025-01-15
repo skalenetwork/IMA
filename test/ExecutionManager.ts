@@ -40,6 +40,11 @@ describe("ExecutionManager", () => {
 
         const executionManager = await deployExecutionManager(tokenManagerErc20);
 
+        console.log(`Chain ${schainName}`);
+        console.log(`MessageProxy: ${await ethers.resolveAddress(messageProxy)}`);
+        console.log(`TokenManager: ${await ethers.resolveAddress(tokenManagerErc20)}`);
+        console.log(`ExecutionManager: ${await ethers.resolveAddress(executionManager)}`);
+
         return {
             messageProxy,
             executionManager,

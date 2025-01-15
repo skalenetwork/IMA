@@ -88,9 +88,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     modifier onlyMessageProxy() {
-        console.log(msg.sender);
-        console.log(erc20TokenManager.messageProxy.address);
-        if (msg.sender != erc20TokenManager.messageProxy.address) {
+        if (msg.sender != address(erc20TokenManager.messageProxy())) {
             revert SenderIsNotMessageProxy(msg.sender);
         }
         _;
