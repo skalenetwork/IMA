@@ -1,6 +1,6 @@
 {
     "name": "skale-ima-proxy",
-    "packageManager": "yarn@4.6.0",
+    "packageManager": "yarn@1.22.22",
     "private": true,
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
