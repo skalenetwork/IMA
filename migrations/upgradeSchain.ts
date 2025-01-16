@@ -30,7 +30,7 @@ async function getImaSchainInstance() {
         }
         return await project.getInstance(contractAddresses);
     }
-    return  await project.getInstance(process.env.TARGET);;
+    return await project.getInstance(process.env.TARGET);
 }
 class ImaSchainUpgrader extends Upgrader {
 
