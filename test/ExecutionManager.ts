@@ -201,6 +201,9 @@ describe("ExecutionManager", () => {
         const cloneAddress = await sourceTokenManager.clonesErc20(targetSchainHash, token);
         const clone = await ethers.getContractAt("ERC20OnChain", cloneAddress);
 
+        console.log(`Origin token: ${await ethers.resolveAddress(token)}`);
+        console.log(`Clone token: ${await ethers.resolveAddress(clone)}`);
+
         expect(await token.balanceOf(user)).to.be.equal(0n);
         expect(await clone.balanceOf(user)).to.be.equal(value);
 

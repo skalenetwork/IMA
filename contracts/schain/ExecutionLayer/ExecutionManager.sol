@@ -32,7 +32,7 @@ import {ITokenManagerERC20} from "@skalenetwork/ima-interfaces/schain/TokenManag
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {IMessageProxy} from "@skalenetwork/ima-interfaces/IMessageProxy.sol";
 import {RoleRequired} from "../../CommonErrors.sol";
-import {TokenManagerERC20} from "../TokenManagers/TokenManagerERC20.sol";
+import {ERC20OnChain, TokenManagerERC20} from "../TokenManagers/TokenManagerERC20.sol";
 import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
 import {Executor} from "./Executor.sol";
 
@@ -204,6 +204,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return Executor(_executors.get(ExecutorId.unwrap(id)));
     }
 
+    function getTokenAddress(TokenInfo memory tokenInfo) public view returns (address) {
+        if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
+            return tokenInfo.token;
+        } else {
+            return tokenInfo.origin;
+        }
+    }
+
     // Private
 
     function _createMetaAction(
@@ -252,6 +260,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _processMetaAction(metaActions[message.metaActionId], tokens);
     }
 
+    function _receiveConfirmation(Protocol.Message memory message, SchainHash sourceChain) private {
+        (Protocol.Confirmation memory confirmation, TokenInfo[] memory tokens) = Protocol.decodeConfirmationMessage(message);
+        _processMetaActionConfirmation(metaActions[message.metaActionId], tokens);
+    }
+
     function _processMessage(bytes memory encodedMessage, SchainHash sourceChain) private {
         console.log("Parse message type");
         Protocol.Message memory message = Protocol.decodeMessage(encodedMessage);
@@ -262,7 +275,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             _receiveMetaAction(message, sourceChain);
         } else if (message.messageType == Protocol.MessageType.CONFIRMATION) {
             console.log("Process confirmation");
-            _processMetaActionConfirmation(_getMetaAction(message.metaActionId));
+            _receiveConfirmation(message, sourceChain);
         } else {
             revert Protocol.UnknownMessageType(message.messageType);
         }
@@ -274,14 +287,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _sendNextMetaAction(metaAction, tokensAfterActions);
     }
 
-    function _processMetaActionConfirmation(MetaActionContainer storage metaAction) private {
+    function _processMetaActionConfirmation(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         console.log("in _processMetaActionConfirmation");
-        _postExecuteMetaAction(metaAction);
+        TokenInfo[] memory resultTokens = _postExecuteMetaAction(metaAction, tokens);
         metaAction.status = Protocol.MetaActionStatus.SUCCEED;
         console.log("Set status to ");
         console.log(uint(metaAction.status));
         if (!_isOrigin(metaAction)) {
-            _sendConfirmation(metaAction);
+            _sendConfirmation(metaAction, resultTokens);
         }
     }
 
@@ -294,17 +307,40 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     {
         console.log("_executeActions");
         Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.actions);
+        return _executeParsedActions(actions, tokens);
+    }
+
+    function _postExecuteMetaAction(
+        MetaActionContainer storage metaAction,
+        TokenInfo[] memory tokens
+    )
+        private
+        returns (TokenInfo[] memory resultTokens)
+    {
+        console.log("_postExecuteActions");
+        Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.postActions);
+        return _executeParsedActions(actions, tokens);
+    }
+
+    function _executeParsedActions(
+        Protocol.Action[] memory actions,
+        TokenInfo[] memory tokens
+    )
+        private
+        returns (TokenInfo[] memory resultTokens)
+    {
+        console.log("_executeParsedActions");
         TokenInfo[] memory currentTokens = tokens;
         for (uint256 i = 0; i < actions.length; ++i) {
             Executor executor = getExecutor(actions[i].executor);
+            for (uint256 j = 0; j < currentTokens.length; ++j) {
+                IERC20 token = IERC20(getTokenAddress(currentTokens[j]));
+                token.approve(address(executor), currentTokens[j].value);
+            }
             // TODO: add gas limit guard
             currentTokens = executor.execute(currentTokens, actions[i].arguments);
         }
         resultTokens = currentTokens;
-    }
-
-    function _postExecuteMetaAction(MetaActionContainer storage metaAction) private {
-
     }
 
     function _sendNextMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
@@ -332,11 +368,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
                 Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens)
             );
         } else {
-            _processMetaActionConfirmation(metaAction);
+            _processMetaActionConfirmation(metaAction, tokens);
         }
     }
 
-    function _sendConfirmation(MetaActionContainer storage metaAction) private {
+    function _sendConfirmation(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         SchainHash targetChainHash = metaAction.sourceChain;
         Protocol.Confirmation memory confirmation = Protocol.Confirmation({
             metaActionId: metaAction.id
@@ -344,7 +380,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         erc20TokenManager.messageProxy().postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
-            Protocol.encodeConfirmationMessage(metaAction.id, confirmation)
+            Protocol.encodeConfirmationMessage(metaAction.id, confirmation, tokens)
         );
     }
 

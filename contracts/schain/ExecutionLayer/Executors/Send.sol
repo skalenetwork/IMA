@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.27;
 
+import "hardhat/console.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
@@ -38,9 +40,13 @@ contract Send is Executor {
         override
         returns (TokenInfo[] memory outputTokens)
     {
+        console.log("Send's execute");
         address target = abi.decode(arguments, (address));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20(inputTokens[0].token).transfer(target, inputTokens[i].value);
+            console.log("Transfer token");
+            console.log(inputTokens[i].token);
+            console.log(inputTokens[i].value);
+            IERC20(inputTokens[i].token).transfer(target, inputTokens[i].value);
         }
         return new TokenInfo[](0);
     }

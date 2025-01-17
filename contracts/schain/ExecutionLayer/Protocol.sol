@@ -138,13 +138,37 @@ library Protocol {
         return abi.decode(message.payload, (MetaAction, TokenInfo[]));
     }
 
-    function encodeConfirmationMessage(MetaActionId id, Confirmation memory confirmation) internal pure returns (bytes memory encodedConfirmation) {
+    function encodeConfirmationMessage(
+        MetaActionId id,
+        Confirmation memory confirmation,
+        TokenInfo[] memory tokens
+    )
+        internal
+        pure
+        returns (bytes memory encodedConfirmation)
+    {
         return abi.encode(Message({
             version: VERSION,
             messageType: MessageType.CONFIRMATION,
             metaActionId: id,
-            payload: abi.encode(confirmation)
+            payload: abi.encode(confirmation, tokens)
         }));
+    }
+
+    function decodeConfirmationMessage(
+        Message memory message
+    )
+        internal
+        pure
+        returns (Confirmation memory confirmation, TokenInfo[] memory tokens)
+    {
+        if (message.version != VERSION) {
+            revert IncompatibleVersion(message.version);
+        }
+        if (message.messageType != MessageType.CONFIRMATION) {
+            revert IncorrectMessageType(message.messageType, MessageType.CONFIRMATION);
+        }
+        return abi.decode(message.payload, (Confirmation, TokenInfo[]));
     }
 
     function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
