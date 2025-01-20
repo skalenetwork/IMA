@@ -7,6 +7,7 @@ import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
 import { MessageProxyForSchain } from "../typechain";
+import { ContractAddressMap } from "@skalenetwork/skale-contracts/lib/domain/types";
 
 
 async function getImaSchainInstance() {
@@ -17,6 +18,18 @@ async function getImaSchainInstance() {
     }
     const network = await skaleContracts.getNetworkByProvider(ethers.provider);
     const project = network.getProject("schain-ima");
+    const contractAddresses: ContractAddressMap = {};
+    if (process.env.TEST_UPGRADE) {
+        if (!process.env.ABI) {
+            console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+            process.exit(1);
+        }
+        const abi = JSON.parse(await fs.readFile(process.env.ABI, "utf-8"));
+        for (const contract of contracts) {
+            contractAddresses[contract] = abi[getContractKeyInAbiFile(contract) + "_address"];
+        }
+        return await project.getInstance(contractAddresses);
+    }
     return await project.getInstance(process.env.TARGET);
 }
 class ImaSchainUpgrader extends Upgrader {

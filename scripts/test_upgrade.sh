@@ -33,7 +33,7 @@ GANACHE=$(npx ganache \
 )
 
 cd "$DEPLOYED_DIR"
-yarn install
+yarn install --immutable
 PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
 PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[0].value')
 URL_W3_S_CHAIN="http://127.0.0.1:8545"
@@ -81,16 +81,16 @@ echo "$VERSION"
 
 MESSAGE_PROXY_FOR_SCHAIN=$(cat data/$ABI_FILENAME_SCHAIN | jq -r .message_proxy_chain_address)
 
-# TODO: uncomment upgrade schain test after fixing the issue related to skale-contracts
-# ABI="data/$ABI_FILENAME_SCHAIN" \
-# MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
-# CHAIN_NAME_SCHAIN="Test" \
-# UPGRADE_ALL=true \
-# ALLOW_NOT_ATOMIC_UPGRADE="OK" \
-# TARGET="$MESSAGE_PROXY_FOR_SCHAIN" \
-# VERSION=$VERSION_TAG \
-# URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
-# PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-# npx hardhat run migrations/upgradeSchain.ts --network schain
+ABI="data/$ABI_FILENAME_SCHAIN" \
+MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
+CHAIN_NAME_SCHAIN="Test" \
+UPGRADE_ALL="true" \
+TEST_UPGRADE="true" \
+ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+TARGET="$MESSAGE_PROXY_FOR_SCHAIN" \
+VERSION=$VERSION_TAG \
+URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
+PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
+npx hardhat run migrations/upgradeSchain.ts --network schain
 
 npx ganache instances stop "$GANACHE"
