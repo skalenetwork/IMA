@@ -16,7 +16,8 @@ export async function deployExecutionManager(
 
     const sendFactory = await ethers.getContractFactory("Send");
     const send = await upgrades.deployProxy(
-        sendFactory
+        sendFactory,
+        [await ethers.resolveAddress(instance)]
     ) as unknown as Send;
 
     await instance.setExecutor(

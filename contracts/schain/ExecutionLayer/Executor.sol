@@ -21,8 +21,22 @@
 
 pragma solidity 0.8.27;
 
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IExecutionManager} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IExecutor} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
+import {TokenInfo} from "./Protocol.sol";
 
-abstract contract Executor is IExecutor {
 
+abstract contract Executor is Initializable, IExecutor {
+    IExecutionManager public executionManager;
+
+    function initialize(IExecutionManager executionManagerAddress) external initializer {
+        executionManager = executionManagerAddress;
+    }
+
+    // protected
+
+    function getTokenAddress(TokenInfo memory tokenInfo) internal view returns (address) {
+        return executionManager.getTokenAddress(tokenInfo);
+    }
 }

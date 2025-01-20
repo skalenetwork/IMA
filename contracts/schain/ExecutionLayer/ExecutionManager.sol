@@ -204,7 +204,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return Executor(_executors.get(ExecutorId.unwrap(id)));
     }
 
-    function getTokenAddress(TokenInfo memory tokenInfo) public view returns (address) {
+    function getTokenAddress(TokenInfo memory tokenInfo) public view override returns (address) {
         if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
             return tokenInfo.token;
         } else {
@@ -389,10 +389,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _pullTokensFromSender(address sender, TokenInfo[] memory tokens) private {
-        uint256 tokensLength = tokens.length;
-        for (uint256 i = 0; i < tokensLength; ++i) {
+        console.log("_pullTokensFromSender");
+        console.log(tokens.length);
+        for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = IERC20(tokens[i].token);
             token.transferFrom(sender, address(this), tokens[i].value);
+            console.log("Address");
+            console.log(tokens[i].token);
+            console.log(token.balanceOf(sender));
         }
     }
 

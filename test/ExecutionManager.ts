@@ -234,12 +234,19 @@ describe("ExecutionManager", () => {
                 metaActionId = event.args.id;
             }
         }
+        expect(await clone.balanceOf(user)).to.be.equal(0n);
 
         console.log("MetaActionId", metaActionId);
 
         await agent.deliverMessages();
 
         expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
-        // expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+        expect(await sourceExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
+
+        console.log(`Clone: ${await clone.balanceOf(user)}`);
+        console.log(`Origin: ${await token.balanceOf(user)}`);
+
+        expect(await clone.balanceOf(user)).to.be.equal(0n);
+        expect(await token.balanceOf(user)).to.be.equal(value);
     });
 });

@@ -43,10 +43,12 @@ contract Send is Executor {
         console.log("Send's execute");
         address target = abi.decode(arguments, (address));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
+            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
             console.log("Transfer token");
-            console.log(inputTokens[i].token);
+            console.log(address(token));
             console.log(inputTokens[i].value);
-            IERC20(inputTokens[i].token).transfer(target, inputTokens[i].value);
+            token.transferFrom(address(executionManager), target, inputTokens[i].value);
+            console.log("Sent successfully");
         }
         return new TokenInfo[](0);
     }
