@@ -341,7 +341,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             connectedChains[targetChainHash].lastOutgoingMessageBlockId
         );
 
-        console.log("Post outgoing message");
+        console.log("Post outgoing message ----------------------->");
         console.log(connectedChains[targetChainHash].outgoingMessageCounter);
 
         connectedChains[targetChainHash].outgoingMessageCounter++;
@@ -474,6 +474,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             return;
         }
         console.log("Start message processing");
+        console.log(counter);
         try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,

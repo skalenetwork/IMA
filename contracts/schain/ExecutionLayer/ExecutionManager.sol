@@ -289,6 +289,8 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     function _processMetaActionConfirmation(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         console.log("in _processMetaActionConfirmation");
+        console.log("Number of tokens");
+        console.log(tokens.length);
         TokenInfo[] memory resultTokens = _postExecuteMetaAction(metaAction, tokens);
         metaAction.status = Protocol.MetaActionStatus.SUCCEED;
         console.log("Set status to ");

@@ -26,6 +26,7 @@ export class AgentMock {
                     const incomingCounter = await target.getIncomingMessagesCounter(sourceSchainName);
                     if (outgoingCounter > incomingCounter) {
                         const messages = await this.getMessages(source, targetSchainName, incomingCounter);
+                        console.log("\n----- Agent: postIncomingMessages -----");
                         const response = await target.postIncomingMessages(
                             sourceSchainName,
                             incomingCounter,
@@ -81,12 +82,14 @@ export class AgentMock {
             for (const log of transaction.logs) {
                 const logDescription = messageProxy.interface.parseLog(log);
                 if (logDescription && logDescription.name === "OutgoingMessage" && logDescription.args.dstChainHash === ethers.id(targetSchainName)) {
-                    const message = {
-                        sender: logDescription.args.srcContract,
-                        destinationContract: logDescription.args.dstContract,
-                        data: logDescription.args.data
-                    };
-                    messages.push(message);
+                    if (logDescription.args.msgCounter >= from) {
+                        const message = {
+                            sender: logDescription.args.srcContract,
+                            destinationContract: logDescription.args.dstContract,
+                            data: logDescription.args.data
+                        };
+                        messages.push(message);
+                    }
                 }
             }
         }
