@@ -55,7 +55,6 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     TokenManagerERC20 public erc20TokenManager;
     EnumerableMap.Bytes32ToAddressMap private _remoteExecutionManagers;
     EnumerableMap.Bytes32ToAddressMap private _executors;
-    string public testMessage;
     mapping (address sender => uint256 nonce) public nonces;
     mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
 
@@ -115,14 +114,6 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             revert SenderIsNotExecutionManager(sourceChain, sender);
         }
         _processMessage(data, sourceChain);
-    }
-
-    function testSend(SchainHash targetChainHash, string calldata message) external override {
-        erc20TokenManager.messageProxy().postOutgoingMessage(
-            targetChainHash,
-            address(_getRemoteExecutionManager(targetChainHash)),
-            abi.encode(message)
-        );
     }
 
     function setRemoteExecutionManager(

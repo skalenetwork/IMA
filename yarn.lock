@@ -1286,10 +1286,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1.tgz#97ed2069256a835efa1b088a58de17e2783a9e71"
   integrity sha512-CgAo41sSL1KT9e1d3sUTxW5WPbEvHQwoqo3hLt+VW/6kGYukCuW4AHWMyDr5Jjw9KtjDKSOySDcoukhaeKxToQ==
 
-"@skalenetwork/ima-interfaces@^2.0.0-execution-layer.21":
-  version "2.0.0-execution-layer.21"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-execution-layer.21.tgz#4b85d39a89ab311416f7737f951977202cb0c743"
-  integrity sha512-JofwzbBxifAQcqT5Xdl23Seyo4OhBzE2/orMjwA2l3tawdujSiaB4XtcpSJqfQp7h7XZdcYZQNReY13cE1bXQA==
+"@skalenetwork/ima-interfaces@^2.0.0-execution-layer.22":
+  version "2.0.0-execution-layer.22"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-execution-layer.22.tgz#248a3efc98343fb9484a2e0892deeed9d56b6d1a"
+  integrity sha512-QPKZ9DCIxhthSASnkNDpfDjMW/zXCSfTo4mR6J00vBQXW2GQqq/cUXZXCv3x10j7BI/Q4VKpOiMdhe7524/J9A==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^3.2.0-develop.0"
 

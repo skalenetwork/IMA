@@ -95,27 +95,6 @@ describe("ExecutionManager", () => {
         [deployer, user] = await ethers.getSigners();
     });
 
-    it("should send test message", async () => {
-        const schains = await setupMultipleSchains(2);
-        const agent = new AgentMock();
-        for (const [schainName, schainSetup] of schains) {
-            await agent.registerSchain(schainName, schainSetup.messageProxy);
-        }
-
-        const [sourceSchainName, targetSchainName] = [...schains.keys()];
-
-        const message = "Hello";
-
-        await schains.get(sourceSchainName)?.executionManager.connect(user).testSend(
-            ethers.id(targetSchainName),
-            message
-        );
-
-        await agent.deliverMessages();
-
-        expect(await schains.get(targetSchainName)?.executionManager.testMessage()).to.be.equal(message);
-    })
-
     it("should execute empty action", async () => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
@@ -124,6 +103,7 @@ describe("ExecutionManager", () => {
         }
 
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
+        const targetSchainHash = ethers.id(targetSchainName);
 
         const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
         const targetExecutionManager = schains.get(targetSchainName)?.executionManager;
@@ -131,20 +111,26 @@ describe("ExecutionManager", () => {
         assert(sourceExecutionManager);
         assert(targetExecutionManager);
 
-        const metaAction = {
-            targetChainHash: ethers.id(targetSchainName),
-            actions: "0x",
-            nextMetaAction: await sourceExecutionManager.encodeMetaAction({
-                targetChainHash: ethers.id(targetSchainName),
-                actions: "0x",
-                nextMetaAction: "0x",
-                postActions: "0x"
-            }),
-            postActions: "0x"
-        }
+        // const metaAction = {
+        //     targetChainHash: ethers.id(targetSchainName),
+        //     actions: "0x",
+        //     nextMetaAction: await sourceExecutionManager.encodeMetaAction({
+        //         targetChainHash: ethers.id(targetSchainName),
+        //         actions: "0x",
+        //         nextMetaAction: "0x",
+        //         postActions: "0x"
+        //     }),
+        //     postActions: "0x"
+        // }
+
+        const metaAction = (await sourceExecutionManager.createMetaAction(
+            targetSchainHash,
+            []
+        )).toObject();
 
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
-            metaAction
+            metaAction,
+            []
         )).wait();
         assert(executeReceipt);
         let metaActionId = "0x";
@@ -163,7 +149,7 @@ describe("ExecutionManager", () => {
         expect(await targetExecutionManager.getMetaActionStatus(metaActionId)).to.be.equal(MetaActionStatus.SUCCEED);
     });
 
-    it.only("should execute send action", async () => {
+    it("should execute send action", async () => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
