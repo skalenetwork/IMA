@@ -196,7 +196,9 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function getTokenAddress(TokenInfo memory tokenInfo) public view override returns (address) {
-        if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
+        if (tokenInfo.origin == address(0)) {
+            return tokenInfo.token;
+        } else if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
             return tokenInfo.token;
         } else {
             return tokenInfo.origin;

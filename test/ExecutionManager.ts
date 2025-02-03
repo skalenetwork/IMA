@@ -279,6 +279,7 @@ describe("ExecutionManager", () => {
         // Setup executors
 
         const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+        await swapMockSwap.setExecutionManager(targetExecutionManager);
         await swapMockSwap.setExchange(exchange);
         await targetExecutionManager.setExecutor(await swapMockSwap.ID(), swapMockSwap);
 

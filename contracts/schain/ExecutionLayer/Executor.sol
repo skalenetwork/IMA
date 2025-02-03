@@ -21,7 +21,10 @@
 
 pragma solidity 0.8.27;
 
+import "hardhat/console.sol";
+
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IExecutor} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {TokenInfo} from "./Protocol.sol";
@@ -34,7 +37,39 @@ abstract contract Executor is Initializable, IExecutor {
         executionManager = executionManagerAddress;
     }
 
-    // protected
+    function execute(
+        TokenInfo[] memory inputTokens,
+        bytes memory arguments
+    )
+        external
+        override
+        returns (TokenInfo[] memory outputTokens)
+    {
+        for (uint256 i = 0; i < inputTokens.length; ++i) {
+            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
+            token.transferFrom(address(executionManager), address(this), inputTokens[i].value);
+        }
+        outputTokens = executeWithTokens(inputTokens, arguments);
+        console.log("executed");
+        for (uint256 i = 0; i < outputTokens.length; ++i) {
+            IERC20 token = IERC20(getTokenAddress(outputTokens[i]));
+            token.transfer(address(executionManager), inputTokens[i].value);
+        }
+        console.log("tokens returned to the executor");
+    }
+
+    // internal
+
+    function executeWithTokens(
+        TokenInfo[] memory inputTokens,
+        bytes memory
+    )
+        internal
+        virtual
+        returns (TokenInfo[] memory outputTokens)
+    {
+        return inputTokens;
+    }
 
     function getTokenAddress(TokenInfo memory tokenInfo) internal view returns (address) {
         return executionManager.getTokenAddress(tokenInfo);

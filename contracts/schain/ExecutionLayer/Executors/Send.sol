@@ -32,11 +32,17 @@ import {Executor} from "../Executor.sol";
 contract Send is Executor {
     ExecutorId public constant ID = ExecutorId.wrap(keccak256("Send"));
 
-    function execute(
+    function encodeArguments(address receiver) external pure returns (bytes memory encodedArguments) {
+        return abi.encode(receiver);
+    }
+
+    // internal
+
+    function executeWithTokens(
         TokenInfo[] memory inputTokens,
         bytes memory arguments
     )
-        external
+        internal
         override
         returns (TokenInfo[] memory outputTokens)
     {
@@ -44,16 +50,8 @@ contract Send is Executor {
         address target = abi.decode(arguments, (address));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
             IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
-            console.log("Transfer token");
-            console.log(address(token));
-            console.log(inputTokens[i].value);
-            token.transferFrom(address(executionManager), target, inputTokens[i].value);
-            console.log("Sent successfully");
+            token.transfer(target, inputTokens[i].value);
         }
         return new TokenInfo[](0);
-    }
-
-    function encodeArguments(address receiver) external pure returns (bytes memory encodedArguments) {
-        return abi.encode(receiver);
     }
 }

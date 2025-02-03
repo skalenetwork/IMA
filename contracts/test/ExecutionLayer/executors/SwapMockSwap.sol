@@ -27,7 +27,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
 
-import {Executor} from "../../../schain/ExecutionLayer/Executor.sol";
+import {Executor, IExecutionManager} from "../../../schain/ExecutionLayer/Executor.sol";
 import {SwapMock} from "../SwapMock.sol";
 
 contract SwapMockSwap is Executor {
@@ -38,19 +38,32 @@ contract SwapMockSwap is Executor {
         exchange = exchangeAddress;
     }
 
-    function execute(
+    function setExecutionManager(IExecutionManager executionManagerAddress) external {
+        executionManager = executionManagerAddress;
+    }
+
+    // internal
+
+    function executeWithTokens(
         TokenInfo[] memory inputTokens,
         bytes memory
     )
-        external
+        internal
         override
         returns (TokenInfo[] memory outputTokens)
     {
+        console.log("Execute SwapMockSwap");
         outputTokens = new TokenInfo[](inputTokens.length);
         for (uint256 i = 0; i < inputTokens.length; ++i) {
+            console.log("Loop iteration");
             IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
+            console.log(address(token));
             IERC20 anotherToken = exchange.getAnotherToken(token);
+            console.log(address(anotherToken));
+            token.approve(address(exchange), inputTokens[i].value);
+            console.log("approved to swap");
             uint256 anotherValue = exchange.swap(token, inputTokens[i].value);
+            console.log("swapped");
             outputTokens[i].token = address(anotherToken);
             outputTokens[i].value = anotherValue;
         }
