@@ -81,7 +81,7 @@ echo "$VERSION"
 
 MESSAGE_PROXY_FOR_SCHAIN=$(cat data/$ABI_FILENAME_SCHAIN | jq -r .message_proxy_chain_address)
 
-ABI="data/$ABI_FILENAME_SCHAIN" \
+TEST_ABI="data/$ABI_FILENAME_SCHAIN" \
 MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 CHAIN_NAME_SCHAIN="Test" \
 UPGRADE_ALL="true" \
