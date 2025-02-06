@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
 import { Transaction } from "ethers";
-import { getAbi, getVersion, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
@@ -20,11 +20,11 @@ async function getImaSchainInstance() {
     const project = network.getProject("schain-ima");
     const contractAddresses: ContractAddressMap = {};
     if (process.env.TEST_UPGRADE) {
-        if (!process.env.ABI) {
+        if (!process.env.TEST_ABI) {
             console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
             process.exit(1);
         }
-        const abi = JSON.parse(await fs.readFile(process.env.ABI, "utf-8"));
+        const abi = JSON.parse(await fs.readFile(process.env.TEST_ABI, "utf-8"));
         for (const contract of contracts) {
             contractAddresses[contract] = abi[getContractKeyInAbiFile(contract) + "_address"];
         }
@@ -84,23 +84,6 @@ class ImaSchainUpgrader extends Upgrader {
     }
 }
 
-async function updateAbi(contracts: string[]) {
-    if (!process.env.ABI) {
-        console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
-        process.exit(1);
-    }
-    const network = await ethers.provider.getNetwork();
-    const version = await getVersion();
-    const abiFilename = process.env.ABI;
-    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
-    for (const contract of contracts) {
-        const contractInterface = (await ethers.getContractFactory(contract)).interface;
-        abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
-    }
-    const newAbiFilename = `data/schain-ima-${version}-${network.name}.json`;
-    await fs.writeFile(newAbiFilename, JSON.stringify(abi, null, 4));
-    console.log(chalk.green(`ABI updated and saved to ${newAbiFilename}`));
-}
 
 async function main() {
     const pathToManifest: string = process.env.MANIFEST || "";
@@ -116,7 +99,6 @@ async function main() {
         contractNamesToUpgrade
     );
     await upgrader.upgrade();
-    updateAbi(contracts);
 }
 
 if (require.main === module) {
