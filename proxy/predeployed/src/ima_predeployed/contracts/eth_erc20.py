@@ -5,11 +5,11 @@ from web3 import Web3
 
 class EthErc20Generator(ContractGenerator):
     ARTIFACT_FILENAME = "EthErc20.json"
-    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    MINTER_ROLE = Web3.solidityKeccak(['string'], ['MINTER_ROLE'])
-    BURNER_ROLE = Web3.solidityKeccak(['string'], ['BURNER_ROLE'])
-    NAME = 'ERC20 Ether Clone'
-    SYMBOL = 'ETHC'
+    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, "big")
+    MINTER_ROLE = Web3.solidity_keccak(["string"], ["MINTER_ROLE"])
+    BURNER_ROLE = Web3.solidity_keccak(["string"], ["BURNER_ROLE"])
+    NAME = "ERC20 Ether Clone"
+    SYMBOL = "ETHC"
     DECIMALS = 18
 
     # ---------- storage ----------
@@ -64,9 +64,24 @@ class EthErc20Generator(ContractGenerator):
 
     def _setup(self, deployer_address: str) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.MINTER_ROLE, [TOKEN_MANAGER_ETH_ADDRESS])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.BURNER_ROLE, [TOKEN_MANAGER_ETH_ADDRESS])
+        self._setup_role(
+            self.ROLES_SLOT,
+            self.ROLE_MEMBERS_SLOT,
+            self.DEFAULT_ADMIN_ROLE,
+            [deployer_address],
+        )
+        self._setup_role(
+            self.ROLES_SLOT,
+            self.ROLE_MEMBERS_SLOT,
+            self.MINTER_ROLE,
+            [TOKEN_MANAGER_ETH_ADDRESS],
+        )
+        self._setup_role(
+            self.ROLES_SLOT,
+            self.ROLE_MEMBERS_SLOT,
+            self.BURNER_ROLE,
+            [TOKEN_MANAGER_ETH_ADDRESS],
+        )
         self._write_string(self.NAME_SLOT, self.NAME)
         self._write_string(self.SYMBOL_SLOT, self.SYMBOL)
         self._write_uint256(self.DECIMALS_SLOT, self.DECIMALS)
