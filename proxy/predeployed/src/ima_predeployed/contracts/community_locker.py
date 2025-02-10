@@ -1,11 +1,14 @@
-from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS
+from ima_predeployed.addresses import (
+    MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
+    TOKEN_MANAGER_LINKER_ADDRESS,
+)
 from ima_predeployed.contract_generator import ContractGenerator, next_slot
 from web3 import Web3
 
 
 class CommunityLockerGenerator(ContractGenerator):
     ARTIFACT_FILENAME = "CommunityLocker.json"
-    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
+    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, "big")
     DEFAULT_TIME_LIMIT_SEC = 5 * 60
 
     # ---------- storage ----------
@@ -47,17 +50,32 @@ class CommunityLockerGenerator(ContractGenerator):
     SCHAIN_HASH_SLOT = next_slot(COMMUNITY_POOL_SLOT)
     TIME_LIMIT_PER_MESSAGE_SLOT = next_slot(SCHAIN_HASH_SLOT)
 
-    def __init__(self, deployer_address: str, schain_name: str, community_pool_address: str):
+    def __init__(
+        self, deployer_address: str, schain_name: str, community_pool_address: str
+    ):
         super().__init__(self.ARTIFACT_FILENAME)
         self._setup(deployer_address, schain_name, community_pool_address)
 
     # private
 
-    def _setup(self, deployer_address: str, schain_name: str, community_pool_address) -> None:
+    def _setup(
+        self, deployer_address: str, schain_name: str, community_pool_address
+    ) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        self._setup_role(
+            self.ROLES_SLOT,
+            self.ROLE_MEMBERS_SLOT,
+            self.DEFAULT_ADMIN_ROLE,
+            [deployer_address],
+        )
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
-        self._write_address(self.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
+        self._write_address(
+            self.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS
+        )
         self._write_address(self.COMMUNITY_POOL_SLOT, community_pool_address)
-        self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
-        self._write_uint256(self.TIME_LIMIT_PER_MESSAGE_SLOT, self.DEFAULT_TIME_LIMIT_SEC)
+        self._write_bytes32(
+            self.SCHAIN_HASH_SLOT, Web3.solidity_keccak(["string"], [schain_name])
+        )
+        self._write_uint256(
+            self.TIME_LIMIT_PER_MESSAGE_SLOT, self.DEFAULT_TIME_LIMIT_SEC
+        )

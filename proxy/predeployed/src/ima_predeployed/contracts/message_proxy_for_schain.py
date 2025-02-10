@@ -1,16 +1,28 @@
-from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot, next_slot
-from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS, \
-    TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
-    TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS
+from ..contract_generator import (
+    ContractGenerator,
+    calculate_mapping_value_slot,
+    calculate_array_value_slot,
+    next_slot,
+)
+from ..addresses import (
+    COMMUNITY_LOCKER_ADDRESS,
+    KEY_STORAGE_ADDRESS,
+    TOKEN_MANAGER_ERC1155_ADDRESS,
+    TOKEN_MANAGER_ERC20_ADDRESS,
+    TOKEN_MANAGER_ERC721_ADDRESS,
+    TOKEN_MANAGER_ETH_ADDRESS,
+    TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
+)
 from web3 import Web3
 from pkg_resources import get_distribution
 
+
 class MessageProxyForSchainGenerator(ContractGenerator):
     ARTIFACT_FILENAME = "MessageProxyForSchain.json"
-    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    MAINNET_HASH = Web3.solidityKeccak(['string'], ['Mainnet'])
+    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, "big")
+    MAINNET_HASH = Web3.solidity_keccak(["string"], ["Mainnet"])
     GAS_LIMIT = 3000000
-    ANY_SCHAIN = (0).to_bytes(32, 'big')
+    ANY_SCHAIN = (0).to_bytes(32, "big")
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -59,7 +71,6 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     IDX_TAIL = next_slot(IDX_HEAD)
     REGISTRY_CONTRACTS_SLOT = next_slot(IDX_TAIL)
     VERSION_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
-    
 
     def __init__(self, deployer_address: str, schain_name: str):
         super().__init__(self.ARTIFACT_FILENAME)
@@ -69,28 +80,45 @@ class MessageProxyForSchainGenerator(ContractGenerator):
 
     def _setup(self, deployer_address: str, schain_name: str) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        self._setup_role(
+            self.ROLES_SLOT,
+            self.ROLE_MEMBERS_SLOT,
+            self.DEFAULT_ADMIN_ROLE,
+            [deployer_address],
+        )
         self._write_address(self.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
-        self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
+        self._write_bytes32(
+            self.SCHAIN_HASH_SLOT, Web3.solidity_keccak(["string"], [schain_name])
+        )
 
         connected_chain_info_slot = calculate_mapping_value_slot(
-            self.CONNECTED_CHAINS_SLOT, self.MAINNET_HASH, 'bytes32')
+            self.CONNECTED_CHAINS_SLOT, self.MAINNET_HASH, "bytes32"
+        )
         inited_slot = connected_chain_info_slot + 2
         self._write_uint256(inited_slot, 1)
         self._write_uint256(self.GAS_LIMIT_SLOT, self.GAS_LIMIT)
-        self._write_string(self.VERSION_SLOT, get_distribution('ima_predeployed').version)
+        self._write_string(
+            self.VERSION_SLOT, get_distribution("ima_predeployed").version
+        )
         registry_contracts_slot = calculate_mapping_value_slot(
-            self.REGISTRY_CONTRACTS_SLOT, self.ANY_SCHAIN, 'bytes32')
+            self.REGISTRY_CONTRACTS_SLOT, self.ANY_SCHAIN, "bytes32"
+        )
         allowed_contracts = [
             TOKEN_MANAGER_ETH_ADDRESS,
             TOKEN_MANAGER_ERC20_ADDRESS,
             TOKEN_MANAGER_ERC721_ADDRESS,
             TOKEN_MANAGER_ERC1155_ADDRESS,
             TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
-            COMMUNITY_LOCKER_ADDRESS]
+            COMMUNITY_LOCKER_ADDRESS,
+        ]
         values_slot = registry_contracts_slot
         indexes_slot = registry_contracts_slot + 1
         self._write_uint256(values_slot, len(allowed_contracts))
         for i, contract in enumerate(allowed_contracts):
             self._write_address(calculate_array_value_slot(values_slot, i), contract)
-            self._write_uint256(calculate_mapping_value_slot(indexes_slot, int(contract, 16), 'uint256'), i + 1)
+            self._write_uint256(
+                calculate_mapping_value_slot(
+                    indexes_slot, int(contract, 16), "uint256"
+                ),
+                i + 1,
+            )
