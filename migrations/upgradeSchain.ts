@@ -76,12 +76,12 @@ class ImaSchainUpgrader extends Upgrader {
 
     // initialize = async () => { };
 
-    _getContractKeyInAbiFile(contract: string) {
-        if (contract === "MessageProxyForSchain") {
-            return "message_proxy_chain";
-        }
-        return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
-    }
+    // _getContractKeyInAbiFile(contract: string) {
+    //     if (contract === "MessageProxyForSchain") {
+    //         return "message_proxy_chain";
+    //     }
+    //     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
+    // }
 }
 
 
