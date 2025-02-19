@@ -3,6 +3,7 @@
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
 import path from "path";
+import { ManifestData } from "@openzeppelin/upgrades-core";
 
 const predeployedAddresses: Record<string, string> = {
   message_proxy_chain: "0xd2AAa00100000000000000000000000000000000",
@@ -31,9 +32,9 @@ const IMPLEMENTATION_SLOT =
   "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
 
 
-async function loadManifest(filePath: string): Promise<any> {
+async function loadManifest(filePath: string): Promise<ManifestData> {
   const data = await fs.readFile(filePath, "utf8");
-  return JSON.parse(data);
+  return JSON.parse(data) as ManifestData;
 }
 
 async function loadAbi(filePath: string): Promise<Record<string, string>> {
@@ -41,7 +42,7 @@ async function loadAbi(filePath: string): Promise<Record<string, string>> {
   return JSON.parse(data);
 }
 
-async function writeManifest(filePath: string, manifestData: any): Promise<void> {
+async function writeManifest(filePath: string, manifestData: ManifestData): Promise<void> {
   await fs.writeFile(filePath, JSON.stringify(manifestData, null, 2));
   console.log(`[DONE] Wrote updated manifest to: ${filePath}`);
 }
@@ -53,7 +54,7 @@ async function getImplementationAddress(proxyAddress: string): Promise<string> {
 }
 
 function updateManifestProxyAddress(
-  manifest: any,
+  manifest: ManifestData,
   predeployedAddr: string,
   actualProxyAddress: string,
 ): boolean {
@@ -81,7 +82,7 @@ function updateManifestProxyAddress(
 }
 
 function updateManifestImplementationAddress(
-  manifest: any,
+  manifest: ManifestData,
   oldPredeployedImplAddr: string,
   actualImplementationAddress: string,
 ): boolean {
@@ -89,8 +90,8 @@ function updateManifestImplementationAddress(
 
   if (manifest.impls) {
     for (const implData of Object.values(manifest.impls)) {
-      if ((implData as any).address?.toLowerCase() === oldPredeployedImplAddr.toLowerCase()) {
-        (implData as any).address = actualImplementationAddress;
+      if (implData?.address.toLowerCase() === oldPredeployedImplAddr.toLowerCase()) {
+        implData.address = actualImplementationAddress;
         replaced = true;
       }
     }
