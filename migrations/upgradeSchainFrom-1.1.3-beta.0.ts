@@ -11,11 +11,6 @@ import { ContractAddressMap } from "@skalenetwork/skale-contracts/lib/domain/typ
 
 
 async function getImaSchainInstance() {
-    if (!process.env.TARGET) {
-        console.log(chalk.red("Specify desired schain-ima instance"));
-        console.log(chalk.red("Set instance alias or MessageProxyForSchain address to TARGET environment variable"));
-        process.exit(1);
-    }
     const network = await skaleContracts.getNetworkByProvider(ethers.provider);
     const project = network.getProject("schain-ima");
     const contractAddresses: ContractAddressMap = {};
@@ -29,6 +24,11 @@ async function getImaSchainInstance() {
             contractAddresses[contract] = abi[getContractKeyInAbiFile(contract) + "_address"];
         }
         return await project.getInstance(contractAddresses);
+    }
+    if (!process.env.TARGET) {
+        console.log(chalk.red("Specify desired schain-ima instance"));
+        console.log(chalk.red("Set instance alias or MessageProxyForSchain address to TARGET environment variable"));
+        process.exit(1);
     }
     return await project.getInstance(process.env.TARGET);
 }
