@@ -229,7 +229,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             "Starting counter is not qual to incoming message counter");
         connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + i);
         }
         _topUpSenderBalance();
     }

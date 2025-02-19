@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   Send.sol - SKALE Interchain Messaging Agent
+ *   SendRest.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2024-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -29,11 +29,11 @@ import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IAct
 
 import {Executor} from "../Executor.sol";
 
-contract Send is Executor {
-    ExecutorId public constant ID = ExecutorId.wrap(keccak256("Send"));
+contract SendRest is Executor {
+    ExecutorId public constant ID = ExecutorId.wrap(keccak256("SendRest"));
 
-    function encodeArguments(address receiver) external pure returns (bytes memory encodedArguments) {
-        return abi.encode(receiver);
+    function encodeArguments(address receiver, uint256 value) external pure returns (bytes memory encodedArguments) {
+        return abi.encode(receiver, value);
     }
 
     // internal
@@ -46,12 +46,16 @@ contract Send is Executor {
         override
         returns (TokenInfo[] memory outputTokens)
     {
-        console.log("Send's execute");
-        address target = abi.decode(arguments, (address));
+        console.log("SendRest's execute");
+        outputTokens = copyTokens(inputTokens);
+        (address target, uint256 value) = abi.decode(arguments, (address, uint256));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
-            token.transfer(target, inputTokens[i].value);
+            if (inputTokens[i].value > value) {
+                IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
+                token.transfer(target, inputTokens[i].value - value);
+                outputTokens[i].value = value;
+                console.log("Value:", value);
+            }
         }
-        return new TokenInfo[](0);
     }
 }

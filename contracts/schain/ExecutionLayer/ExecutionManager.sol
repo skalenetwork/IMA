@@ -79,6 +79,10 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         address sender
     );
 
+    error OriginAddressIsNotProvided(
+        address token
+    );
+
     modifier onlyController() {
         if (!hasRole(CONTROLLER_ROLE, msg.sender)) {
             revert RoleRequired(CONTROLLER_ROLE);
@@ -176,7 +180,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function createMetaAction(
         SchainHash targetChain,
         Protocol.Action[] memory actions,
-        bytes memory encodedNextMetaAction,
+        Protocol.MetaAction memory nextMetaAction,
         Protocol.Action[] memory postActions
     )
         external
@@ -186,7 +190,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return Protocol.MetaAction({
             targetChainHash: targetChain,
             actions: Protocol.encodeActions(actions),
-            nextMetaAction: encodedNextMetaAction,
+            nextMetaAction: Protocol.encodeMetaAction(nextMetaAction),
             postActions: Protocol.encodeActions(postActions)
         });
     }
@@ -240,8 +244,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function _receiveMetaAction(Protocol.Message memory message, SchainHash sourceChain) private {
         console.log("_receiveMetaAction");
         (Protocol.MetaAction memory metaAction, TokenInfo[] memory tokens) = Protocol.decodeMetaActionMessage(message);
-        console.log("Number of tokens");
-        console.log(tokens.length);
+        console.log("Number of tokens:", tokens.length);
         metaActions[message.metaActionId] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: address(0),
@@ -341,18 +344,21 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function _sendNextMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         console.log("_sendNextMetaAction");
         if (metaAction.metaAction.hasNextMetaAction()) {
-            console.log("tokens length");
-            console.log(tokens.length);
+            console.log("tokens length:", tokens.length);
             Protocol.MetaAction memory nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
             SchainHash targetChainHash = nextMetaAction.targetChainHash;
             address remoteExecutionManagerAddress = address(_getRemoteExecutionManager(targetChainHash));
 
             for (uint256 i = 0; i < tokens.length; ++i) {
-                console.log(address(erc20TokenManager));
-                IERC20(tokens[i].token).approve(address(erc20TokenManager), tokens[i].value);
+                console.log("Token", tokens[i].token);
+                console.log("Origin", tokens[i].origin);
+                IERC20 token = IERC20(getTokenAddress(tokens[i]));
+                // TODO: process revert when origin is unknown
+                address origin = _getOriginAddress(tokens[i]);
+                token.approve(address(erc20TokenManager), tokens[i].value);
                 erc20TokenManager.transferToSchainHashERC20Direct(
                     targetChainHash,
-                    tokens[i].origin,
+                    origin,
                     tokens[i].value,
                     remoteExecutionManagerAddress);
             }
@@ -414,5 +420,15 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     function _isOrigin(MetaActionContainer storage metaAction) private view returns (bool result) {
         return metaAction.sender != address(0);
+    }
+
+    function _getOriginAddress(TokenInfo memory tokenInfo) private view returns (address) {
+        if (tokenInfo.origin != address(0)) {
+            return tokenInfo.origin;
+        } else if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
+            revert OriginAddressIsNotProvided(tokenInfo.token);
+        } else {
+            return tokenInfo.token;
+        }
     }
 }

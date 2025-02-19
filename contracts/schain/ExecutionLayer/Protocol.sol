@@ -94,8 +94,6 @@ library Protocol {
     }
 
     function decodeActions(bytes memory encodedActions) internal pure returns (Action[] memory actions) {
-        console.log("decodeActions");
-        console.log(encodedActions.length);
         if (encodedActions.length == 0) {
             return new Action[](0);
         }

@@ -1,5 +1,5 @@
 import { ethers, upgrades } from "hardhat";
-import { ExecutionManager, ITokenManagerERC20, Send } from "../../../../typechain";
+import { ExecutionManager, ITokenManagerERC20, Send, SendRest } from "../../../../typechain";
 
 const name = "ExecutionManager";
 
@@ -23,6 +23,17 @@ export async function deployExecutionManager(
     await instance.setExecutor(
         await send.ID(),
         send
+    );
+
+    const sendRestFactory = await ethers.getContractFactory("SendRest");
+    const sendRest = await upgrades.deployProxy(
+        sendRestFactory,
+        [await ethers.resolveAddress(instance)]
+    ) as unknown as SendRest;
+
+    await instance.setExecutor(
+        await sendRest.ID(),
+        sendRest
     );
 
     return instance;

@@ -49,7 +49,9 @@ abstract contract Executor is Initializable, IExecutor {
             IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
             token.transferFrom(address(executionManager), address(this), inputTokens[i].value);
         }
-        outputTokens = executeWithTokens(inputTokens, arguments);
+        outputTokens = pruneTokens(
+            executeWithTokens(inputTokens, arguments)
+        );
         console.log("executed");
         for (uint256 i = 0; i < outputTokens.length; ++i) {
             IERC20 token = IERC20(getTokenAddress(outputTokens[i]));
@@ -73,5 +75,32 @@ abstract contract Executor is Initializable, IExecutor {
 
     function getTokenAddress(TokenInfo memory tokenInfo) internal view returns (address) {
         return executionManager.getTokenAddress(tokenInfo);
+    }
+
+    function copyTokens(TokenInfo[] memory tokenInfo) internal pure returns (TokenInfo[] memory tokenInfoCopy) {
+        tokenInfoCopy = new TokenInfo[](tokenInfo.length);
+        for (uint256 i = 0; i < tokenInfo.length; ++i) {
+            tokenInfoCopy[i] = tokenInfo[i];
+        }
+    }
+
+    function pruneTokens(TokenInfo[] memory tokenInfo) internal pure returns (TokenInfo[] memory tokenInfoPruned) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < tokenInfo.length; ++i) {
+            if (tokenInfo[i].value > 0) {
+                ++count;
+            }
+        }
+        if (count == tokenInfo.length) {
+            return tokenInfo;
+        }
+        tokenInfoPruned = new TokenInfo[](count);
+        count = 0;
+        for (uint256 i = 0; i < tokenInfo.length; ++i) {
+            if (tokenInfo[i].value > 0) {
+                tokenInfoPruned[count] = tokenInfo[i];
+                ++count;
+            }
+        }
     }
 }

@@ -224,7 +224,7 @@ describe("ExecutionManager", () => {
         expect(await token.balanceOf(user)).to.be.equal(value);
     });
 
-    it.only("should transfer from Chain A to Chain B with execution of a swap on Chain B", async() => {
+    it("should transfer from Chain A to Chain B with execution of a swap on Chain B", async() => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -321,5 +321,135 @@ describe("ExecutionManager", () => {
         expect(await token.balanceOf(user)).to.be.equal(0n);
         expect(await token2.balanceOf(user)).to.be.equal(value);
         expect(await clone.balanceOf(user)).to.be.equal(0n);
+    });
+
+    it.only("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
+        const schains = await setupMultipleSchains(2);
+        const agent = new AgentMock();
+        for (const [schainName, schainSetup] of schains) {
+            await agent.registerSchain(schainName, schainSetup.messageProxy);
+        }
+
+        const [sourceSchainName, targetSchainName] = [...schains.keys()];
+        const sourceSchainHash = ethers.id(sourceSchainName);
+        const targetSchainHash = ethers.id(targetSchainName);
+
+        const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
+        const targetExecutionManager = schains.get(targetSchainName)?.executionManager;
+
+        assert(sourceExecutionManager);
+        assert(targetExecutionManager);
+
+        const sourceTokenManager = schains.get(sourceSchainName)?.tokenManager;
+        const targetTokenManager = schains.get(targetSchainName)?.tokenManager;
+
+        assert(sourceTokenManager);
+        assert(targetTokenManager);
+
+        // Create tokens on chain B
+
+        const token = await deployERC20OnChain("D2", "D2");
+        const value = ethers.parseEther("1");
+        await token.mint(user, value);
+
+        const token2 = await deployERC20OnChain("D2", "D2");
+        await token2.mint(user, value);
+
+        // Setup exchange
+
+        const exchange = await upgrades.deployProxy(await ethers.getContractFactory("SwapMock"));
+        await exchange.setTokenA(token);
+        await exchange.setTokenB(token2);
+        await token2.connect(user).transfer(exchange, value);
+
+        // Transfer tokens to chain A
+
+        await token.connect(user).approve(targetTokenManager, value);
+        await targetTokenManager.connect(user).transferToSchainERC20(
+            sourceSchainName,
+            token, value
+        );
+
+        await targetTokenManager.connect(user).transferToSchainERC20(
+            sourceSchainName,
+            token2, 0
+        );
+
+        await agent.deliverMessages();
+
+        const clone = await ethers.getContractAt(
+            "ERC20OnChain",
+            await sourceTokenManager.clonesErc20(targetSchainHash, token)
+        );
+        const clone2 = await ethers.getContractAt(
+            "ERC20OnChain",
+            await sourceTokenManager.clonesErc20(targetSchainHash, token2)
+        );
+
+        // Setup executors
+
+        const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+        await swapMockSwap.setExecutionManager(targetExecutionManager);
+        await swapMockSwap.setExchange(exchange);
+        await targetExecutionManager.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+
+        const send = await ethers.getContractAt(
+            "Send",
+            await sourceExecutionManager.getExecutor(
+                ethers.id("Send")
+            )
+        );
+
+        const sendRest = await ethers.getContractAt(
+            "SendRest",
+            await sourceExecutionManager.getExecutor(
+                ethers.id("SendRest")
+            )
+        );
+
+        const xAmount = value / 3n;
+        expect(await token.balanceOf(user)).to.be.equal(0n);
+        expect(await token2.balanceOf(user)).to.be.equal(0n);
+        expect(await clone.balanceOf(user)).to.be.equal(value);
+        expect(await clone2.balanceOf(user)).to.be.equal(0n);
+
+        // Send tokens, swap and send x value back
+
+        const metaAction = (await sourceExecutionManager.createMetaAction(
+            targetSchainHash,
+            [
+                {
+                    executor: ethers.id("SwapMockSwap"),
+                    arguments: "0x"
+                },
+                {
+                    executor: ethers.id("SendRest"),
+                    arguments: await sendRest.encodeArguments(user, xAmount)
+                }
+            ],
+            (await sourceExecutionManager.createMetaAction(
+                sourceSchainHash,
+                [
+                    {
+                        executor: ethers.id("Send"),
+                        arguments: await send.encodeArguments(user)
+                    }
+                ]
+            )).toObject(),
+            []
+        )).toObject();
+
+        await clone.connect(user).approve(sourceExecutionManager, value);
+        await sourceExecutionManager.connect(user).execute(
+            metaAction,
+            [{token: clone, value: value, origin: token}]
+        );
+
+        await agent.deliverMessages();
+
+        expect(await token.balanceOf(user)).to.be.equal(0n);
+        expect(await token2.balanceOf(user)).to.be.equal(value - xAmount);
+        expect(await clone.balanceOf(user)).to.be.equal(0n);
+        expect(await clone2.balanceOf(user)).to.be.equal(xAmount);
     });
 });
