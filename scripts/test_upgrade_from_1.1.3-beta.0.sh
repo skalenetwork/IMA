@@ -19,11 +19,11 @@ DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/DEPLOYED_ON_MAINNET_SCHAINS)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
 DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
+ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
 
 
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
-ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
 GANACHE=$(npx ganache \
     --😈 \
     --miner.blockGasLimit 12000000 \
@@ -35,25 +35,27 @@ GANACHE=$(npx ganache \
 cd "$DEPLOYED_DIR/proxy"
 jq 'del(.resolutions)' package.json > tmp.json && mv tmp.json package.json
 yarn install
-PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
-PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[9].value')
-URL_W3_S_CHAIN="http://127.0.0.1:8545"
+PRIVATE_KEY=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[0].value')
+ENDPOINT="http://127.0.0.1:8545"
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 
 
 CHAIN_NAME_SCHAIN="Test" \
 VERSION="$DEPLOYED_VERSION" \
-PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" \
-PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
-VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
+ENDPOINT="$ENDPOINT" \
+PRIVATE_KEY="$PRIVATE_KEY" \
+npx hardhat run migrations/deploySkaleManagerComponents.ts --network custom
+ENDPOINT="$ENDPOINT" \
+PRIVATE_KEY="$PRIVATE_KEY" \
+VERSION="$DEPLOYED_VERSION" \
+npx hardhat run migrations/deployMainnet.ts --network custom
 
 
 CHAIN_NAME_SCHAIN="Test" \
 VERSION="$DEPLOYED_TAG" \
-URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
-PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-npx hardhat run migrations/deploySchain.ts --network schain
+ENDPOINT="$ENDPOINT" \
+PRIVATE_KEY="$PRIVATE_KEY" \
+npx hardhat run migrations/deploySchain.ts --network custom
 
 
 cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/data"
@@ -75,8 +77,8 @@ UPGRADE_ALL="true" \
 TEST_UPGRADE="true" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
-URL_W3_S_CHAIN="$URL_W3_S_CHAIN" \
-PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" \
-npx hardhat run migrations/upgradeSchainFrom-1.1.3-beta.0.ts --network schain
+ENDPOINT="$ENDPOINT" \
+PRIVATE_KEY="$PRIVATE_KEY" \
+npx hardhat run migrations/upgradeSchainFrom-1.1.3-beta.0.ts --network custom
 
 npx ganache instances stop "$GANACHE"
