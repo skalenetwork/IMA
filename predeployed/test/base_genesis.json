@@ -18,7 +18,14 @@
     "cancunTime": 0,
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
-    "cancunBlock": 0
+    "cancunBlock": 0,
+    "blobSchedule": {
+      "cancun": {
+        "target": 0,
+        "max": 0,
+        "baseFeeUpdateFraction": 0
+      }
+    }
   },
   "nonce": "0x0",
   "timestamp": "0x0",
