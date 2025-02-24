@@ -20,6 +20,8 @@ VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
 DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
 ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
+ENDPOINT="http://127.0.0.1:8545"
+ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 
 
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
@@ -36,9 +38,6 @@ cd "$DEPLOYED_DIR/proxy"
 jq 'del(.resolutions)' package.json > tmp.json && mv tmp.json package.json
 yarn install
 PRIVATE_KEY=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[0].value')
-ENDPOINT="http://127.0.0.1:8545"
-ABI_FILENAME_SCHAIN="proxySchain_Test.json"
-
 
 CHAIN_NAME_SCHAIN="Test" \
 VERSION="$DEPLOYED_VERSION" \
