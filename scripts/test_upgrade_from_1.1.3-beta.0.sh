@@ -72,7 +72,6 @@ npx hardhat run migrations/replaceAddressesInManifest.ts --network localhost
 TEST_ABI="data/$ABI_FILENAME_SCHAIN" \
 MANIFEST="data/ima-schain-$DEPLOYED_TAG-manifest.json" \
 CHAIN_NAME_SCHAIN="Test" \
-UPGRADE_ALL="true" \
 TEST_UPGRADE="true" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 VERSION=$VERSION_TAG \
