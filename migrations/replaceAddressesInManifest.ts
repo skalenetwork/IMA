@@ -69,15 +69,6 @@ function updateManifestProxyAddress(
     }
   }
 
-  if (
-    manifest.admin &&
-    manifest.admin.address &&
-    manifest.admin.address.toLowerCase() === predeployedAddr.toLowerCase()
-  ) {
-    manifest.admin.address = actualProxyAddress;
-    replaced = true;
-  }
-
   return replaced;
 }
 
