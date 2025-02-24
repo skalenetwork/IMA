@@ -1718,10 +1718,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-3.2.0.tgz#41f654c469c8b2e067f4f89784824c19b1fee7b4"
   integrity sha512-nf74ZAI4T2MZfPNkmFa1hUv9PrFuMBa120lL3C4BS0m1CzimPY+sRjjy8VQFpno0yzXcWncpRjJpY2I83YcEsA==
 
-"@skalenetwork/upgrade-tools@3.0.0-remove-async-calls.1":
-  version "3.0.0-remove-async-calls.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/upgrade-tools/-/upgrade-tools-3.0.0-remove-async-calls.1.tgz#dfca04c9ff815849ec1d63fb30250f0f4d5a93eb"
-  integrity sha512-w/fWVYuba9mBaW4D2IIPc+ou4tw3q6qyz0USqTXjwkwNFgUerDXOWXLEJCdiPo+KwvXN1UMGRM8tUk2d5xsHrA==
+"@skalenetwork/upgrade-tools@3.0.0-develop.38":
+  version "3.0.0-develop.38"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/upgrade-tools/-/upgrade-tools-3.0.0-develop.38.tgz#96be7c8b63408104851a637c0475580e7a4082b0"
+  integrity sha512-HCjLp6FSBt6ynC8CLpa9drKZuAf6DXbJVIzEEKuB5yR33iaOw/u0+VHPhqGOPgyaupYPvXn3nYXAYuYTZuDB2g==
   dependencies:
     "@safe-global/api-kit" "^2.4.1"
     "@safe-global/protocol-kit" "^5.0.1"
