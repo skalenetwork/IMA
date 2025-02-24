@@ -23,7 +23,7 @@
       "cancun": {
         "target": 0,
         "max": 0,
-        "baseFeeUpdateFraction": 0
+        "baseFeeUpdateFraction": 250
       }
     }
   },
