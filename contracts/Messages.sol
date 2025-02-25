@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 
 /**
@@ -290,7 +290,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for transferring ERC20 with total supply. 
+     * @dev Decodes message for transferring ERC20 with total supply.
      * Returns structure `TransferErc20AndTotalSupplyMessage`.
      */
     function decodeTransferErc20AndTotalSupplyMessage(
@@ -304,7 +304,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for transferring ERC20 with token info. 
+     * @dev Encodes message for transferring ERC20 with token info.
      * Returns encoded message.
      */
     function encodeTransferErc20AndTokenInfoMessage(
@@ -328,7 +328,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for transferring ERC20 with token info. 
+     * @dev Decodes message for transferring ERC20 with token info.
      * Returns structure `TransferErc20AndTokenInfoMessage`.
      */
     function decodeTransferErc20AndTokenInfoMessage(
@@ -342,7 +342,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for transferring ERC721. 
+     * @dev Encodes message for transferring ERC721.
      * Returns encoded message.
      */
     function encodeTransferErc721Message(
@@ -360,7 +360,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for transferring ERC721. 
+     * @dev Decodes message for transferring ERC721.
      * Returns structure `TransferErc721Message`.
      */
     function decodeTransferErc721Message(
@@ -371,7 +371,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for transferring ERC721 with token info. 
+     * @dev Encodes message for transferring ERC721 with token info.
      * Returns encoded message.
      */
     function encodeTransferErc721AndTokenInfoMessage(
@@ -393,7 +393,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for transferring ERC721 with token info. 
+     * @dev Decodes message for transferring ERC721 with token info.
      * Returns structure `TransferErc721AndTokenInfoMessage`.
      */
     function decodeTransferErc721AndTokenInfoMessage(
@@ -407,7 +407,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for transferring ERC721. 
+     * @dev Encodes message for transferring ERC721.
      * Returns encoded message.
      */
     function encodeTransferErc721MessageWithMetadata(
@@ -429,7 +429,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for transferring ERC721. 
+     * @dev Decodes message for transferring ERC721.
      * Returns structure `TransferErc721MessageWithMetadata`.
      */
     function decodeTransferErc721MessageWithMetadata(
@@ -443,7 +443,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for transferring ERC721 with token info. 
+     * @dev Encodes message for transferring ERC721 with token info.
      * Returns encoded message.
      */
     function encodeTransferErc721WithMetadataAndTokenInfoMessage(
@@ -469,7 +469,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for transferring ERC721 with token info. 
+     * @dev Decodes message for transferring ERC721 with token info.
      * Returns structure `TransferErc721WithMetadataAndTokenInfoMessage`.
      */
     function decodeTransferErc721WithMetadataAndTokenInfoMessage(
@@ -483,7 +483,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for activating user on schain. 
+     * @dev Encodes message for activating user on schain.
      * Returns encoded message.
      */
     function encodeActivateUserMessage(address receiver) internal pure returns (bytes memory){
@@ -491,7 +491,7 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for locking user on schain. 
+     * @dev Encodes message for locking user on schain.
      * Returns encoded message.
      */
     function encodeLockUserMessage(address receiver) internal pure returns (bytes memory){
@@ -499,7 +499,7 @@ library Messages {
     }
 
     /**
-     * @dev Decodes message for user status. 
+     * @dev Decodes message for user status.
      * Returns structure UserStatusMessage.
      */
     function decodeUserStatusMessage(bytes calldata data) internal pure returns (UserStatusMessage memory) {
