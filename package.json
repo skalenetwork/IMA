@@ -1,18 +1,19 @@
 {
     "name": "skale-ima-proxy",
+    "packageManager": "yarn@1.22.22",
     "private": true,
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "compile": "npx hardhat compile",
+        "postinstall": "yarn cleanCompile",
         "cleanCompile": "npx hardhat clean && yarn compile",
+        "compile": "npx hardhat compile",
         "deploy-to-both-chains": "yarn deploy-to-mainnet && yarn deploy-to-schain",
         "deploy-to-mainnet": "VERSION=$(cat ./VERSION) npx hardhat run migrations/deployMainnet.ts --network mainnet",
         "deploy-to-schain": "VERSION=$(cat ./VERSION) npx hardhat run migrations/deploySchain.ts --network schain",
         "deploy-skale-manager-components": "npx hardhat run migrations/deploySkaleManagerComponents.ts --network mainnet",
         "eslint": "npx eslint .",
         "lint": "npx solhint \"contracts/**/*.sol\"",
-        "prepare": "yarn cleanCompile",
         "test": "yarn tsc && npx hardhat test",
         "tsc": "tsc --noEmit",
         "slither": "slither .",
@@ -22,13 +23,14 @@
     },
     "dependencies": {
         "@nomicfoundation/hardhat-ethers": "^3.0.8",
+        "@openzeppelin/contracts": "^5.1.0-rc.0",
         "@openzeppelin/contracts-upgradeable": "^4.7.1",
         "@openzeppelin/hardhat-upgrades": "^3.1.1",
         "@safe-global/api-kit": "2.5.4",
         "@skalenetwork/etherbase-interfaces": "^0.0.1-develop.20",
-        "@skalenetwork/ima-interfaces": "2.0.0",
+        "@skalenetwork/ima-interfaces": "2.0.0-develop.98",
         "@skalenetwork/skale-manager-interfaces": "2.0.0",
-        "@skalenetwork/upgrade-tools": "3.0.0-develop.34",
+        "@skalenetwork/upgrade-tools": "3.0.0-develop.38",
         "axios": "^0.21.4",
         "dotenv": "^16.0.0",
         "ethers": "^6.1.0",
@@ -36,7 +38,7 @@
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
-        "@nomicfoundation/hardhat-verify": "^1.1.1",
+        "@nomicfoundation/hardhat-verify": "^2.0.0",
         "@typechain/ethers-v6": "^0.5.1",
         "@typechain/hardhat": "^9.1.0",
         "@types/chai": "^4.2.12",
@@ -60,6 +62,5 @@
         "ts-node": "^8.10.2",
         "typechain": "^8.3.1",
         "typescript": "^5.1.6"
-    },
-    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+    }
 }

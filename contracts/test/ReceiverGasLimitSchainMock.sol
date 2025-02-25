@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
@@ -28,7 +28,7 @@ import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 contract ReceiverGasLimitSchainMock is IMessageReceiver {
     uint public a = 0;
     function postMessage(
-        bytes32,
+        SchainHash,
         address,
         bytes calldata
     )

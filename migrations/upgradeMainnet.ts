@@ -1,11 +1,10 @@
 import chalk from "chalk";
 import { ethers } from "hardhat";
-import { promises as fs } from 'fs';
 import { Transaction } from "ethers";
-import { getAbi, getVersion, Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
+import { Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
-import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
+import { contracts } from "./deployMainnet";
 
 
 async function getImaMainnetInstance() {
@@ -63,24 +62,6 @@ class ImaMainnetUpgrader extends Upgrader {
     // initialize = async () => { };
 }
 
-async function updateAbi() {
-    if (!process.env.ABI) {
-        console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
-        process.exit(1);
-    }
-    const network = await ethers.provider.getNetwork();
-    const version = await getVersion();
-    const abiFilename = process.env.ABI;
-    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
-    for (const contract of contracts) {
-        const contractInterface = (await ethers.getContractFactory(contract)).interface;
-        abi[getContractKeyInAbiFile(contract) + "_abi"] = getAbi(contractInterface);
-    }
-    const newAbiFilename = `data/mainnet-ima-${version}-${network.name}.json`;
-    await fs.writeFile(newAbiFilename, JSON.stringify(abi, null, 4));
-    console.log(chalk.green(`ABI updated and saved to ${newAbiFilename}`));
-}
-
 async function main() {
     let contractNamesToUpgrade: string[] = [];
     if (process.env.UPGRADE_ALL) {
@@ -92,7 +73,6 @@ async function main() {
         contractNamesToUpgrade
     );
     await upgrader.upgrade();
-    await updateAbi();
 }
 
 if (require.main === module) {

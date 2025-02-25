@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
