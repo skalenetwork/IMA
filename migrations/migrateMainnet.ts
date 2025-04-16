@@ -81,11 +81,16 @@ async function main() {
     await migrator.migrateData();
 
     //TODO: transfer ETH to communityPool
-    const tx = await (await ethers.getSigners())[0].sendTransaction({
-        to: migrator.getContractNewAddress("CommunityPool"),
-        value: await provider.getBalance(migrator.getContractNewAddress("CommunityPool") as string)
-    })
-    await tx.wait();
+    const poolBalance = await provider.getBalance(await imaInstance.getContractAddress("CommunityPool"));
+    const newPoolAddress = migrator.getContractNewAddress("CommunityPool")
+    if (poolBalance > 0n) {
+        console.log(`Sending ${poolBalance} to ${newPoolAddress}`)
+        const tx = await (await ethers.getSigners())[0].sendTransaction({
+            to: newPoolAddress,
+            value: poolBalance
+        })
+        await tx.wait();
+    }
 
     // upgrades contracts to new implementation
     console.log("Starting contract upgrades...")
