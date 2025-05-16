@@ -124,15 +124,15 @@ library Protocol {
         pure
         returns (MetaAction memory metaAction, TokenInfo[] memory tokens)
     {
-        console.log("decodeMetaActionMessage");
+        //console.log("decodeMetaActionMessage");
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
-        console.log("Version checked");
+        //console.log("Version checked");
         if (message.messageType != MessageType.META_ACTION) {
             revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
         }
-        console.log("Message type checked");
+        //console.log("Message type checked");
         return abi.decode(message.payload, (MetaAction, TokenInfo[]));
     }
 
@@ -170,9 +170,9 @@ library Protocol {
     }
 
     function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
-        console.log("in decodeMessage");
+        //console.log("in decodeMessage");
         message = abi.decode(encodedMessage, (Message));
-        console.log("after decode");
+        //console.log("after decode");
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }

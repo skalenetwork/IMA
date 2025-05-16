@@ -26,7 +26,7 @@ export class AgentMock {
                     const incomingCounter = await target.getIncomingMessagesCounter(sourceSchainName);
                     if (outgoingCounter > incomingCounter) {
                         const messages = await this.getMessages(source, targetSchainName, incomingCounter);
-                        console.log("\n----- Agent: postIncomingMessages -----");
+                        //console.log("\n----- Agent: postIncomingMessages -----");
                         const response = await target.postIncomingMessages(
                             sourceSchainName,
                             incomingCounter,

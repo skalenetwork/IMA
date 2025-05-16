@@ -46,7 +46,7 @@ abstract contract Executor is Initializable, IExecutor {
         returns (TokenInfo[] memory outputTokens)
     {
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
+            IERC20 token = IERC20(inputTokens[i].token);
             token.transferFrom(address(executionManager), address(this), inputTokens[i].value);
         }
         outputTokens = pruneTokens(

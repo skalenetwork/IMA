@@ -25,6 +25,7 @@ import "hardhat/console.sol";
 
 import {AccessControlEnumerableUpgradeable}
 from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
@@ -37,6 +38,7 @@ import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
 import {Executor} from "./Executor.sol";
 
 contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
+    using AddressUpgradeable for address;
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
     using Protocol for MetaActionId;
     using Protocol for Protocol.MetaAction;
@@ -200,13 +202,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function getTokenAddress(TokenInfo memory tokenInfo) public view override returns (address) {
-        if (tokenInfo.origin == address(0)) {
-            return tokenInfo.token;
-        } else if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
-            return tokenInfo.token;
-        } else {
-            return tokenInfo.origin;
-        }
+        return tokenInfo.token;
     }
 
     // Private
@@ -280,6 +276,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function _processMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
         console.log("_processMetaAction");
         TokenInfo[] memory tokensAfterActions = _executeActions(metaAction, tokens);
+
         _sendNextMetaAction(metaAction, tokensAfterActions);
     }
 
@@ -328,11 +325,15 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         returns (TokenInfo[] memory resultTokens)
     {
         console.log("_executeParsedActions");
-        TokenInfo[] memory currentTokens = tokens;
+        // executor receives addresses of tokens in origin blockchain
+        // it needs to first ask tokenManager the correct addresses in this chain
+        // these tokens have previously been bridged here, so addresses should be known
+        TokenInfo[] memory currentTokens = _mapToThisSchainTokens(tokens);
+
         for (uint256 i = 0; i < actions.length; ++i) {
             Executor executor = getExecutor(actions[i].executor);
             for (uint256 j = 0; j < currentTokens.length; ++j) {
-                IERC20 token = IERC20(getTokenAddress(currentTokens[j]));
+                IERC20 token = IERC20(currentTokens[j].token);
                 token.approve(address(executor), currentTokens[j].value);
             }
             // TODO: add gas limit guard
@@ -351,16 +352,21 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
             for (uint256 i = 0; i < tokens.length; ++i) {
                 console.log("Token", tokens[i].token);
-                console.log("Origin", tokens[i].origin);
-                IERC20 token = IERC20(getTokenAddress(tokens[i]));
-                // TODO: process revert when origin is unknown
-                address origin = _getOriginAddress(tokens[i]);
+                IERC20 token = IERC20(tokens[i].token);
+
                 token.approve(address(erc20TokenManager), tokens[i].value);
                 erc20TokenManager.transferToSchainHashERC20Direct(
                     targetChainHash,
-                    origin,
+                    tokens[i].token,
                     tokens[i].value,
-                    remoteExecutionManagerAddress);
+                    remoteExecutionManagerAddress
+                );
+                // Do I know the target token address?
+                // If so, set it. Means I am likely in a chain that has a clone
+                address targetToken = erc20TokenManager.clonesErc20Inverted(targetChainHash, ERC20OnChain(tokens[i].token));
+                if (targetToken != address(0)) {
+                    tokens[i].dstToken = targetToken;
+                }
             }
 
             erc20TokenManager.messageProxy().postOutgoingMessage(
@@ -422,13 +428,30 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return metaAction.sender != address(0);
     }
 
-    function _getOriginAddress(TokenInfo memory tokenInfo) private view returns (address) {
-        if (tokenInfo.origin != address(0)) {
-            return tokenInfo.origin;
-        } else if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
-            revert OriginAddressIsNotProvided(tokenInfo.token);
-        } else {
-            return tokenInfo.token;
+    function _mapToThisSchainTokens(TokenInfo[] memory tokenInfo) private view returns (TokenInfo[] memory updatedTokenInfo) {
+        updatedTokenInfo = new TokenInfo[](tokenInfo.length);
+        SchainHash thisSchain = erc20TokenManager.schainHash();
+        for (uint256 i = 0; i < tokenInfo.length; ++i) {
+            if (tokenInfo[i].schain == thisSchain) {
+                // this is senderSchain, don't try to change tokens
+                // means we are likely in first message
+                updatedTokenInfo[i] = tokenInfo[i];
+                continue;
+            }
+            address addressInThisSchain = address(erc20TokenManager.clonesErc20(tokenInfo[i].schain, tokenInfo[i].token));
+            if (addressInThisSchain == address(0)) {
+                require(tokenInfo[i].dstToken != address(0), "I don't know this token");
+                // TODO: missing check _schainToERC20[fromChainHash].contains(token)
+                require(tokenInfo[i].dstToken.isContract(), "This is not a valid token");
+                addressInThisSchain = tokenInfo[i].dstToken;
+            }
+            updatedTokenInfo[i] = TokenInfo({
+                token: addressInThisSchain,
+                schain: thisSchain,
+                value: tokenInfo[i].value,
+                dstToken: address(0) // not required. should be set before sending msges only
+            });
         }
+        return updatedTokenInfo;
     }
 }
