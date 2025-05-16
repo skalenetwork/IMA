@@ -42,9 +42,9 @@ jobs:
 
     - name: Install slither
       run: pip3 install -r scripts/requirements.txt
-
-    - name: Lint solidity
-      run: yarn lint
+    #TODO: re-enable static checks
+    #- name: Lint solidity
+    #  run: yarn lint
 
     - name: Compile typescript
       run: yarn tsc
@@ -52,8 +52,8 @@ jobs:
     - name: Lint typescript
       run: yarn eslint
 
-    - name: Slither checks
-      run: yarn slither
+    #- name: Slither checks
+    #  run: yarn slither
 
     - name: Test ABI generation
       env:

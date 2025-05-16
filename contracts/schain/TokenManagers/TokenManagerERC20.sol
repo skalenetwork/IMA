@@ -65,7 +65,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
-    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => contract ERC20OnChain))
     mapping(SchainHash => mapping(ERC20OnChain => address)) public clonesErc20Inverted;
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
