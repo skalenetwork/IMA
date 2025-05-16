@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.27;
 
+import "hardhat/console.sol";
+
 // cspell:words IERC20Upgradeable
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -246,6 +248,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         onlySchainTarget(targetSchainHash, receiver)
     {
+        console.log("transferToSchainHashERC20Direct");
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount);
     }

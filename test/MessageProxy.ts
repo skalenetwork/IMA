@@ -1270,7 +1270,7 @@ describe("MessageProxy", () => {
 
         beforeEach(async () => {
             keyStorage = await deployKeyStorageMock();
-            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage, "Base schain");
+            messageProxyForSchain = await deployMessageProxyForSchainTester("Base schain", keyStorage);
             messages = await deployMessages();
             caller = await deployMessageProxyCaller();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();

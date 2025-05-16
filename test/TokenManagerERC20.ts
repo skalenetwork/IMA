@@ -86,7 +86,7 @@ describe("TokenManagerERC20", () => {
         fakeCommunityPool = user.address;
 
         const keyStorage = await deployKeyStorageMock();
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage, schainName);
+        messageProxyForSchain = await deployMessageProxyForSchainTester(schainName, keyStorage);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain, tokenManagerLinker, fakeCommunityPool);
         tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxyForSchain, tokenManagerLinker, communityLocker, fakeDepositBox);
@@ -295,7 +295,7 @@ describe("TokenManagerERC20", () => {
             erc20OnTargetChain = await deployERC20OnChain("NewToke1n", "NTN1");
 
             const keyStorage2 = await deployKeyStorageMock();
-            messageProxyForSchain2 = await deployMessageProxyForSchainTester(keyStorage2, newSchainName);
+            messageProxyForSchain2 = await deployMessageProxyForSchainTester(newSchainName, keyStorage2);
             tokenManagerLinker2 = await deployTokenManagerLinker(messageProxyForSchain2, deployer.address);
             communityLocker2 = await deployCommunityLocker(newSchainName, messageProxyForSchain2, tokenManagerLinker2, fakeCommunityPool);
             tokenManagerErc202 = await deployTokenManagerERC20(newSchainName, messageProxyForSchain2, tokenManagerLinker2, communityLocker2, fakeDepositBox);
@@ -1276,7 +1276,7 @@ describe("TokenManagerERC20", () => {
             const erc20OnTargetZChain = await deployERC20OnChain("NewTokenZ", "NTNZ");
 
             const keyStorageZ = await deployKeyStorageMock();
-            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(keyStorageZ, newSchainNameZ);
+            const messageProxyForSchainZ = await deployMessageProxyForSchainTester(newSchainNameZ, keyStorageZ);
             const tokenManagerLinkerZ = await deployTokenManagerLinker(messageProxyForSchainZ, deployer.address);
             const communityLockerZ = await deployCommunityLocker(newSchainName, messageProxyForSchainZ, tokenManagerLinkerZ, fakeCommunityPool);
             const tokenManagerErc20Z = await deployTokenManagerERC20(newSchainNameZ, messageProxyForSchainZ, tokenManagerLinkerZ, communityLockerZ, fakeDepositBox);
