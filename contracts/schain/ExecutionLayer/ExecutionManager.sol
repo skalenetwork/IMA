@@ -302,7 +302,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     {
         console.log("_executeActions");
         Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.actions);
-        return _executeParsedActions(actions, tokens);
+        return _executeParsedActions(actions, tokens, metaAction.sourceChain);
     }
 
     function _postExecuteMetaAction(
@@ -314,21 +314,23 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     {
         console.log("_postExecuteActions");
         Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.postActions);
-        return _executeParsedActions(actions, tokens);
+        return _executeParsedActions(actions, tokens, metaAction.sourceChain);
     }
 
     function _executeParsedActions(
         Protocol.Action[] memory actions,
-        TokenInfo[] memory tokens
+        TokenInfo[] memory tokens,
+        SchainHash originSchain
     )
         private
         returns (TokenInfo[] memory resultTokens)
     {
         console.log("_executeParsedActions");
+
         // executor receives addresses of tokens in origin blockchain
         // it needs to first ask tokenManager the correct addresses in this chain
         // these tokens have previously been bridged here, so addresses should be known
-        TokenInfo[] memory currentTokens = _mapToThisSchainTokens(tokens);
+        TokenInfo[] memory currentTokens = _mapToThisSchainTokens(tokens, originSchain);
 
         for (uint256 i = 0; i < actions.length; ++i) {
             Executor executor = getExecutor(actions[i].executor);
@@ -354,6 +356,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
                 console.log("Token", tokens[i].token);
                 IERC20 token = IERC20(tokens[i].token);
 
+                // Do I know the target token address?
+                // If so, set it. Means I am likely in a chain that has a clone
+                // And I am bridging back to my 'original' version
+                address targetToken = erc20TokenManager.clonesErc20Inverted(targetChainHash, ERC20OnChain(tokens[i].token));
+                if (targetToken != address(0)) {
+                    tokens[i].token = targetToken;
+                }
+
                 token.approve(address(erc20TokenManager), tokens[i].value);
                 erc20TokenManager.transferToSchainHashERC20Direct(
                     targetChainHash,
@@ -361,12 +371,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
                     tokens[i].value,
                     remoteExecutionManagerAddress
                 );
-                // Do I know the target token address?
-                // If so, set it. Means I am likely in a chain that has a clone
-                address targetToken = erc20TokenManager.clonesErc20Inverted(targetChainHash, ERC20OnChain(tokens[i].token));
-                if (targetToken != address(0)) {
-                    tokens[i].dstToken = targetToken;
-                }
+
             }
 
             erc20TokenManager.messageProxy().postOutgoingMessage(
@@ -428,28 +433,23 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return metaAction.sender != address(0);
     }
 
-    function _mapToThisSchainTokens(TokenInfo[] memory tokenInfo) private view returns (TokenInfo[] memory updatedTokenInfo) {
-        updatedTokenInfo = new TokenInfo[](tokenInfo.length);
+    function _mapToThisSchainTokens(TokenInfo[] memory tokenInfo, SchainHash originSchain) private view returns (TokenInfo[] memory updatedTokenInfo) {
         SchainHash thisSchain = erc20TokenManager.schainHash();
+        if (thisSchain == originSchain) {
+            return tokenInfo;
+        }
+        updatedTokenInfo = new TokenInfo[](tokenInfo.length);
         for (uint256 i = 0; i < tokenInfo.length; ++i) {
-            if (tokenInfo[i].schain == thisSchain) {
-                // this is senderSchain, don't try to change tokens
-                // means we are likely in first message
-                updatedTokenInfo[i] = tokenInfo[i];
-                continue;
-            }
-            address addressInThisSchain = address(erc20TokenManager.clonesErc20(tokenInfo[i].schain, tokenInfo[i].token));
+            address addressInThisSchain = address(erc20TokenManager.clonesErc20(originSchain, tokenInfo[i].token));
             if (addressInThisSchain == address(0)) {
-                require(tokenInfo[i].dstToken != address(0), "I don't know this token");
+                // Hum, maybe I am already the address on this chain
                 // TODO: missing check _schainToERC20[fromChainHash].contains(token)
-                require(tokenInfo[i].dstToken.isContract(), "This is not a valid token");
-                addressInThisSchain = tokenInfo[i].dstToken;
+                require(tokenInfo[i].token.isContract(), "This is not a valid token");
+                addressInThisSchain = tokenInfo[i].token;
             }
             updatedTokenInfo[i] = TokenInfo({
                 token: addressInThisSchain,
-                schain: thisSchain,
-                value: tokenInfo[i].value,
-                dstToken: address(0) // not required. should be set before sending msges only
+                value: tokenInfo[i].value
             });
         }
         return updatedTokenInfo;

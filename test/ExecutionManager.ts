@@ -210,7 +210,7 @@ describe("ExecutionManager", () => {
         await clone.connect(user).approve(sourceExecutionManager, value);
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, value: value, schain: sourceSchainHash, dstToken: token}]
+            [{token: clone, value: value}]
         )).wait();
         assert(executeReceipt);
         let metaActionId = "0x";
@@ -325,7 +325,7 @@ describe("ExecutionManager", () => {
         await clone.connect(user).approve(sourceExecutionManager, value);
         await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, value: value, schain: sourceSchainHash, dstToken: token}]
+            [{token: clone, value: value}]
         );
 
         await agent.deliverMessages();
@@ -460,7 +460,7 @@ describe("ExecutionManager", () => {
         // if not, it can be set to address(0)
         await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, value: value, schain: sourceSchainHash, dstToken: token}]
+            [{token: clone, value: value}]
         );
 
 
@@ -602,7 +602,7 @@ describe("ExecutionManager", () => {
         // It's automaticaly set before posting outgoing msg (if it's necessary).
         await executionManagerA.connect(user).execute(
             metaAction,
-            [{token: token1A, value: value, schain: schainAHash, dstToken: ZeroAddress}]
+            [{token: token1A, value: value}]
         );
 
         await agent.deliverMessages();

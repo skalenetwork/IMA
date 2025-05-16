@@ -66,8 +66,6 @@ contract SwapMockSwap is Executor {
             console.log("swapped", inputTokens[i].value, "to", anotherValue);
             outputTokens[i].token = address(anotherToken);
             outputTokens[i].value = anotherValue;
-            // same Schain obviously
-            outputTokens[i].schain = inputTokens[i].schain;
         }
     }
 }
