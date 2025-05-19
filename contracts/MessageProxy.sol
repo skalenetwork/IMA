@@ -341,8 +341,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             connectedChains[targetChainHash].lastOutgoingMessageBlockId
         );
 
-        //console.log("Post outgoing message ----------------------->");
-        //console.log(connectedChains[targetChainHash].outgoingMessageCounter);
 
         connectedChains[targetChainHash].outgoingMessageCounter++;
         connectedChains[targetChainHash].lastOutgoingMessageBlockId = block.number;
@@ -473,35 +471,25 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
             return;
         }
-        console.log("-----");
-        console.log("Start message processing", counter);
-        console.log("Sending message from", message.sender);
-        console.log("Sending message to", message.destinationContract);
         try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data
         ) {
-            console.log("Successfully processed message", counter);
-            console.log("-----");
 
             return;
         } catch Error(string memory reason) {
-            console.log("Error:", string(_getSlice(bytes(reason), REVERT_REASON_LENGTH)));
-            console.log("-----");
 
             emit PostMessageError(
                 counter,
                 _getSlice(bytes(reason), REVERT_REASON_LENGTH)
             );
         } catch Panic(uint errorCode) {
-            console.log("Panic");
             emit PostMessageError(
                 counter,
                 abi.encodePacked(errorCode)
             );
         } catch (bytes memory revertData) {
-            console.log("Unknown error");
             emit PostMessageError(
                 counter,
                 _getSlice(revertData, REVERT_REASON_LENGTH)

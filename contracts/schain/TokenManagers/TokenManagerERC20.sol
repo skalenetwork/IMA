@@ -250,8 +250,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         onlySchainTarget(targetSchainHash, receiver)
     {
-        console.log("transferToSchainHashERC20Direct to:", receiver, "amount:", amount);
-        console.log("transfer of ", contractOnMainnet);
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
 
         // if it was given the address of the clone, change for main address
@@ -305,11 +303,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                 noOverflow && updatedTotalSupply <= totalSupplyOnMainnet[contractOnSchain],
                 "Total supply exceeded"
             );
-            console.log("minting", amount, "of", address(contractOnSchain));
-            console.log("to", receiver);
             contractOnSchain.mint(receiver, amount);
         } else {
-            console.log(address(this),"Executing transfer");
             require(token.isContract() && _schainToERC20[fromChainHash].contains(token), "Incorrect main chain token");
             require(ERC20Upgradeable(token).balanceOf(address(this)) >= amount, "Not enough money");
             _removeTransferredAmount(fromChainHash, token, amount);
@@ -317,8 +312,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                 ERC20Upgradeable(token).transfer(receiver, amount),
                 "Transfer was failed"
             );
-            console.log("transfering", amount, "of", address(token));
-            console.log("from",address(this), "to", receiver);
         }
         emit ERC20TokenReceived(fromChainHash, token, address(contractOnSchain), amount);
         messageProxy.topUpReceiverBalance(payable(receiver));
@@ -367,16 +360,12 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                 contractOnSchain.transferFrom(msg.sender, address(this), amount),
                 "Transfer was failed"
             );
-            console.log("Transfered", amount, "of", address(contractOnSchain));
-            console.log("From", msg.sender, "to", address(this));
         } else {
             require(
                 contractOnSchain.transferFrom(msg.sender, address(this), amount),
                 "Transfer was failed"
             );
             contractOnSchain.burn(amount);
-            console.log("Transfered", amount, "of", address(contractOnSchain));
-            console.log("From", msg.sender, "to", address(this));
         }
         messageProxy.postOutgoingMessage(
             chainHash,

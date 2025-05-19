@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers, upgrades } from "hardhat";
-import { ExecutionManager, MessageProxyForSchain, TokenManagerERC20, TokenManagerLinker } from "../typechain";
+import { ExecutionManager, MessageProxyForSchain, TokenLocker, TokenManagerERC20, TokenManagerLinker } from "../typechain";
 import { deployExecutionManager } from "./utils/deploy/schain/executionManager";
 import { AgentMock } from "./utils/agent/AgentMock";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
@@ -10,7 +10,6 @@ import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 import { Protocol } from "../typechain/artifacts/contracts/schain/ExecutionLayer/ExecutionManager";
-import { ZeroAddress } from "ethers";
 
 interface SchainSetup {
     messageProxy: MessageProxyForSchain;
@@ -49,8 +48,12 @@ describe("ExecutionManager", () => {
         const tokenManagerLinker = await deployTokenManagerLinker(messageProxy, linkerMockAddress);
         const communityLocker = await deployCommunityLocker(schainName, messageProxy, tokenManagerLinker, communityPoolMockAddress);
         const tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxy, tokenManagerLinker, communityLocker, depositBoxMockAddress);
+        const tokenLockerFactory = await ethers.getContractFactory("TokenLocker");
 
-        const executionManager = await deployExecutionManager(tokenManagerErc20);
+        const tokenLocker = await (await upgrades.deployProxy(tokenLockerFactory)).waitForDeployment() as unknown as TokenLocker;
+        const executionManager = await deployExecutionManager(tokenManagerErc20, tokenLocker);
+        await tokenLocker.grantRole(await tokenLocker.EXECUTION_MANAGER_ROLE(), executionManager);
+
 
         console.log(`Chain ${schainName}`);
         console.log(`MessageProxy: ${await ethers.resolveAddress(messageProxy)}`);
@@ -61,7 +64,8 @@ describe("ExecutionManager", () => {
             messageProxy,
             executionManager,
             tokenManager: tokenManagerErc20,
-            tokenManagerLinker
+            tokenManagerLinker,
+            tokenLocker
         }
     }
 
@@ -130,6 +134,7 @@ describe("ExecutionManager", () => {
 
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
             metaAction,
+            [],
             []
         )).wait();
         assert(executeReceipt);
@@ -157,7 +162,7 @@ describe("ExecutionManager", () => {
         }
 
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
-        const sourceSchainHash = ethers.id(sourceSchainName);
+        //const sourceSchainHash = ethers.id(sourceSchainName);
         const targetSchainHash = ethers.id(targetSchainName);
 
         const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
@@ -210,7 +215,8 @@ describe("ExecutionManager", () => {
         await clone.connect(user).approve(sourceExecutionManager, value);
         const executeReceipt = await (await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, value: value}]
+            [{token: clone, value: value}],
+            []
         )).wait();
         assert(executeReceipt);
         let metaActionId = "0x";
@@ -244,7 +250,7 @@ describe("ExecutionManager", () => {
         }
 
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
-        const sourceSchainHash = ethers.id(sourceSchainName);
+        //const sourceSchainHash = ethers.id(sourceSchainName);
         const targetSchainHash = ethers.id(targetSchainName);
 
         const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
@@ -325,7 +331,8 @@ describe("ExecutionManager", () => {
         await clone.connect(user).approve(sourceExecutionManager, value);
         await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, value: value}]
+            [{token: clone, value: value}],
+            []
         );
 
         await agent.deliverMessages();
@@ -335,7 +342,7 @@ describe("ExecutionManager", () => {
         expect(await clone.balanceOf(user)).to.be.equal(0n);
     });
 
-    it("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
+    it.only("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -343,7 +350,7 @@ describe("ExecutionManager", () => {
         }
 
         const [sourceSchainName, targetSchainName] = [...schains.keys()];
-        const sourceSchainHash = ethers.id(sourceSchainName);
+        //const sourceSchainHash = ethers.id(sourceSchainName);
         const targetSchainHash = ethers.id(targetSchainName);
 
         const sourceExecutionManager = schains.get(sourceSchainName)?.executionManager;
@@ -405,13 +412,6 @@ describe("ExecutionManager", () => {
         await swapMockSwap.setExchange(exchange);
         await targetExecutionManager.setExecutor(await swapMockSwap.ID(), swapMockSwap);
 
-        const send = await ethers.getContractAt(
-            "Send",
-            await sourceExecutionManager.getExecutor(
-                ethers.id("Send")
-            )
-        );
-
         const sendRest = await ethers.getContractAt(
             "SendRest",
             await sourceExecutionManager.getExecutor(
@@ -424,14 +424,10 @@ describe("ExecutionManager", () => {
         expect(await token2.balanceOf(user)).to.be.equal(0n);
         expect(await clone.balanceOf(user)).to.be.equal(value);
         expect(await clone2.balanceOf(user)).to.be.equal(0n);
-        console.log(".");
-        console.log(".");
-        console.log(".");
-        console.log(".");
-        console.log(".");
 
         // Send tokens, swap and send x value back
-        const metaAction = asMetaObject(await sourceExecutionManager["createMetaAction(bytes32,(bytes32,bytes)[],(bytes32,bytes,bytes,bytes),(bytes32,bytes)[])"](
+        // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
+        const metaAction = asMetaObject(await sourceExecutionManager["createMetaAction(bytes32,(bytes32,bytes)[])"](
             targetSchainHash,
             [
                 {
@@ -442,28 +438,16 @@ describe("ExecutionManager", () => {
                     executor: ethers.id("SendRest"),
                     arguments: await sendRest.encodeArguments(user, xAmount)
                 }
-            ],
-            asMetaObject(await sourceExecutionManager["createMetaAction(bytes32,(bytes32,bytes)[])"](
-                sourceSchainHash,
-                [
-                    {
-                        executor: ethers.id("Send"),
-                        arguments: await send.encodeArguments(user)
-                    }
-                ]
-            )),
-            []
+            ]
         ));
 
         await clone.connect(user).approve(sourceExecutionManager, value);
-        // since transfer starts with a clone, it requires to set dstToken
-        // if not, it can be set to address(0)
+
         await sourceExecutionManager.connect(user).execute(
             metaAction,
-            [{token: clone, value: value}]
+            [{token: clone, value: value}],
+            []
         );
-
-
 
         await agent.deliverMessages();
 
@@ -473,14 +457,14 @@ describe("ExecutionManager", () => {
         expect(await clone2.balanceOf(user)).to.be.equal(xAmount);
     });
 
-    it("should send from Chain A to Chain B to Chain C with execution of a swap on Chain C", async() => {
+    it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async() => {
         const schains = await setupMultipleSchains(3);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
             await agent.registerSchain(schainName, schainSetup.messageProxy);
         }
         const [schainAName, schainBName, schainCName] = [...schains.keys()];
-        const schainAHash = ethers.id(schainAName);
+        //const schainAHash = ethers.id(schainAName);
         const schainBHash = ethers.id(schainBName);
         const schainCHash = ethers.id(schainCName);
 
@@ -527,47 +511,35 @@ describe("ExecutionManager", () => {
         expect(await token1B.balanceOf(user)).to.be.equal(0n);
 
         // Transfer tokens to chain C
-        expect(await token2B.balanceOf(user)).to.be.equal(value);
-        await token2B.connect(user).approve(tokenManagerB, value);
         await tokenManagerB.connect(user).transferToSchainERC20(
             schainCName,
-            token2B, value
-        );
-        await tokenManagerB.connect(user).transferToSchainERC20(
-            schainCName,
-            token1B, 0
+            token2B, 0
         );
 
         await agent.deliverMessages();
+        expect(await token2B.balanceOf(user)).to.be.equal(value);
 
-        const token1C = await ethers.getContractAt(
-            "ERC20OnChain",
-            await tokenManagerC.clonesErc20(schainBHash, token1B)
-        );
         const token2C = await ethers.getContractAt(
             "ERC20OnChain",
             await tokenManagerC.clonesErc20(schainBHash, token2B)
         );
 
-        expect(await token2C.balanceOf(user)).to.be.equal(value);
-        expect(await token2B.balanceOf(user)).to.be.equal(0n);
-        expect(await token1C.balanceOf(user)).to.be.equal(0n);
-
-
+        expect(await token2C.balanceOf(user)).to.be.equal(0n);
+        expect(await token2B.balanceOf(user)).to.be.equal(value);
 
         const exchange = await upgrades.deployProxy(await ethers.getContractFactory("SwapMock"));
-        await exchange.setTokenA(token1C);
-        await exchange.setTokenB(token2C);
-        await token2C.connect(user).transfer(exchange, value);
+        await exchange.setTokenA(token1B);
+        await exchange.setTokenB(token2B);
+        await token2B.connect(user).transfer(exchange, value);
 
-        expect(await token2C.balanceOf(user)).to.be.equal(0n);
-        expect(await token2C.balanceOf(exchange)).to.be.equal(value);
+        expect(await token2B.balanceOf(user)).to.be.equal(0n);
+        expect(await token2B.balanceOf(exchange)).to.be.equal(value);
 
 
         const swapMockSwap = await ethers.deployContract("SwapMockSwap");
-        await swapMockSwap.setExecutionManager(executionManagerC);
+        await swapMockSwap.setExecutionManager(executionManagerB);
         await swapMockSwap.setExchange(exchange);
-        await executionManagerC.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+        await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
 
 
 
@@ -578,16 +550,31 @@ describe("ExecutionManager", () => {
             )
         );
 
+        const sendRest = await ethers.getContractAt(
+            "SendRest",
+            await executionManagerB.getExecutor(
+                ethers.id("SendRest")
+            )
+        )
+
+        const xAmount = value / 3n;
+
         const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[],(bytes32,bytes,bytes,bytes),(bytes32,bytes)[])"](
             schainBHash,
-            [],
+            [
+                {
+                    executor: ethers.id("SwapMockSwap"),
+                    arguments: "0x"
+                },
+                {
+                    executor: ethers.id("SendRest"),
+                    arguments: await sendRest.encodeArguments(user, xAmount)
+                }
+
+            ],
             asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
                 schainCHash,
                 [
-                    {
-                        executor: ethers.id("SwapMockSwap"),
-                        arguments: "0x"
-                    },
                     {
                         executor: ethers.id("Send"),
                         arguments: await sendC.encodeArguments(user)
@@ -602,17 +589,208 @@ describe("ExecutionManager", () => {
         // It's automaticaly set before posting outgoing msg (if it's necessary).
         await executionManagerA.connect(user).execute(
             metaAction,
-            [{token: token1A, value: value}]
+            [{token: token1A, value: value}],
+            []
         );
+
+        const logs = (await ethers.provider.getLogs({
+            address: executionManagerA,
+            fromBlock: 0,
+            toBlock: "latest",
+            topics: [
+                executionManagerA.interface.getEvent("MetaActionCreated").topicHash
+            ]
+        })).map(log => executionManagerA.interface.parseLog(log));
+        const metaActionId = logs[0]?.args.id;
 
         await agent.deliverMessages();
 
-        expect(await token2C.balanceOf(exchange)).to.be.equal(0n);
-        expect(await token1C.balanceOf(exchange)).to.be.equal(value);
-        expect(await token2C.balanceOf(user)).to.be.equal(value);
-        expect(await token2B.balanceOf(user)).to.be.equal(0n);
+        //To send last confirmation message (probabily hits some limit).
+        await agent.deliverMessages();
+
+
+        expect(await token2C.balanceOf(user)).to.be.equal(xAmount);
+        expect(await token2B.balanceOf(user)).to.be.equal(value - xAmount);
         expect(await token1A.balanceOf(user)).to.be.equal(0n);
         expect(await token1B.balanceOf(user)).to.be.equal(0n);
+        expect(await token1B.balanceOf(exchange)).to.be.equal(value);
+        expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.SUCCEED);
+        expect((await executionManagerC.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.SUCCEED);
+        expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.SUCCEED);
+    });
 
+    it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C \
+        but sending to chain C fails because B is not connected to C", async() => {
+        const schains = await setupMultipleSchains(3);
+        const agent = new AgentMock();
+        for (const [schainName, schainSetup] of schains) {
+            await agent.registerSchain(schainName, schainSetup.messageProxy);
+        }
+        const [schainAName, schainBName, schainCName] = [...schains.keys()];
+        //const schainAHash = ethers.id(schainAName);
+        const schainBHash = ethers.id(schainBName);
+        const schainCHash = ethers.id(schainCName);
+
+
+        const executionManagerA = schains.get(schainAName)?.executionManager;
+        const executionManagerB = schains.get(schainBName)?.executionManager;
+        const executionManagerC = schains.get(schainCName)?.executionManager;
+
+        assert(executionManagerA);
+        assert(executionManagerB);
+        assert(executionManagerC);
+
+        const tokenManagerA = schains.get(schainAName)?.tokenManager;
+        const tokenManagerB = schains.get(schainBName)?.tokenManager;
+        const tokenManagerC = schains.get(schainCName)?.tokenManager;
+
+        assert(tokenManagerA);
+        assert(tokenManagerB);
+        assert(tokenManagerC);
+
+
+        // Create tokens on chain B
+
+        const token1B = await deployERC20OnChain("D2", "D2");
+        const value = ethers.parseEther("1");
+        await token1B.mint(user, value);
+
+        const token2B = await deployERC20OnChain("D2", "D2");
+        await token2B.mint(user, value);
+
+        // Transfer token1B to chain A
+        expect(await token1B.balanceOf(user)).to.be.equal(value);
+        await token1B.connect(user).approve(tokenManagerB, value);
+        await tokenManagerB.connect(user).transferToSchainERC20(
+            schainAName,
+            token1B, value
+        );
+        await agent.deliverMessages();
+
+        const token1A = await ethers.getContractAt(
+            "ERC20OnChain",
+            await tokenManagerA.clonesErc20(schainBHash, token1B)
+        );
+        expect(await token1A.balanceOf(user)).to.be.equal(value);
+        expect(await token1B.balanceOf(user)).to.be.equal(0n);
+
+        // Transfer tokens to chain C
+        await tokenManagerB.connect(user).transferToSchainERC20(
+            schainCName,
+            token2B, 0
+        );
+
+        await agent.deliverMessages();
+        expect(await token2B.balanceOf(user)).to.be.equal(value);
+
+        const token2C = await ethers.getContractAt(
+            "ERC20OnChain",
+            await tokenManagerC.clonesErc20(schainBHash, token2B)
+        );
+
+        expect(await token2C.balanceOf(user)).to.be.equal(0n);
+        expect(await token2B.balanceOf(user)).to.be.equal(value);
+
+        const exchange = await upgrades.deployProxy(await ethers.getContractFactory("SwapMock"));
+        await exchange.setTokenA(token1B);
+        await exchange.setTokenB(token2B);
+        await token2B.connect(user).transfer(exchange, value);
+
+        expect(await token2B.balanceOf(user)).to.be.equal(0n);
+        expect(await token2B.balanceOf(exchange)).to.be.equal(value);
+
+
+        const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+        await swapMockSwap.setExecutionManager(executionManagerB);
+        await swapMockSwap.setExchange(exchange);
+        await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+
+
+
+        const sendC = await ethers.getContractAt(
+            "Send",
+            await executionManagerC.getExecutor(
+                ethers.id("Send")
+            )
+        );
+
+        const sendRest = await ethers.getContractAt(
+            "SendRest",
+            await executionManagerB.getExecutor(
+                ethers.id("SendRest")
+            )
+        )
+
+        const xAmount = value / 3n;
+
+        await schains.get(schainBName)?.messageProxy.removeConnectedChain(schainCName);
+        await schains.get(schainCName)?.messageProxy.removeConnectedChain(schainBName);
+
+        const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[],(bytes32,bytes,bytes,bytes),(bytes32,bytes)[])"](
+            schainBHash,
+            [
+                {
+                    executor: ethers.id("SwapMockSwap"),
+                    arguments: "0x"
+                },
+                {
+                    executor: ethers.id("SendRest"),
+                    arguments: await sendRest.encodeArguments(user, xAmount)
+                }
+
+            ],
+            asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+                schainCHash,
+                [
+                    {
+                        executor: ethers.id("Send"),
+                        arguments: await sendC.encodeArguments(user)
+                    }
+                ]
+            )),
+            []
+        ));
+
+        await token1A.connect(user).approve(executionManagerA, value);
+        await executionManagerA.connect(user).execute(
+            metaAction,
+            [{token: token1A, value: value}],
+            []
+        );
+        const logs = (await ethers.provider.getLogs({
+            address: executionManagerA,
+            fromBlock: 0,
+            toBlock: "latest",
+            topics: [
+                executionManagerA.interface.getEvent("MetaActionCreated").topicHash
+            ]
+        })).map(log => executionManagerA.interface.parseLog(log));
+        const metaActionId = logs[0]?.args.id;
+        console.log("Token1A:", await token1A.getAddress());
+        console.log("Token1B:", await token1B.getAddress());
+
+        await agent.deliverMessages();
+
+
+        // Tokens arrive to chain B, where opperations swap and sendRest are performed successfuly.
+        // However, the last operation is sending message to tokenManagerB, which posts an outgoing message to proxyB that should send them to Chain C
+        // this last transaction will fail, because proxy will not have Chain C registered
+        // Tokens should be locked
+
+        expect(await token1B.balanceOf(executionManagerB)).to.be.equal(0n);
+        expect(await token1A.balanceOf(executionManagerA)).to.be.equal(0n);
+        expect(await token1B.balanceOf(exchange)).to.be.equal(0n);
+        expect(await token1B.balanceOf(user)).to.be.equal(0n);
+
+        // exchange has original balance
+        expect(await token2B.balanceOf(exchange)).to.be.equal(value);
+        // tokens should be in the locker
+        expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(value);
+
+        expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+        expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+        expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(1);
+        // Did not get to C
+        //expect((await executionManagerC.metaActions(metaActionId)).id).to.be.equal(ZeroHash);
     });
 });

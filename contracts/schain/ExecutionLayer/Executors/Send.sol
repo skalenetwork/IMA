@@ -46,12 +46,12 @@ contract Send is Executor {
         override
         returns (TokenInfo[] memory outputTokens)
     {
-        //console.log("Send's execute");
         address target = abi.decode(arguments, (address));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
             IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
             token.transfer(target, inputTokens[i].value);
         }
+        console.log("Send's execute SUCCESSFULL");
         return new TokenInfo[](0);
     }
 }

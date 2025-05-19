@@ -1,15 +1,19 @@
 import { ethers, upgrades } from "hardhat";
-import { ExecutionManager, ITokenManagerERC20, Send, SendRest } from "../../../../typechain";
+import { ExecutionManager, ITokenManagerERC20, Send, SendRest, TokenLocker } from "../../../../typechain";
 
 const name = "ExecutionManager";
 
 export async function deployExecutionManager(
-    tokenManagerErc20: ITokenManagerERC20
+    tokenManagerErc20: ITokenManagerERC20,
+    tokenLocker: TokenLocker
 ) {
     const factory = await ethers.getContractFactory(name);
     const instance = await upgrades.deployProxy(
         factory,
-        [await ethers.resolveAddress(tokenManagerErc20)]
+        [
+            await ethers.resolveAddress(tokenManagerErc20),
+            await ethers.resolveAddress(tokenLocker)
+        ]
     ) as unknown as ExecutionManager;
 
     await instance.grantRole(await instance.CONTROLLER_ROLE(), (await ethers.getSigners())[0])

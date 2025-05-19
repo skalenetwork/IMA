@@ -50,19 +50,18 @@ library Protocol {
         bytes postActions;
     }
 
-    struct Confirmation {
-        MetaActionId metaActionId; // TODO: remove or replace
-    }
-
     enum MessageType {
         CONFIRMATION,
-        META_ACTION
+        META_ACTION,
+        FAILURE
     }
 
     struct Message {
         uint96 version;
         MessageType messageType;
         MetaActionId metaActionId;
+        uint256 seqNumber;
+        address tokensOwner;
         bytes payload;
     }
 
@@ -103,7 +102,9 @@ library Protocol {
     function encodeMetaActionMessage(
         MetaActionId id,
         MetaAction memory metaAction,
-        TokenInfo[] memory tokens
+        TokenInfo[] memory tokens,
+        address tokensOwner,
+        uint256 seqNumber
     )
         internal
         pure
@@ -113,7 +114,9 @@ library Protocol {
             version: VERSION,
             messageType: MessageType.META_ACTION,
             metaActionId: id,
-            payload: abi.encode(metaAction, tokens)
+            payload: abi.encode(metaAction, tokens),
+            tokensOwner: tokensOwner,
+            seqNumber: seqNumber
         }));
     }
 
@@ -124,21 +127,18 @@ library Protocol {
         pure
         returns (MetaAction memory metaAction, TokenInfo[] memory tokens)
     {
-        //console.log("decodeMetaActionMessage");
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
-        //console.log("Version checked");
         if (message.messageType != MessageType.META_ACTION) {
             revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
         }
-        //console.log("Message type checked");
         return abi.decode(message.payload, (MetaAction, TokenInfo[]));
     }
 
     function encodeConfirmationMessage(
         MetaActionId id,
-        Confirmation memory confirmation,
+        SchainHash schainHash,
         TokenInfo[] memory tokens
     )
         internal
@@ -149,16 +149,38 @@ library Protocol {
             version: VERSION,
             messageType: MessageType.CONFIRMATION,
             metaActionId: id,
-            payload: abi.encode(confirmation, tokens)
+            payload: abi.encode(schainHash, tokens),
+            tokensOwner: address(0),
+            seqNumber: 0
         }));
     }
+
+    /* Out of scope
+    function encodeFailureMessage(
+        MetaActionId id,
+        SchainHash schainHash,
+        TokenInfo[] memory tokens
+    )
+        internal
+        pure
+        returns (bytes memory encodedConfirmation)
+    {
+        return abi.encode(Message({
+            version: VERSION,
+            messageType: MessageType.FAILURE,
+            metaActionId: id,
+            payload: abi.encode(schainHash, tokens),
+            tokensOwner: address(0),
+            seqNumber: 0
+        }));
+    }*/
 
     function decodeConfirmationMessage(
         Message memory message
     )
         internal
         pure
-        returns (Confirmation memory confirmation, TokenInfo[] memory tokens)
+        returns (SchainHash sourceSchain, TokenInfo[] memory tokens)
     {
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
@@ -166,13 +188,29 @@ library Protocol {
         if (message.messageType != MessageType.CONFIRMATION) {
             revert IncorrectMessageType(message.messageType, MessageType.CONFIRMATION);
         }
-        return abi.decode(message.payload, (Confirmation, TokenInfo[]));
+        return abi.decode(message.payload, (SchainHash, TokenInfo[]));
     }
 
+    /* Out of scope
+    function decodeFailureMessage(
+        Message memory message
+    )
+        internal
+        pure
+        returns (SchainHash sourceSchain, TokenInfo[] memory tokens)
+    {
+        if (message.version != VERSION) {
+            revert IncompatibleVersion(message.version);
+        }
+        if (message.messageType != MessageType.FAILURE) {
+            revert IncorrectMessageType(message.messageType, MessageType.FAILURE);
+        }
+        return abi.decode(message.payload, (SchainHash, TokenInfo[]));
+    }
+    */
+
     function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
-        //console.log("in decodeMessage");
         message = abi.decode(encodedMessage, (Message));
-        //console.log("after decode");
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }

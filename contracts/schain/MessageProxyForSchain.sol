@@ -216,8 +216,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         override(IMessageListener, MessageProxy)
         messageInProgressLocker
     {
-        console.log("postIncomingMessages");
-        console.log(messages.length);
         SchainHash fromChainHash = _schainHash(fromChainName);
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");

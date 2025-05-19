@@ -24,6 +24,8 @@ pragma solidity 0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 contract SwapMock {
     IERC20 tokenA;
     IERC20 tokenB;
@@ -35,6 +37,9 @@ contract SwapMock {
         address user = msg.sender;
         token.transferFrom(user, address(this), amount);
         anotherToken.transfer(user, amount);
+        console.log(address(token),"->", token.balanceOf(user));
+        console.log(address(token),"->", token.balanceOf(address(this)));
+
         return amount;
     }
 

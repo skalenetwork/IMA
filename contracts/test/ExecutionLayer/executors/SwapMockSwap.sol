@@ -55,17 +55,13 @@ contract SwapMockSwap is Executor {
         console.log("Execute SwapMockSwap");
         outputTokens = new TokenInfo[](inputTokens.length);
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            console.log("Loop iteration");
             IERC20 token = IERC20(inputTokens[i].token);
-            console.log(address(token));
             IERC20 anotherToken = exchange.getAnotherToken(token);
-            console.log(address(anotherToken));
             token.approve(address(exchange), inputTokens[i].value);
-            console.log("approved to swap");
             uint256 anotherValue = exchange.swap(token, inputTokens[i].value);
-            console.log("swapped", inputTokens[i].value, "to", anotherValue);
             outputTokens[i].token = address(anotherToken);
             outputTokens[i].value = anotherValue;
         }
+        console.log("Execute SwapMockSwap SUCCEED");
     }
 }
