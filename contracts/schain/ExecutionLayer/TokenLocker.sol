@@ -46,7 +46,7 @@ contract TokenLocker is AccessControlEnumerableUpgradeable {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant EXECUTION_MANAGER_ROLE = keccak256("EXECUTION_MANAGER_ROLE");
 
-    uint256 public constant LOCK_TIME = 20*60*1000; // 20minutes ?
+    uint256 public constant LOCK_TIME = 20 minutes;
 
     mapping(MetaActionId metaAction => Lock lock) public lockData;
     IExecutionManager public executionManager;

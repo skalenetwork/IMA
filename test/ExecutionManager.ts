@@ -10,6 +10,8 @@ import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 import { Protocol } from "../typechain/artifacts/contracts/schain/ExecutionLayer/ExecutionManager";
+import { Wallet } from "ethers";
+import { skipTime } from "./utils/time";
 
 interface SchainSetup {
     messageProxy: MessageProxyForSchain;
@@ -789,8 +791,30 @@ describe("ExecutionManager", () => {
 
         expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
         expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+
+        // Tokens are locked
         expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(1);
-        // Did not get to C
-        //expect((await executionManagerC.metaActions(metaActionId)).id).to.be.equal(ZeroHash);
+
+        // Hacker can't get them
+        const hacker = Wallet.createRandom(ethers.provider);
+
+        const locker = await ethers.getContractAt("TokenLocker", await executionManagerB.tokenLocker());
+        await locker.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
+
+        //User Can't get them before time has passed
+        await locker.connect(user).unlock(metaActionId).should.be.eventually.rejectedWith("User needs to wait for timeout to retrieve tokens.");
+
+        //Skip time
+        await skipTime(20*60);
+
+        // Hacker still can't get them
+        await locker.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
+
+
+        // User gets tokens
+        await locker.connect(user).unlock(metaActionId);
+        expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(0);
+        expect(await token1B.balanceOf(user)).to.be.equal(value);
+        expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);
     });
 });
