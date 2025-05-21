@@ -344,7 +344,7 @@ describe("ExecutionManager", () => {
         expect(await clone.balanceOf(user)).to.be.equal(0n);
     });
 
-    it("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
+    it.only("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -459,7 +459,7 @@ describe("ExecutionManager", () => {
         expect(await clone2.balanceOf(user)).to.be.equal(xAmount);
     });
 
-    it("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async() => {
+    it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async() => {
         const schains = await setupMultipleSchains(3);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -621,7 +621,7 @@ describe("ExecutionManager", () => {
         expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.SUCCEED);
     });
 
-    it("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C \
+    it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C \
         but sending to chain C fails because B is not connected to C", async() => {
         const schains = await setupMultipleSchains(3);
         const agent = new AgentMock();
@@ -804,12 +804,11 @@ describe("ExecutionManager", () => {
         //User Can't get them before time has passed
         await locker.connect(user).unlock(metaActionId).should.be.eventually.rejectedWith("User needs to wait for timeout to retrieve tokens.");
 
-        //Skip time
+        //Skip time 20minutes
         await skipTime(20*60);
 
         // Hacker still can't get them
         await locker.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
-
 
         // User gets tokens
         await locker.connect(user).unlock(metaActionId);

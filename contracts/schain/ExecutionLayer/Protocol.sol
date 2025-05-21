@@ -155,26 +155,6 @@ library Protocol {
         }));
     }
 
-    /* Out of scope
-    function encodeFailureMessage(
-        MetaActionId id,
-        SchainHash schainHash,
-        TokenInfo[] memory tokens
-    )
-        internal
-        pure
-        returns (bytes memory encodedConfirmation)
-    {
-        return abi.encode(Message({
-            version: VERSION,
-            messageType: MessageType.FAILURE,
-            metaActionId: id,
-            payload: abi.encode(schainHash, tokens),
-            tokensOwner: address(0),
-            seqNumber: 0
-        }));
-    }*/
-
     function decodeConfirmationMessage(
         Message memory message
     )
@@ -190,24 +170,6 @@ library Protocol {
         }
         return abi.decode(message.payload, (SchainHash, TokenInfo[]));
     }
-
-    /* Out of scope
-    function decodeFailureMessage(
-        Message memory message
-    )
-        internal
-        pure
-        returns (SchainHash sourceSchain, TokenInfo[] memory tokens)
-    {
-        if (message.version != VERSION) {
-            revert IncompatibleVersion(message.version);
-        }
-        if (message.messageType != MessageType.FAILURE) {
-            revert IncorrectMessageType(message.messageType, MessageType.FAILURE);
-        }
-        return abi.decode(message.payload, (SchainHash, TokenInfo[]));
-    }
-    */
 
     function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
         message = abi.decode(encodedMessage, (Message));

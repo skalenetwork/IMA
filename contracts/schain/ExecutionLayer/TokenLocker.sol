@@ -27,7 +27,6 @@ import {RoleRequired} from "../../CommonErrors.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IExecutionManager} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 pragma solidity 0.8.27;
 
 contract TokenLocker is AccessControlEnumerableUpgradeable {
