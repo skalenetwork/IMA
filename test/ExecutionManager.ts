@@ -342,7 +342,7 @@ describe("ExecutionManager", () => {
         expect(await clone.balanceOf(user)).to.be.equal(0n);
     });
 
-    it.only("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
+    it("should send from Chain A to Chain B with execution of a swap on Chain B with X amount going back to Chain A", async() => {
         const schains = await setupMultipleSchains(2);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -457,7 +457,7 @@ describe("ExecutionManager", () => {
         expect(await clone2.balanceOf(user)).to.be.equal(xAmount);
     });
 
-    it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async() => {
+    it("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async() => {
         const schains = await setupMultipleSchains(3);
         const agent = new AgentMock();
         for (const [schainName, schainSetup] of schains) {
@@ -619,7 +619,7 @@ describe("ExecutionManager", () => {
         expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.SUCCEED);
     });
 
-    it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C \
+    it("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C \
         but sending to chain C fails because B is not connected to C", async() => {
         const schains = await setupMultipleSchains(3);
         const agent = new AgentMock();
