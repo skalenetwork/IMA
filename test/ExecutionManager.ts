@@ -657,6 +657,70 @@ describe("ExecutionManager", () => {
 
         });
 
+        it.only("should send from Chain B to Chain A with execution of a swap on Chain A with X amount going back to Chain B", async () => {
+
+            await token2B.connect(user).approve(tokenManagerB, value);
+            await tokenManagerB.connect(user).transferToSchainERC20(
+                schainAName,
+                token2B, value
+            );
+
+            await agent.deliverMessages();
+
+            // Setup executors
+            const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+            await swapMockSwap.setExecutionManager(executionManagerA);
+            await swapMockSwap.setExchange(exchangeA);
+            await executionManagerA.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+
+            // send balance to exchange
+
+            await token2A.connect(user).transfer(exchangeA, value);
+
+            expect(await token2A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(0n);
+            expect(await token1B.balanceOf(user)).to.be.equal(value);
+            expect(await token2A.balanceOf(exchangeA)).to.be.equal(value);
+            const sendRest = await ethers.getContractAt(
+                "SendRest",
+                await executionManagerA.getExecutor(ethers.id("SendRest"))
+            )
+            const xAmount = value / 3n;
+
+
+            // Send tokens, swap and send x value back
+            // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
+            const metaAction = asMetaObject(await executionManagerB["createMetaAction(bytes32,(bytes32,bytes)[])"](
+                schainAHash,
+                [
+                    {
+                        executor: ethers.id("SwapMockSwap"),
+                        arguments: "0x"
+                    },
+                    {
+                        executor: ethers.id("SendRest"),
+                        arguments: await sendRest.encodeArguments(user, xAmount)
+                    }
+                ]
+            ));
+
+            await token1B.connect(user).approve(executionManagerB, value);
+            await executionManagerB.connect(user).execute(
+                metaAction,
+                [{token: token1B, value: value}],
+                []
+            );
+
+            await agent.deliverMessages();
+
+            expect(await token1A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2A.balanceOf(user)).to.be.equal(value-xAmount);
+            expect(await token1A.balanceOf(exchangeA)).to.be.equal(value);
+            expect(await token2A.balanceOf(exchangeA)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(xAmount);
+
+        });
+
         it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async () => {
             // Transfer the token to chain A
             await token1B.connect(user).approve(tokenManagerB, value);

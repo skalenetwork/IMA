@@ -222,6 +222,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function processMetaActionConfirmation (MetaActionId id, TokenInfo[] calldata tokens, SchainHash sourceSchain) external {
         require(msg.sender == address(this), "Sender must be self");
         tokenLocker.unlock(id);
+        console.log("locked tokens for confirmation");
         _processMetaActionConfirmation(metaActions[id], tokens, sourceSchain);
     }
 
@@ -314,7 +315,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     function _receiveConfirmation(Protocol.Message memory message) private {
         (SchainHash sourceSchain, TokenInfo[] memory tokens) = Protocol.decodeConfirmationMessage(message);
-
+        console.log("going to lock N tokens:", tokens.length);
         bool locked = _lock(metaActions[message.metaActionId], _mapToThisSchainTokens(tokens, sourceSchain));
 
         // Should be more then enough to send failure with 0 tokens
@@ -333,6 +334,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             abi.encodeWithSelector(this.processMetaActionConfirmation.selector, message.metaActionId, tokens, sourceSchain)
         );
         if (success){
+            console.log("Success");
             return;
         }
         if(result.length > 67){
@@ -341,11 +343,14 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             }
             emit MetaActionConfirmationFailed(message.metaActionId, abi.decode(result, (string)));
         }
+        console.log(abi.decode(result, (string)));
+
         //TODO: send failure with 0 tokens
     }
 
     function _processMessage(bytes memory encodedMessage, SchainHash sourceChain) private {
         Protocol.Message memory message = Protocol.decodeMessage(encodedMessage);
+        console.log("received message");
         if (message.messageType == Protocol.MessageType.META_ACTION) {
             _receiveMetaAction(message, sourceChain);
         } else if (message.messageType == Protocol.MessageType.CONFIRMATION) {
@@ -370,13 +375,15 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         resultTokens = _mapToThisSchainTokens(resultTokens, sourceSchain);
 
         if (_isOrigin(metaAction)) {
+            console.log("Sending tokens to user");
             for (uint256 i = 0; i < resultTokens.length; ++i) {
                 IERC20 token = IERC20(resultTokens[i].token);
                 token.transfer(metaAction.sender, resultTokens[i].value);
             }
             return;
         }
-        _sendBackTokens(metaAction.id, resultTokens);
+        console.log("Sending back:", resultTokens.length, "tokens");
+        resultTokens = _sendBackTokens(metaAction.id, resultTokens);
         _sendConfirmation(metaAction, resultTokens);
     }
 
@@ -386,7 +393,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _sendNextMetaAction(metaAction, tokensAfterActions);
     }
 
-    function _sendBackTokens(MetaActionId id, TokenInfo[] memory tokens) private {
+    function _sendBackTokens(MetaActionId id, TokenInfo[] memory tokens) private returns (TokenInfo[] memory finalTokens) {
 
         MetaActionContainer storage metaAction = metaActions[id];
 
@@ -403,6 +410,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = IERC20(tokens[i].token);
             token.approve(address(erc20TokenManager), tokens[i].value);
+            // Do I know destination address ?
+            address dstAddress = erc20TokenManager.clonesErc20Inverted(sourceSchain, ERC20OnChain(tokens[i].token));
+            if (dstAddress != address(0)) {
+                tokens[i].token = dstAddress;
+            }
             erc20TokenManager.transferToSchainHashERC20Direct(
                 sourceSchain,
                 tokens[i].token,
@@ -410,6 +422,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
                 destination
             );
         }
+        finalTokens = tokens;
     }
 
     function _executeActions(
@@ -510,7 +523,9 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
                 Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens, metaAction.sender, metaAction.seqNumber)
             );
         } else {
+            console.log("Sending confirmation");
             _processMetaActionConfirmation(metaAction, tokens, metaAction.sourceChain);
+            console.log("Sent Succsessfuly");
         }
     }
 
