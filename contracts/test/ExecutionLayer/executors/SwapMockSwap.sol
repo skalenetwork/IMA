@@ -76,8 +76,13 @@ contract SwapMockSwap is Executor {
             outputTokens = new TokenInfo[](inputTokens.length);
         }
 
+        // mindblowing .. but it's a mock so :(
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            if (inputTokens[i].token == toSwap) {
+            if (inputTokens[i].token == address(anotherToken)) {
+                outputTokens[i] = inputTokens[i];
+                outputTokens[i].value += anotherValue;
+                anotherValue = 0;
+            } else if (inputTokens[i].token == toSwap) {
                 outputTokens[i].token = address(anotherToken);
                 outputTokens[i].value = anotherValue;
             } else {

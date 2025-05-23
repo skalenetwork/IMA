@@ -724,6 +724,67 @@ describe("ExecutionManager", () => {
 
         });
 
+        it.only("should send from Chain A to Chain B with execution of 2 swaps on Chain B using 50% of the funds in each", async () => {
+
+            // Transfer the token to chain A
+            await token1B.connect(user).approve(tokenManagerB, value);
+            await tokenManagerB.connect(user).transferToSchainERC20(
+                schainAName,
+                token1B, value
+            );
+
+            await agent.deliverMessages();
+
+            // Setup executors
+            const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+            await swapMockSwap.setExecutionManager(executionManagerB);
+            await swapMockSwap.setExchange(exchangeB);
+            await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+
+            // send balance to exchange
+
+            await token2B.connect(user).transfer(exchangeB, value);
+
+            expect(await token2A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(0n);
+            expect(await token1A.balanceOf(user)).to.be.equal(value);
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(value);
+
+
+            // Send tokens, swap and send x value back
+            // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
+            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+                schainBHash,
+                [
+                    {
+                        executor: ethers.id("SwapMockSwap"),
+                        arguments: await swapMockSwap.encodeArguments(token1B, value/2n)
+                    },
+                    {
+                        executor: ethers.id("SwapMockSwap"),
+                        arguments: await swapMockSwap.encodeArguments(token1B, value/2n)
+                    },
+                    // interestingly, there will be 2 items in tokens (same token) with same balance because of how SwapMock is implemented
+                ]
+            ));
+
+            await token1A.connect(user).approve(executionManagerA, value);
+            await executionManagerA.connect(user).execute(
+                metaAction,
+                [{token: token1A, value: value}],
+                []
+            );
+
+            await agent.deliverMessages();
+
+            expect(await token1A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2A.balanceOf(user)).to.be.equal(value);
+            expect(await token1B.balanceOf(exchangeB)).to.be.equal(value);
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(0n);
+
+        });
+
         it.only("should send from Chain A to Chain B with exection of swap on Chain B and send back X to Chain C", async () => {
             // Transfer the token to chain A
             await token1B.connect(user).approve(tokenManagerB, value);

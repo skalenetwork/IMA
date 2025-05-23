@@ -317,6 +317,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
             }
             emit MetaActionFailed(message.metaActionId, abi.decode(result, (string)));
         }
+        console.log(abi.decode(result, (string)));
         //TODO: send failure with 0 tokens
     }
 
@@ -391,6 +392,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         }
         console.log("Sending back:", resultTokens.length, "tokens");
         resultTokens = _sendBackTokens(metaAction.id, resultTokens);
+        console.log("Sent back:", resultTokens.length, "tokens");
         _sendConfirmation(metaAction, resultTokens);
     }
 
@@ -416,6 +418,8 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         address destination = address(_getRemoteExecutionManager(sourceSchain));
         for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = IERC20(tokens[i].token);
+            console.log(tokens[i].token, token.balanceOf(address(this)), tokens[i].value);
+
             token.approve(address(erc20TokenManager), tokens[i].value);
             // Do I know destination address ?
             address dstAddress = erc20TokenManager.clonesErc20Inverted(sourceSchain, ERC20OnChain(tokens[i].token));

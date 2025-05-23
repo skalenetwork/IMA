@@ -53,9 +53,10 @@ abstract contract Executor is Initializable, IExecutor {
             executeWithTokens(inputTokens, arguments)
         );
         console.log("executed");
+        console.log(outputTokens.length);
         for (uint256 i = 0; i < outputTokens.length; ++i) {
             IERC20 token = IERC20(getTokenAddress(outputTokens[i]));
-            token.transfer(address(executionManager), inputTokens[i].value);
+            token.transfer(address(executionManager), outputTokens[i].value);
         }
         console.log("tokens returned to the executor");
     }
@@ -94,6 +95,7 @@ abstract contract Executor is Initializable, IExecutor {
         if (count == tokenInfo.length) {
             return tokenInfo;
         }
+        console.log("prunned");
         tokenInfoPruned = new TokenInfo[](count);
         count = 0;
         for (uint256 i = 0; i < tokenInfo.length; ++i) {
