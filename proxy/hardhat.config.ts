@@ -1,7 +1,6 @@
 import { HardhatUserConfig, task } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@nomiclabs/hardhat-web3";
+import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@openzeppelin/hardhat-upgrades";
 import "@typechain/hardhat";
 import "solidity-coverage";
@@ -72,7 +71,9 @@ const config: HardhatUserConfig = {
   },
   typechain: {
     outDir: "typechain/",
-    externalArtifacts: ['node_modules/@openzeppelin/upgrades-core/artifacts/*.json']
+    externalArtifacts: [
+      'node_modules/@openzeppelin/upgrades-core/artifacts/AdminUpgradeabilityProxy.json',
+      'node_modules/@openzeppelin/upgrades-core/artifacts/ProxyAdmin.json']
   }
 };
 

@@ -112,3 +112,13 @@ hash_g1
 verify_bls
 
 venv
+
+
+data/
+artifacts/
+cache/
+**/.yarn/**
+proxy/.openzeppelin/sepolia.json
+typechain/
+.yarnrc.yml
+.openzeppelin/
