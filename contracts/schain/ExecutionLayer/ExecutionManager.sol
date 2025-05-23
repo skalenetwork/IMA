@@ -28,6 +28,8 @@ import {
 } from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {ITokenManagerERC20} from "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
@@ -42,6 +44,7 @@ import {TokenLocker} from "./TokenLocker.sol";
 contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
     using AddressUpgradeable for address;
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using Protocol for MetaActionId;
     using Protocol for Protocol.MetaAction;
 
@@ -239,7 +242,10 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     // Private
-
+    function _validateMetaAction(Protocol.MetaAction memory metaAction) private {
+        //TODO: valididate circles? Highly inneficient.
+        // the idea is to not use storage...Doing it only off-chain is enough maybe??
+    }
     function _createMetaAction(
         address sender,
         Protocol.MetaAction memory metaAction,
@@ -250,6 +256,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         returns (MetaActionContainer storage metaActionContainer)
     {
         MetaActionId id = _generateMetaActionId(sender);
+        _validateMetaAction(metaAction);
         metaActions[id] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: sender,
