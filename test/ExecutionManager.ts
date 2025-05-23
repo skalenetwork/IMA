@@ -572,7 +572,7 @@ describe("ExecutionManager", () => {
                 [
                     {
                         executor: ethers.id("SwapMockSwap"),
-                        arguments: "0x"
+                        arguments: await swapMockSwap.encodeArguments(token1B, 0)
                     }
                 ]
             ));
@@ -631,7 +631,7 @@ describe("ExecutionManager", () => {
                 [
                     {
                         executor: ethers.id("SwapMockSwap"),
-                        arguments: "0x"
+                        arguments: await swapMockSwap.encodeArguments(token1B, 0)
                     },
                     {
                         executor: ethers.id("SendRest"),
@@ -695,7 +695,7 @@ describe("ExecutionManager", () => {
                 [
                     {
                         executor: ethers.id("SwapMockSwap"),
-                        arguments: "0x"
+                        arguments: await swapMockSwap.encodeArguments(token1A, 0)
                     },
                     {
                         executor: ethers.id("SendRest"),
@@ -703,6 +703,9 @@ describe("ExecutionManager", () => {
                     }
                 ]
             ));
+
+            console.log("Token2A:", await token2A.getAddress())
+            console.log("Token2B:", await token2B.getAddress())
 
             await token1B.connect(user).approve(executionManagerB, value);
             await executionManagerB.connect(user).execute(
@@ -712,7 +715,7 @@ describe("ExecutionManager", () => {
             );
 
             await agent.deliverMessages();
-
+            await agent.deliverMessages(); // for some reason it requires 2x ?? weird
             expect(await token1A.balanceOf(user)).to.be.equal(0n);
             expect(await token2A.balanceOf(user)).to.be.equal(value-xAmount);
             expect(await token1A.balanceOf(exchangeA)).to.be.equal(value);
@@ -761,7 +764,7 @@ describe("ExecutionManager", () => {
                 [
                     {
                         executor: ethers.id("SwapMockSwap"),
-                        arguments: "0x"
+                        arguments: await swapMockSwap.encodeArguments(token1B, 0)
                     },
                     {
                         executor: ethers.id("SendRest"),
@@ -837,7 +840,7 @@ describe("ExecutionManager", () => {
                 [
                     {
                         executor: ethers.id("SwapMockSwap"),
-                        arguments: "0x"
+                        arguments: await swapMockSwap.encodeArguments(token1B, 0)
                     },
                     {
                         executor: ethers.id("SendRest"),

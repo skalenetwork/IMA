@@ -34,6 +34,10 @@ contract SwapMockSwap is Executor {
     ExecutorId public constant ID = ExecutorId.wrap(keccak256("SwapMockSwap"));
     SwapMock exchange;
 
+    function encodeArguments(address toSwap, uint256 amount) external pure returns (bytes memory encodedArguments) {
+        return abi.encode(toSwap, amount);
+    }
+
     function setExchange(SwapMock exchangeAddress) external {
         exchange = exchangeAddress;
     }
@@ -46,21 +50,39 @@ contract SwapMockSwap is Executor {
 
     function executeWithTokens(
         TokenInfo[] memory inputTokens,
-        bytes memory
+        bytes memory arguments
     )
         internal
         override
         returns (TokenInfo[] memory outputTokens)
     {
         console.log("Execute SwapMockSwap");
-        outputTokens = new TokenInfo[](inputTokens.length);
+        (address toSwap, uint256 amount) = abi.decode(arguments, (address, uint256));
+        IERC20 token = IERC20(toSwap);
+
+        if (amount == 0) {
+            amount = token.balanceOf(address(this));
+        }
+        IERC20 anotherToken = exchange.getAnotherToken(token);
+        token.approve(address(exchange), amount);
+        uint256 anotherValue = exchange.swap(token, amount);
+        uint256 finalBalance = token.balanceOf(address(this));
+        if (finalBalance > 0) {
+            console.log("MISSING TOKENS:", finalBalance);
+            outputTokens = new TokenInfo[](inputTokens.length + 1);
+            outputTokens[inputTokens.length].token = toSwap;
+            outputTokens[inputTokens.length].value = finalBalance;
+        } else {
+            outputTokens = new TokenInfo[](inputTokens.length);
+        }
+
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20 token = IERC20(inputTokens[i].token);
-            IERC20 anotherToken = exchange.getAnotherToken(token);
-            token.approve(address(exchange), inputTokens[i].value);
-            uint256 anotherValue = exchange.swap(token, inputTokens[i].value);
-            outputTokens[i].token = address(anotherToken);
-            outputTokens[i].value = anotherValue;
+            if (inputTokens[i].token == toSwap) {
+                outputTokens[i].token = address(anotherToken);
+                outputTokens[i].value = anotherValue;
+            } else {
+                outputTokens[i] = inputTokens[i];
+            }
         }
         console.log("Execute SwapMockSwap SUCCEED");
     }
