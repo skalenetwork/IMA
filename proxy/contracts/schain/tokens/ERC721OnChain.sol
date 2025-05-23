@@ -58,9 +58,9 @@ contract ERC721OnChain is
 
     /**
      * @dev Set URI of ERC721 token.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - token with {tokenId} must exist.
      * - sender must be the token owner or approved for the token.
      */
@@ -81,9 +81,9 @@ contract ERC721OnChain is
 
     /**
      * @dev Mint token.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - sender must be granted with {MINTER_ROLE}.
      */
     function mint(address account, uint256 tokenId)
@@ -96,7 +96,7 @@ contract ERC721OnChain is
 
     /**
      * @dev Check if contract support {interfaceId} interface.
-     * 
+     *
      * See https://eips.ethereum.org/EIPS/eip-165 for more details.
      */
     function supportsInterface(
@@ -104,7 +104,7 @@ contract ERC721OnChain is
     )
         public
         view
-        override(AccessControlEnumerableUpgradeable, ERC721Upgradeable)
+        override(AccessControlEnumerableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -119,7 +119,7 @@ contract ERC721OnChain is
         public
         view
         override (ERC721Upgradeable, ERC721URIStorageUpgradeable)
-        returns (string memory) 
+        returns (string memory)
     {
         return ERC721URIStorageUpgradeable.tokenURI(tokenId);
     }

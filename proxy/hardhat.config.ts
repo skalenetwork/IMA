@@ -67,7 +67,17 @@ const config: HardhatUserConfig = {
     }
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN
+    apiKey: process.env.ETHERSCAN,
+    customChains: [
+      {
+        network: "hoodi",
+        chainId: 560048,
+        urls: {
+          apiURL: "https://api-hoodi.etherscan.io/api",
+          browserURL: "https://hoodi.etherscan.io"
+        }
+      }
+    ]
   },
   typechain: {
     outDir: "typechain/",
