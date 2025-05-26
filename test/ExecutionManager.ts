@@ -10,7 +10,7 @@ import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 import { Protocol } from "../typechain/artifacts/contracts/schain/ExecutionLayer/ExecutionManager";
-import { BytesLike, Wallet } from "ethers";
+import { Wallet } from "ethers";
 import { skipTime } from "./utils/time";
 
 interface SchainSetup {
@@ -419,9 +419,13 @@ describe("ExecutionManager", () => {
         let executionManagerA: ExecutionManager;
         let executionManagerB: ExecutionManager;
         let executionManagerC: ExecutionManager;
-        let tokenLockerA: TokenLocker;
+
         let tokenLockerB: TokenLocker;
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        let tokenLockerA: TokenLocker;
         let tokenLockerC: TokenLocker;
+        /* eslint-enable @typescript-eslint/no-unused-vars */
+
         let tokenManagerA: TokenManagerERC20;
         let tokenManagerB: TokenManagerERC20;
         let tokenManagerC: TokenManagerERC20;
@@ -990,20 +994,19 @@ describe("ExecutionManager", () => {
             // Hacker can't get them
             const hacker = Wallet.createRandom(ethers.provider);
 
-            const locker = await ethers.getContractAt("TokenLocker", await executionManagerB.tokenLocker());
-            await locker.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
+            await tokenLockerB.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
 
             //User Can't get them before time has passed
-            await locker.connect(user).unlock(metaActionId).should.be.eventually.rejectedWith("User needs to wait for timeout to retrieve tokens.");
+            await tokenLockerB.connect(user).unlock(metaActionId).should.be.eventually.rejectedWith("User needs to wait for timeout to retrieve tokens.");
 
             //Skip time 20minutes
             await skipTime(20*60);
 
             // Hacker still can't get them
-            await locker.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
+            await tokenLockerB.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
 
             // User gets tokens
-            await locker.connect(user).unlock(metaActionId);
+            await tokenLockerB.connect(user).unlock(metaActionId);
             expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(0);
             expect(await token1B.balanceOf(user)).to.be.equal(value);
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);
