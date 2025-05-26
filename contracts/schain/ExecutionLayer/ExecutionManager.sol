@@ -162,7 +162,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     )
         external
     {
-        _processMetaAction(
+        _executeAndSendNextMetaAction(
             _createMetaAction(
                 msg.sender,
                 metaAction,
@@ -232,12 +232,6 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     function processMetaAction(MetaActionId id, TokenInfo[] memory tokens) external {
         require(msg.sender == address(this), "Sender must be self");
         tokenLocker.unlock(id);
-        _processMetaAction(metaActions[id], tokens);
-    }
-    //TODO: review safety - possibly requires more checks?
-    //made it external so it can revert independently
-    function executeAndSendNextMetaAction(MetaActionId id, TokenInfo[] calldata tokens) external {
-        require(msg.sender == address(this), "Sender must be self");
         _executeAndSendNextMetaAction(metaActions[id], tokens);
     }
 
@@ -246,6 +240,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         //TODO: valididate circles? Highly inneficient.
         // the idea is to not use storage...Doing it only off-chain is enough maybe??
     }
+
     function _createMetaAction(
         address sender,
         Protocol.MetaAction memory metaAction,
@@ -368,15 +363,11 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         }
     }
 
-    function _processMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
-        _executeAndSendNextMetaAction(metaAction, tokens);
-    }
 
 
     function _processMetaActionConfirmation(MetaActionContainer storage metaAction, TokenInfo[] memory tokens, SchainHash sourceSchain) private {
         assert(metaAction.status == Protocol.MetaActionStatus.EXECUTING);
-        for (uint256 i = 0; i < tokens.length; ++i) {
-        }
+
         TokenInfo[] memory resultTokens = _postExecuteMetaAction(metaAction, tokens);
         metaAction.status = Protocol.MetaActionStatus.SUCCEED;
 
