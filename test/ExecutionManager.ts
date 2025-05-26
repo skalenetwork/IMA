@@ -471,7 +471,7 @@ describe("ExecutionManager", () => {
             token1B = await deployERC20OnChain("D2", "D2");
             await token1B.mint(user, value);
 
-            token2B = await deployERC20OnChain("D2", "D2");
+            token2B = await deployERC20OnChain("EDU", "EDU");
             await token2B.mint(user, value);
 
             // Create tokens on chain A and C
@@ -735,21 +735,41 @@ describe("ExecutionManager", () => {
 
             await agent.deliverMessages();
 
+            const token3B = await deployERC20OnChain("T3", "T3");
+            await token3B.mint(user, value);
+
+            const exchangeB1 = await upgrades.deployProxy(await ethers.getContractFactory("SwapMock")) as unknown as SwapMock;
+            await exchangeB1.setTokenA(token1B);
+            await exchangeB1.setTokenB(token3B);
+
             // Setup executors
             const swapMockSwap = await ethers.deployContract("SwapMockSwap");
             await swapMockSwap.setExecutionManager(executionManagerB);
             await swapMockSwap.setExchange(exchangeB);
             await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
 
-            // send balance to exchange
+            const swapMockSwap2 = await ethers.deployContract("SwapMockSwap");
+            await swapMockSwap2.setExecutionManager(executionManagerB);
+            await swapMockSwap2.setExchange(exchangeB1);
+            await executionManagerB.setExecutor(ethers.id("SwapMockSwap1"), swapMockSwap2);
+
+
+            // send balance to exchanges
 
             await token2B.connect(user).transfer(exchangeB, value);
+            await token3B.connect(user).transfer(exchangeB1, value);
+
 
             expect(await token2A.balanceOf(user)).to.be.equal(0n);
             expect(await token2B.balanceOf(user)).to.be.equal(0n);
             expect(await token1A.balanceOf(user)).to.be.equal(value);
             expect(await token2B.balanceOf(exchangeB)).to.be.equal(value);
+            expect(await token3B.balanceOf(exchangeB1)).to.be.equal(value);
 
+            const send = await ethers.getContractAt(
+                "Send",
+                await executionManagerA.getExecutor(ethers.id("Send"))
+            )
 
             // Send tokens, swap and send x value back
             // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
@@ -761,10 +781,13 @@ describe("ExecutionManager", () => {
                         arguments: await swapMockSwap.encodeArguments(token1B, value/2n)
                     },
                     {
-                        executor: ethers.id("SwapMockSwap"),
+                        executor: ethers.id("SwapMockSwap1"),
                         arguments: await swapMockSwap.encodeArguments(token1B, value/2n)
                     },
-                    // interestingly, there will be 2 items in tokens (same token) with same balance because of how SwapMock is implemented
+                    {
+                        executor: ethers.id("Send"),
+                        arguments: await send.encodeArguments(user)
+                    }
                 ]
             ));
 
@@ -778,10 +801,15 @@ describe("ExecutionManager", () => {
             await agent.deliverMessages();
 
             expect(await token1A.balanceOf(user)).to.be.equal(0n);
-            expect(await token2A.balanceOf(user)).to.be.equal(value);
-            expect(await token1B.balanceOf(exchangeB)).to.be.equal(value);
-            expect(await token2B.balanceOf(exchangeB)).to.be.equal(0n);
-            expect(await token2B.balanceOf(user)).to.be.equal(0n);
+            expect(await token2A.balanceOf(user)).to.be.equal(0n);
+            expect(await token1B.balanceOf(exchangeB)).to.be.equal(value/2n);
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(value/2n);
+            expect(await token1B.balanceOf(exchangeB1)).to.be.equal(value/2n);
+            expect(await token3B.balanceOf(exchangeB1)).to.be.equal(value/2n);
+
+            expect(await token1B.balanceOf(user)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(value/2n);
+            expect(await token3B.balanceOf(user)).to.be.equal(value/2n);
 
         });
 
