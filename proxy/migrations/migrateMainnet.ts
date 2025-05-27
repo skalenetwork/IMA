@@ -61,11 +61,13 @@ async function main() {
     const blockHash = (await provider.getBlock("latest"))?.hash;
     console.log(blockHash);
 
+    const owner = (await ethers.getSigners())[0];
+
     const oldNetwork = await skaleContracts.getNetworkByProvider(provider);
     const imaProject = oldNetwork.getProject("mainnet-ima");
 
     const imaInstance = await imaProject.getInstance(process.env.MAINNET_IMA_INSTANCE);
-
+    imaInstance.version = "1.5.0-stable.0";
     const skaleManagerOldProject = oldNetwork.getProject("skale-manager");
     const skaleManagerOldInstance = await skaleManagerOldProject.getInstance(process.env.SKALE_MANAGER_INSTANCE);
     console.log(await skaleManagerOldInstance.getContractAddress("ContractManager"));
@@ -91,7 +93,7 @@ async function main() {
             contractNamesToUpgrade: contracts
         },
         provider,
-        undefined,
+        3,
         undefined
     );
 
@@ -122,8 +124,9 @@ async function main() {
     // upgrades contracts to new implementation
     console.log("Starting contract upgrades...");
     await migrator.upgrade();
+
     //set new addresses in contractManager -- I gotta be the owner
-    const newContractManager = (await skaleManagerNewInstance.getContract("ContractManager")) as unknown as ContractManager;
+    const newContractManager = ((await skaleManagerNewInstance.getContract("ContractManager")) as unknown as ContractManager).connect(owner);
     for (const contract of contracts) {
         const newAddr = migrator.getContractNewAddress(contract);
         if (!newAddr) continue;
@@ -134,7 +137,7 @@ async function main() {
     //TODO: set PaymasterController addresses in skale-manager
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paymasterController: any = await skaleManagerNewInstance.getContract("PaymasterController");
-    const tx = await paymasterController["setImaAddress"](migrator.getContractNewAddress("MessageProxyForMainnet"));
+    const tx = await paymasterController.connect(owner)["setImaAddress"](migrator.getContractNewAddress("MessageProxyForMainnet"));
     await tx.wait();
 
     //TODO:
