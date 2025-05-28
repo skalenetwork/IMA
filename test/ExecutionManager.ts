@@ -1011,5 +1011,109 @@ describe("ExecutionManager", () => {
             expect(await token1B.balanceOf(user)).to.be.equal(value);
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);
         });
+
+        it.only("transfer from A to B, and block reentrancy in B with tokens staying locked in B", async () => {
+            // Transfer the token to chain A
+            await token1B.connect(user).approve(tokenManagerB, value);
+            await tokenManagerB.connect(user).transferToSchainERC20(
+                schainAName,
+                token1B, value
+            );
+
+            await agent.deliverMessages();
+
+            // Setup executors
+            const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+            await swapMockSwap.setExecutionManager(executionManagerB);
+            await swapMockSwap.setExchange(exchangeB);
+            await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+
+            const reentrancy = await ethers.deployContract("ReentrancyExecutor");
+            await reentrancy.setExecutionManager(executionManagerB);
+            await executionManagerB.setExecutor(await reentrancy.ID(), reentrancy);
+
+            // send balance to exchange
+
+            await token2B.connect(user).transfer(exchangeB, value);
+
+            expect(await token2A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(0n);
+            expect(await token1A.balanceOf(user)).to.be.equal(value);
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(value);
+
+            await schains.get(schainBName)?.messageProxy.removeConnectedChain(schainCName);
+            await schains.get(schainCName)?.messageProxy.removeConnectedChain(schainBName);
+            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+                schainBHash,
+                [
+                    {
+                        executor: ethers.id("SwapMockSwap"),
+                        arguments: await swapMockSwap.encodeArguments(token1B, 0)
+                    },
+                    {
+                        executor: ethers.id("ReentrancyExecutor"),
+                        arguments: "0x00"
+                    }
+                ]
+            ));
+            await token1A.connect(user).approve(executionManagerA, value);
+            await executionManagerA.connect(user).execute(
+                metaAction,
+                [{token: token1A, value: value}],
+                []
+            );
+            const logs = (await ethers.provider.getLogs({
+                address: executionManagerA,
+                fromBlock: 0,
+                toBlock: "latest",
+                topics: [
+                    executionManagerA.interface.getEvent("MetaActionCreated").topicHash
+                ]
+            })).map(log => executionManagerA.interface.parseLog(log));
+            const metaActionId = logs[0]?.args.id;
+
+            await agent.deliverMessages();
+
+            // Tokens arrive to chain B, where opperation swap is performed successfuly.
+            // However, the last execution triggers a reentracy by trying to create a MetaAction in ExecutionManager
+            // this should fail because of the reentrancy guards
+            // Tokens should be locked in B as they arrived
+
+            expect(await token1B.balanceOf(executionManagerB)).to.be.equal(0n);
+            expect(await token1A.balanceOf(executionManagerA)).to.be.equal(0n);
+            expect(await token1B.balanceOf(exchangeB)).to.be.equal(0n);
+            expect(await token1B.balanceOf(user)).to.be.equal(0n);
+
+            // exchangeB has original balance
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(value);
+            // tokens should be in the locker
+            expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(value);
+
+            expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+            expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+
+            // Tokens are locked
+            expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(1);
+
+            // Hacker can't get them
+            const hacker = Wallet.createRandom(ethers.provider);
+
+            await tokenLockerB.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
+
+            //User Can't get them before time has passed
+            await tokenLockerB.connect(user).unlock(metaActionId).should.be.eventually.rejectedWith("User needs to wait for timeout to retrieve tokens.");
+
+            //Skip time 20minutes
+            await skipTime(20*60);
+
+            // Hacker still can't get them
+            await tokenLockerB.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
+
+            // User gets tokens
+            await tokenLockerB.connect(user).unlock(metaActionId);
+            expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(0);
+            expect(await token1B.balanceOf(user)).to.be.equal(value);
+            expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);
+        });
     });
 });

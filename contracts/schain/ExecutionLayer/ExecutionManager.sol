@@ -40,8 +40,9 @@ import {ERC20OnChain, TokenManagerERC20} from "../TokenManagers/TokenManagerERC2
 import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
 import {Executor} from "./Executor.sol";
 import {TokenLocker} from "./TokenLocker.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
+contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerableUpgradeable, IExecutionManager {
     using AddressUpgradeable for address;
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -115,16 +116,18 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function initialize(ITokenManagerERC20 erc20TokenManagerAddress, address locker) external override initializer {
+        __ReentrancyGuard_init();
+        __AccessControlEnumerable_init();
         erc20TokenManager = TokenManagerERC20(address(erc20TokenManagerAddress));
         tokenLocker = TokenLocker(locker);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function postMessage(
+    function postMessage (
         SchainHash sourceChain,
         address sender,
         bytes calldata data
-    ) external onlyMessageProxy override {
+    ) external onlyMessageProxy nonReentrant override {
         if (!_remoteExecutionManagers.contains(SchainHash.unwrap(sourceChain))) {
             revert SourceChainIsNotRegistered(sourceChain);
         }
@@ -161,6 +164,7 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         Protocol.Action[] memory postActions
     )
         external
+        nonReentrant
     {
         _executeAndSendNextMetaAction(
             _createMetaAction(
