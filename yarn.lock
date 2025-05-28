@@ -1011,10 +1011,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.9.6.tgz#38b21708a719da647de4bb0e4802ee235a0d24df"
   integrity sha512-m4iHazOsOCv1DgM7eD7GupTJ+NFVujRZt1wzddDPSVGpWdKq1SKkla5htKG7+IS4d2XOCtzkUNwRZ7Vq5aEUMA==
 
-"@openzeppelin/contracts@^5.1.0-rc.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.1.0.tgz#4e61162f2a2bf414c4e10c45eca98ce5f1aadbd4"
-  integrity sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==
+"@openzeppelin/contracts@5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.3.0.tgz#0a90ce16f5c855e3c8239691f1722cd4999ae741"
+  integrity sha512-zj/KGoW7zxWUE8qOI++rUM18v+VeLTTzKs/DJFkSzHpQFPD/jKKF0TrMxBfGLl3kpdELCNccvB3zmofSzm4nlA==
 
 "@openzeppelin/defender-sdk-base-client@^1.14.4", "@openzeppelin/defender-sdk-base-client@^1.15.0":
   version "1.15.0"
@@ -1312,11 +1312,12 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1.tgz#97ed2069256a835efa1b088a58de17e2783a9e71"
   integrity sha512-CgAo41sSL1KT9e1d3sUTxW5WPbEvHQwoqo3hLt+VW/6kGYukCuW4AHWMyDr5Jjw9KtjDKSOySDcoukhaeKxToQ==
 
-"@skalenetwork/ima-interfaces@2.0.0-execution-layer.25":
-  version "2.0.0-execution-layer.25"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-execution-layer.25.tgz#3c4e8ef9cab1f013f543cd1327bf8870e7ef0316"
-  integrity sha512-BrFUTJjuddaVp6AyTv0m/tb3BDSJBJvbIIXLpPENUlLCf3jbkhDn/+sNjFKhZCXL4FKD//QRWiZ+fTe4sXQXgQ==
+"@skalenetwork/ima-interfaces@2.0.0-execution-layer.29":
+  version "2.0.0-execution-layer.29"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-execution-layer.29.tgz#c92a41c9ec496fdc7db8fb19056b80246c7b2960"
+  integrity sha512-IZtIBYGc+co47PEO+TSmEnGwLGbb55URTFxQ/PldHO4NGjCrLind2m7z/A3z7XCJuv/jI/V431nSY7Yqk1R3QQ==
   dependencies:
+    "@openzeppelin/contracts" "5.3.0"
     "@skalenetwork/skale-manager-interfaces" "^3.2.0-develop.0"
 
 "@skalenetwork/skale-contracts-ethers-v6@^1.0.2-develop.30":

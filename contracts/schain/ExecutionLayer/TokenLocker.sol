@@ -19,7 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
+pragma solidity 0.8.27;
+
+import {Protocol} from "./Protocol.sol";
+import {MetaActionId, ProtocolTypes} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
 import {
     AccessControlEnumerableUpgradeable
 } from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
@@ -27,38 +30,23 @@ import {RoleRequired} from "../../CommonErrors.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IExecutionManager} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-pragma solidity 0.8.27;
+import {ITokenLocker} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ITokenLocker.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-contract TokenLocker is AccessControlEnumerableUpgradeable {
+
+contract TokenLocker is AccessControlEnumerableUpgradeable, ReentrancyGuardUpgradeable, ITokenLocker {
 
     using EnumerableSet for EnumerableSet.Bytes32Set;
-
-    struct Lock {
-        TokenInfo[] tokens;
-        uint256 timestamp;
-        MetaActionId  metaActionId;
-        address tokensOwner;
-        // Add mappings for different tokens
-        mapping(IERC20 token => uint256 amount) balances;
-    }
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant EXECUTION_MANAGER_ROLE = keccak256("EXECUTION_MANAGER_ROLE");
 
+    // Probabily increase
     uint256 public constant LOCK_TIME = 20 minutes;
 
     mapping(MetaActionId metaAction => Lock lock) public lockData;
-    IExecutionManager public executionManager;
 
     EnumerableSet.Bytes32Set private _metaActionsWithLockedTokens;
-
-    event TokensUnlocked(MetaActionId indexed metaAction, address unlocker, TokenInfo[] tokens);
-    event TokensLocked(MetaActionId indexed metaAction, address locker, TokenInfo[] tokens);
-
-
-    function initialize() external initializer {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
 
     // modifiers
 
@@ -106,20 +94,20 @@ contract TokenLocker is AccessControlEnumerableUpgradeable {
         _;
     }
 
-    function getMetaActionsWithLockedTokens() public view returns (MetaActionId[] memory metaActions) {
-        metaActions = new MetaActionId[](_metaActionsWithLockedTokens.length());
-        for (uint256 i = 0; i < _metaActionsWithLockedTokens.length(); i++) {
-            metaActions[i] = MetaActionId.wrap(_metaActionsWithLockedTokens.at(i));
-        }
+    // external
+    function initialize() external override initializer {
+        __ReentrancyGuard_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    // external
     function lock(
-        TokenInfo[] calldata tokens,
+        ProtocolTypes.TokenInfo[] calldata tokens,
         MetaActionId metaAction,
         address owner
     )
         external
+        override
+        nonReentrant
         onlyExecutionManager
         noLockForMetaAction(metaAction)
     {
@@ -127,52 +115,72 @@ contract TokenLocker is AccessControlEnumerableUpgradeable {
         lockData[metaAction].timestamp = block.timestamp;
         lockData[metaAction].metaActionId = metaAction;
         lockData[metaAction].tokensOwner = owner;
+        assert(_metaActionsWithLockedTokens.add(MetaActionId.unwrap(metaAction)));
 
-        // Try to pull tokens
+        // Update Data
         for (uint256 i = 0; i < tokens.length; ++i) {
 
-            //Add check for token type: different pull for each tokenType
+            //TODO: Add check for token type: different pull for each tokenType
             IERC20 token = IERC20(tokens[i].token);
             if (tokens[i].value == 0) {
                 continue;
             }
-            _pullERC20Token(token, tokens[i].value);
-            lockData[metaAction].balances[token] = tokens[i].value;
+            lockData[metaAction].balances[token] += tokens[i].value;
             lockData[metaAction].tokens.push(tokens[i]);
         }
-        assert(_metaActionsWithLockedTokens.add(MetaActionId.unwrap(metaAction)));
-
         emit TokensLocked(metaAction, msg.sender, tokens);
+        // try to pull tokens
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+            _pullERC20Token(token, tokens[i].value);
+        }
     }
 
     function unlock(
         MetaActionId metaAction
     )
         external
+        override
+        nonReentrant
         lockForMetaActionExists(metaAction)
         allowedToUnlock(lockData[metaAction], msg.sender)
     {
         Lock storage lockInfo = lockData[metaAction];
-        TokenInfo[] storage tokens = lockInfo.tokens;
+        ProtocolTypes.TokenInfo[] memory tokens = lockInfo.tokens;
         uint256 length = tokens.length;
-        for (uint256 i = 0; i < length; ++i) {
-            //Add check for token type: different pull for each tokenType
-            IERC20 token = IERC20(tokens[tokens.length - 1].token);
-            token.transfer(msg.sender, lockInfo.balances[token]);
-            lockInfo.balances[token] = 0;
-            tokens.pop();
-        }
-        assert(tokens.length == 0);
         lockInfo.timestamp = 0;
         assert(_metaActionsWithLockedTokens.remove(MetaActionId.unwrap(metaAction)));
-
+        delete lockInfo.tokens;
+        for (uint256 i = 0; i < length; ++i) {
+            //Add check for token type
+            IERC20 token = IERC20(tokens[i].token);
+            tokens[i].value = lockInfo.balances[token];
+            lockInfo.balances[token] = 0;
+        }
+        assert(lockInfo.tokens.length == 0);
         emit TokensUnlocked(metaAction, msg.sender, tokens);
+
+        for (uint256 i = 0; i < length; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+            require(token.transfer(msg.sender, tokens[i].value), "Token Transfer Failed");
+        }
     }
 
+    function getMetaActionsWithLockedTokens()
+        external
+        view
+        override
+        returns (MetaActionId[] memory metaActions)
+    {
+        metaActions = new MetaActionId[](_metaActionsWithLockedTokens.length());
+        for (uint256 i = 0; i < _metaActionsWithLockedTokens.length(); i++) {
+            metaActions[i] = MetaActionId.wrap(_metaActionsWithLockedTokens.at(i));
+        }
+    }
 
     // private
     function _pullERC20Token(IERC20 token, uint256 amount) private {
-        token.transferFrom(msg.sender, address(this), amount);
+        require(token.transferFrom(msg.sender, address(this), amount), "Token Transfer Failed");
     }
 }
 

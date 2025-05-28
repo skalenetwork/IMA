@@ -21,7 +21,6 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
 
 // cspell:words IERC20Upgradeable
 

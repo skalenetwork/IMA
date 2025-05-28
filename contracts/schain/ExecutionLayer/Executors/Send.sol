@@ -21,37 +21,40 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
-import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
+import {ProtocolTypes} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
 
 import {Executor} from "../Executor.sol";
 
 contract Send is Executor {
     ExecutorId public constant ID = ExecutorId.wrap(keccak256("Send"));
 
+    // Input depends on each Executor
+    // solhint-disable-next-line comprehensive-interface
     function encodeArguments(address receiver) external pure returns (bytes memory encodedArguments) {
         return abi.encode(receiver);
     }
 
     // internal
 
-    function executeWithTokens(
-        TokenInfo[] memory inputTokens,
+    function _executeWithTokens(
+        ProtocolTypes.TokenInfo[] memory inputTokens,
         bytes memory arguments
     )
         internal
         override
-        returns (TokenInfo[] memory outputTokens)
+        returns (ProtocolTypes.TokenInfo[] memory outputTokens)
     {
         address target = abi.decode(arguments, (address));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
-            token.transfer(target, inputTokens[i].value);
+            IERC20 token = IERC20(_getTokenAddress(inputTokens[i]));
+            require(
+                token.transfer(target, inputTokens[i].value),
+                "Token Transfer Failed"
+            );
         }
-        console.log("Send's execute SUCCESSFULL");
-        return new TokenInfo[](0);
+        return new ProtocolTypes.TokenInfo[](0);
     }
 }

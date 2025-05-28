@@ -21,49 +21,13 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
 
 import {SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
-import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
-
-type MetaActionId is bytes32;
+import {ProtocolTypes as PT, MetaActionId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
 
 
 library Protocol {
-
-    struct Action {
-        ExecutorId executor;
-        bytes arguments;
-    }
-
-    enum MetaActionStatus {
-        SUCCEED,
-        EXECUTING,
-        FAILED
-    }
-
-    struct MetaAction {
-        SchainHash targetChainHash;
-        bytes actions;
-        bytes nextMetaAction;
-        bytes postActions;
-    }
-
-    enum MessageType {
-        CONFIRMATION,
-        META_ACTION,
-        FAILURE
-    }
-
-    struct Message {
-        uint96 version;
-        MessageType messageType;
-        MetaActionId metaActionId;
-        uint256 seqNumber;
-        address tokensOwner;
-        bytes payload;
-    }
 
     uint96 constant public VERSION = 1;
 
@@ -72,37 +36,46 @@ library Protocol {
     );
 
     error UnknownMessageType(
-        MessageType messageType
+        PT.MessageType messageType
     );
 
     error IncorrectMessageType(
-        MessageType received,
-        MessageType required
+        PT.MessageType received,
+        PT.MessageType required
     );
 
-    function encodeActions(Action[] memory actions) internal pure returns (bytes memory encodedAction) {
+
+    function empty(PT.MetaAction storage metaAction) internal view returns (bool result) {
+        return SchainHash.unwrap(metaAction.targetChainHash) != bytes32(0);
+    }
+
+    function hasNextMetaAction(PT.MetaAction storage metaAction) internal view returns (bool result) {
+        return metaAction.nextMetaAction.length > 0;
+    }
+
+    function encodeActions(PT.Action[] memory actions) internal pure returns (bytes memory encodedAction) {
         return abi.encode(actions);
     }
 
-    function decodeMetaAction(bytes memory encodedMetaAction) internal pure returns (MetaAction memory metaAction) {
-        return abi.decode(encodedMetaAction, (MetaAction));
+    function decodeMetaAction(bytes memory encodedMetaAction) internal pure returns (PT.MetaAction memory metaAction) {
+        return abi.decode(encodedMetaAction, (PT.MetaAction));
     }
 
-    function encodeMetaAction(MetaAction memory metaAction) internal pure returns (bytes memory encodedMetaAction) {
+    function encodeMetaAction(PT.MetaAction memory metaAction) internal pure returns (bytes memory encodedMetaAction) {
         return abi.encode(metaAction);
     }
 
-    function decodeActions(bytes memory encodedActions) internal pure returns (Action[] memory actions) {
+    function decodeActions(bytes memory encodedActions) internal pure returns (PT.Action[] memory actions) {
         if (encodedActions.length == 0) {
-            return new Action[](0);
+            return new PT.Action[](0);
         }
-        return abi.decode(encodedActions, (Action[]));
+        return abi.decode(encodedActions, (PT.Action[]));
     }
 
     function encodeMetaActionMessage(
         MetaActionId id,
-        MetaAction memory metaAction,
-        TokenInfo[] memory tokens,
+        PT.MetaAction memory metaAction,
+        PT.TokenInfo[] memory tokens,
         address tokensOwner,
         uint256 seqNumber
     )
@@ -110,9 +83,9 @@ library Protocol {
         pure
         returns (bytes memory message)
     {
-        return abi.encode(Message({
+        return abi.encode(PT.Message({
             version: VERSION,
-            messageType: MessageType.META_ACTION,
+            messageType: PT.MessageType.META_ACTION,
             metaActionId: id,
             payload: abi.encode(metaAction, tokens),
             tokensOwner: tokensOwner,
@@ -121,33 +94,33 @@ library Protocol {
     }
 
     function decodeMetaActionMessage(
-        Message memory message
+        PT.Message memory message
     )
         internal
         pure
-        returns (MetaAction memory metaAction, TokenInfo[] memory tokens)
+        returns (PT.MetaAction memory metaAction, PT.TokenInfo[] memory tokens)
     {
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
-        if (message.messageType != MessageType.META_ACTION) {
-            revert IncorrectMessageType(message.messageType, MessageType.META_ACTION);
+        if (message.messageType != PT.MessageType.META_ACTION) {
+            revert IncorrectMessageType(message.messageType, PT.MessageType.META_ACTION);
         }
-        return abi.decode(message.payload, (MetaAction, TokenInfo[]));
+        return abi.decode(message.payload, (PT.MetaAction, PT.TokenInfo[]));
     }
 
     function encodeConfirmationMessage(
         MetaActionId id,
         SchainHash schainHash,
-        TokenInfo[] memory tokens
+        PT.TokenInfo[] memory tokens
     )
         internal
         pure
         returns (bytes memory encodedConfirmation)
     {
-        return abi.encode(Message({
+        return abi.encode(PT.Message({
             version: VERSION,
-            messageType: MessageType.CONFIRMATION,
+            messageType: PT.MessageType.CONFIRMATION,
             metaActionId: id,
             payload: abi.encode(schainHash, tokens),
             tokensOwner: address(0),
@@ -156,23 +129,23 @@ library Protocol {
     }
 
     function decodeConfirmationMessage(
-        Message memory message
+        PT.Message memory message
     )
         internal
         pure
-        returns (SchainHash sourceSchain, TokenInfo[] memory tokens)
+        returns (SchainHash sourceSchain, PT.TokenInfo[] memory tokens)
     {
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
-        if (message.messageType != MessageType.CONFIRMATION) {
-            revert IncorrectMessageType(message.messageType, MessageType.CONFIRMATION);
+        if (message.messageType != PT.MessageType.CONFIRMATION) {
+            revert IncorrectMessageType(message.messageType, PT.MessageType.CONFIRMATION);
         }
-        return abi.decode(message.payload, (SchainHash, TokenInfo[]));
+        return abi.decode(message.payload, (SchainHash, PT.TokenInfo[]));
     }
 
-    function decodeMessage(bytes memory encodedMessage) internal pure returns (Message memory message) {
-        message = abi.decode(encodedMessage, (Message));
+    function decodeMessage(bytes memory encodedMessage) internal pure returns (PT.Message memory message) {
+        message = abi.decode(encodedMessage, (PT.Message));
         if (message.version != VERSION) {
             revert IncompatibleVersion(message.version);
         }
@@ -180,13 +153,5 @@ library Protocol {
 
     function isZero(MetaActionId id) internal pure returns (bool result) {
         return MetaActionId.unwrap(id) == bytes32(0);
-    }
-
-    function empty(MetaAction storage metaAction) internal view returns (bool result) {
-        return SchainHash.unwrap(metaAction.targetChainHash) != bytes32(0);
-    }
-
-    function hasNextMetaAction(Protocol.MetaAction storage metaAction) internal view returns (bool result) {
-        return metaAction.nextMetaAction.length > 0;
     }
 }

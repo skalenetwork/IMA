@@ -9,9 +9,9 @@ import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
-import { Protocol } from "../typechain/artifacts/contracts/schain/ExecutionLayer/ExecutionManager";
 import { Wallet } from "ethers";
 import { skipTime } from "./utils/time";
+import { ProtocolTypes } from "../typechain/artifacts/contracts/schain/ExecutionLayer/ExecutionManager";
 
 interface SchainSetup {
     messageProxy: MessageProxyForSchain;
@@ -26,8 +26,8 @@ enum MetaActionStatus {
     FAILED
 }
 
-const asMetaObject = (metaAction: Protocol.MetaActionStructOutput) => {
-    const asMetaAction: Protocol.MetaActionStruct = {
+const asMetaObject = (metaAction: ProtocolTypes.MetaActionStructOutput) => {
+    const asMetaAction: ProtocolTypes.MetaActionStruct = {
         targetChainHash: metaAction[0],
         actions: metaAction[1],
         nextMetaAction: metaAction[2],
@@ -129,7 +129,7 @@ describe("ExecutionManager", () => {
         assert(sourceExecutionManager);
         assert(targetExecutionManager);
 
-        const metaAction = asMetaObject(await sourceExecutionManager["createMetaAction(bytes32,(bytes32,bytes)[])"](
+        const metaAction = asMetaObject(await sourceExecutionManager.createSimpleMetaAction(
             targetSchainHash,
             []
         ));
@@ -206,7 +206,7 @@ describe("ExecutionManager", () => {
                 ethers.id("Send")
             )
         );
-        const metaAction = asMetaObject(await sourceExecutionManager["createMetaAction(bytes32,(bytes32,bytes)[])"](
+        const metaAction = asMetaObject(await sourceExecutionManager.createSimpleMetaAction(
             targetSchainHash,
             [{
                 executor: ethers.id("Send"),
@@ -346,7 +346,7 @@ describe("ExecutionManager", () => {
 
         const xAmount = value / 3n;
 
-        const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[],(bytes32,bytes,bytes,bytes),(bytes32,bytes)[])"](
+        const metaAction = asMetaObject(await executionManagerA.createChainedMetaAction(
             schainBHash,
             [
                 {
@@ -359,7 +359,7 @@ describe("ExecutionManager", () => {
                 }
 
             ],
-            asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+            asMetaObject(await executionManagerA.createSimpleMetaAction(
                 schainCHash,
                 [
                     {
@@ -571,7 +571,7 @@ describe("ExecutionManager", () => {
             expect(await token1A.balanceOf(user)).to.be.equal(value);
             expect(await token2B.balanceOf(exchangeB)).to.be.equal(value);
 
-            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerA.createSimpleMetaAction(
                 schainBHash,
                 [
                     {
@@ -630,7 +630,7 @@ describe("ExecutionManager", () => {
 
             // Send tokens, swap and send x value back
             // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
-            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerA.createSimpleMetaAction(
                 schainBHash,
                 [
                     {
@@ -694,7 +694,7 @@ describe("ExecutionManager", () => {
 
             // Send tokens, swap and send x value back
             // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
-            const metaAction = asMetaObject(await executionManagerB["createMetaAction(bytes32,(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerB.createSimpleMetaAction(
                 schainAHash,
                 [
                     {
@@ -777,7 +777,7 @@ describe("ExecutionManager", () => {
 
             // Send tokens, swap and send x value back
             // Since there will be tokens left from execution in Chain B, they will be automaticaly sent back to the user
-            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerA.createSimpleMetaAction(
                 schainBHash,
                 [
                     {
@@ -852,7 +852,7 @@ describe("ExecutionManager", () => {
             )
             const xAmount = value / 3n;
 
-            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[],(bytes32,bytes,bytes,bytes),(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerA.createChainedMetaAction(
                 schainBHash,
                 [
                     {
@@ -865,7 +865,7 @@ describe("ExecutionManager", () => {
                     }
 
                 ],
-                asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+                asMetaObject(await executionManagerA.createSimpleMetaAction(
                     schainCHash,
                     [
                         {
@@ -928,7 +928,7 @@ describe("ExecutionManager", () => {
             const xAmount = value / 3n;
             await schains.get(schainBName)?.messageProxy.removeConnectedChain(schainCName);
             await schains.get(schainCName)?.messageProxy.removeConnectedChain(schainBName);
-            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[],(bytes32,bytes,bytes,bytes),(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerA.createChainedMetaAction(
                 schainBHash,
                 [
                     {
@@ -941,7 +941,7 @@ describe("ExecutionManager", () => {
                     }
 
                 ],
-                asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+                asMetaObject(await executionManagerA.createSimpleMetaAction(
                     schainCHash,
                     [
                         {
@@ -1028,8 +1028,8 @@ describe("ExecutionManager", () => {
             await swapMockSwap.setExchange(exchangeB);
             await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
 
-            const reentrancy = await ethers.deployContract("ReentrancyExecutor");
-            await reentrancy.setExecutionManager(executionManagerB);
+            const reentrancy = await upgrades.deployProxy(await ethers.getContractFactory("ReentrancyExecutor"), [await executionManagerB.getAddress()]);
+            await reentrancy.waitForDeployment();
             await executionManagerB.setExecutor(await reentrancy.ID(), reentrancy);
 
             // send balance to exchange
@@ -1043,7 +1043,7 @@ describe("ExecutionManager", () => {
 
             await schains.get(schainBName)?.messageProxy.removeConnectedChain(schainCName);
             await schains.get(schainCName)?.messageProxy.removeConnectedChain(schainBName);
-            const metaAction = asMetaObject(await executionManagerA["createMetaAction(bytes32,(bytes32,bytes)[])"](
+            const metaAction = asMetaObject(await executionManagerA.createSimpleMetaAction(
                 schainBHash,
                 [
                     {

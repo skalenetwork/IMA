@@ -19,26 +19,25 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Just for tests...
+// solhint-disable comprehensive-interface
 
 pragma solidity 0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
 
 contract SwapMock {
-    IERC20 tokenA;
-    IERC20 tokenB;
+    IERC20 public tokenA;
+    IERC20 public tokenB;
 
     error UnknownToken(IERC20 token);
 
     function swap(IERC20 token, uint256 amount) external returns (uint256 resultAmount) {
         IERC20 anotherToken = getAnotherToken(token);
         address user = msg.sender;
-        token.transferFrom(user, address(this), amount);
-        anotherToken.transfer(user, amount);
-        console.log(address(token),"->", token.balanceOf(user));
-        console.log(address(token),"->", token.balanceOf(address(this)));
+        require(token.transferFrom(user, address(this), amount), "Token Transfer Failed");
+        require(anotherToken.transfer(user, amount), "Token Transfer Failed");
 
         return amount;
     }

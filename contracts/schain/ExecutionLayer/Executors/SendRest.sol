@@ -21,40 +21,41 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
-import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
-
+import {ProtocolTypes} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
 import {Executor} from "../Executor.sol";
 
 contract SendRest is Executor {
     ExecutorId public constant ID = ExecutorId.wrap(keccak256("SendRest"));
 
+    // Input depends on each Executor
+    // solhint-disable-next-line comprehensive-interface
     function encodeArguments(address receiver, uint256 value) external pure returns (bytes memory encodedArguments) {
         return abi.encode(receiver, value);
     }
 
     // internal
 
-    function executeWithTokens(
-        TokenInfo[] memory inputTokens,
+    function _executeWithTokens(
+        ProtocolTypes.TokenInfo[] memory inputTokens,
         bytes memory arguments
     )
         internal
         override
-        returns (TokenInfo[] memory outputTokens)
+        returns (ProtocolTypes.TokenInfo[] memory outputTokens)
     {
-        console.log("SendRest's execute");
-        outputTokens = copyTokens(inputTokens);
+        outputTokens = _copyTokens(inputTokens);
         (address target, uint256 value) = abi.decode(arguments, (address, uint256));
         for (uint256 i = 0; i < inputTokens.length; ++i) {
             if (inputTokens[i].value > value) {
-                IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
-                token.transfer(target, inputTokens[i].value - value);
+                IERC20 token = IERC20(_getTokenAddress(inputTokens[i]));
+                require(
+                    token.transfer(target, inputTokens[i].value - value),
+                    "Token Transfer Failed"
+                );
                 outputTokens[i].value = value;
-                console.log("Value:", value);
             }
         }
     }
