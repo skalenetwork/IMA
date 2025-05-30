@@ -573,6 +573,18 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
             // TODO: check gas limit guard (?)
             // We can leave it to the future for now
             tokens = executor.execute(tokens, actions[i].arguments);
+
+            // Use pull-based approach.
+            // executor can return tokens info different from what he transfered otherwise
+            for (uint256 j = 0; j < tokens.length; ++j) {
+                IERC20 token = IERC20(tokens[j].token);
+                // executors are whitelisted - slither false positive
+                // slither-disable-next-line arbitrary-send-erc20
+                require(
+                    token.transferFrom(address(executor), address(this), tokens[j].value),
+                    "Executor Sent Incorrect Tokens Information."
+                );
+            }
         }
         resultTokens = tokens;
     }

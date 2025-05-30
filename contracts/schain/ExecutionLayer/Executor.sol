@@ -57,10 +57,7 @@ abstract contract Executor is Initializable, IExecutor {
         );
         for (uint256 i = 0; i < outputTokens.length; ++i) {
             IERC20 token = IERC20(_getTokenAddress(outputTokens[i]));
-            require(
-                token.transfer(msg.sender, outputTokens[i].value),
-                "Token Transfer Failed"
-            );
+            token.approve(msg.sender, outputTokens[i].value);
         }
     }
 
