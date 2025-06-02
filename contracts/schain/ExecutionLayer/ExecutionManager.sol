@@ -40,6 +40,7 @@ import {ProtocolTypes, MetaActionId} from "@skalenetwork/ima-interfaces/schain/E
 import {ITokenLocker} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ITokenLocker.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+
 contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerableUpgradeable, IExecutionManager {
     using AddressUpgradeable for address;
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
@@ -69,6 +70,16 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
     mapping (address sender => uint256 nonce) public nonces;
     mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
 
+    event SentError(
+        MetaActionId indexed id
+    );
+
+    event SendErrorFailed(
+        MetaActionId indexed id,
+        string err
+    );
+
+
     error MetaActionNotFound(
         MetaActionId id
     );
@@ -85,8 +96,6 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         SchainHash sourceChainHash,
         address sender
     );
-
-
 
     modifier onlyController() {
         if (!hasRole(CONTROLLER_ROLE, msg.sender)) {
@@ -174,14 +183,13 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
     // solhint-disable-next-line comprehensive-interface
     function processMetaActionConfirmation (
         MetaActionId id,
-        ProtocolTypes.TokenInfo[] calldata tokens,
-        SchainHash sourceSchain
+        ProtocolTypes.TokenInfo[] calldata tokens
     )
         external
     {
         require(msg.sender == address(this), "Sender must be self");
-        tokenLocker.unlock(id);
-        _processMetaActionConfirmation(metaActions[id], tokens, sourceSchain);
+        _unlock(id, tokens);
+        _processMetaActionConfirmation(metaActions[id], tokens);
     }
 
     // This works as a private function as the caller needs to be this
@@ -189,8 +197,18 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
     // solhint-disable-next-line comprehensive-interface
     function processMetaAction(MetaActionId id, ProtocolTypes.TokenInfo[] memory tokens) external {
         require(msg.sender == address(this), "Sender must be self");
-        tokenLocker.unlock(id);
+        _unlock(id, tokens);
         _executeAndSendNextMetaAction(metaActions[id], tokens);
+    }
+
+    // This works as a private function as the caller needs to be this
+    // Does not make sense to expose in the interface
+    // solhint-disable-next-line comprehensive-interface
+    function sendBackError(MetaActionId id, ProtocolTypes.TokenInfo[] memory tokens) external {
+        require(msg.sender == address(this), "Sender must be self");
+        //Does not send back tokens in V1
+        _unlock(id, tokens);
+        _processMetaActionFailure(metaActions[id], tokens);
     }
 
     function getMetaActionStatus(
@@ -315,7 +333,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         ProtocolTypes.MetaAction memory metaAction;
         ProtocolTypes.TokenInfo[] memory tokens;
         (metaAction, tokens) = Protocol.decodeMetaActionMessage(message);
-
+        tokens = _mapToThisSchainTokens(tokens, sourceChain);
         metaActions[message.metaActionId] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: message.tokensOwner,
@@ -327,23 +345,38 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         });
 
         // Agents should allways send messages with more than enough gas to lock tokens.
-        bool locked = _lock(metaActions[message.metaActionId], _mapToThisSchainTokens(tokens, sourceChain));
+        bool locked = _lock(metaActions[message.metaActionId], tokens);
         if(!locked){
             //TODO: try send failure with 0 tokens
+            _sendError(message.metaActionId, tokens);
             return;
         }
-
+        // MetaAction is either fully successfull or fully reverted after locking.
         (bool success, string memory err) = _tryCallProcessMetaAction(
             message.metaActionId,
             tokens
         );
-        // MetaAction is either fully successfull or fully reverted after locking.
 
         if (success) return;
-
         emit MetaActionFailed(message.metaActionId, err);
+        _sendError(message.metaActionId, tokens);
+    }
 
-        //TODO: try send failure with 0 tokens
+    function _sendError(MetaActionId id, ProtocolTypes.TokenInfo[] memory tokens) private {
+        // Zero tokens in V1
+        tokens = new ProtocolTypes.TokenInfo[](0);
+        (bool success, string memory err) = _tryCallSendError(
+            id,
+            tokens
+        );
+
+        if (success) {
+
+            emit SentError(id);
+            return;
+        }
+
+        emit SendErrorFailed(id, err);
     }
 
     function _tryCallProcessMetaAction(
@@ -354,11 +387,11 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         returns (bool success, string memory error)
     {
 
-        if (gasleft() < FAILSAFE_GAS) {
+        if (gasleft() < FAILSAFE_GAS + 20_000) {
             // Dangerous zone
             return (false, "Not Enough Gas to Call processMetaAction");
         }
-        try this.processMetaAction{gas: gasleft() - FAILSAFE_GAS}(
+        try this.processMetaAction{gas: gasleft() - (FAILSAFE_GAS + 20_000)}(
             id,
             tokens
         ) {
@@ -372,45 +405,82 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         }
     }
 
-    function _receiveConfirmation(ProtocolTypes.Message memory message) private {
-        SchainHash sourceSchain;
-        ProtocolTypes.TokenInfo[] memory tokens;
-        (sourceSchain, tokens) = Protocol.decodeConfirmationMessage(message);
-        bool locked = _lock(metaActions[message.metaActionId], _mapToThisSchainTokens(tokens, sourceSchain));
-
-        if(!locked){
-            //TODO: try send failure with 0 tokens
-            return;
-        }
-
-        (bool success, string memory err) = _tryCallProcessMetaActionConfirmation(
-            message.metaActionId,
-            tokens,
-            sourceSchain
-        );
-
-        if (success) return;
-
-        emit MetaActionConfirmationFailed(message.metaActionId, err);
-        //TODO: try send failure with 0 tokens
-    }
-
-    function _tryCallProcessMetaActionConfirmation(
+    function _tryCallSendError(
         MetaActionId id,
-        ProtocolTypes.TokenInfo[] memory tokens,
-        SchainHash sourceSchain
+        ProtocolTypes.TokenInfo[] memory tokens
     )
         private
         returns (bool success, string memory error)
     {
         if (gasleft() < FAILSAFE_GAS) {
             // Dangerous zone
+            return (false, "Not Enough Gas to Send Error");
+        }
+        try this.sendBackError{gas: gasleft() - FAILSAFE_GAS / 2}( // TODO: Maybe a fixed ammount is better. Review
+            id,
+            tokens
+        ) {
+            return (true, "");
+        } catch Error(string memory reason) {
+            return (false, _getSlice(bytes(reason), REVERT_REASON_LENGTH));
+        } catch Panic(uint errorCode) {
+            return (false, string(abi.encodePacked(errorCode)));
+        } catch (bytes memory revertData) {
+            return (false, _getSlice(revertData, REVERT_REASON_LENGTH));
+        }
+    }
+
+    function _receiveFailure(ProtocolTypes.Message memory message) private {
+        SchainHash sourceSchain;
+        ProtocolTypes.TokenInfo[] memory tokens;
+        (sourceSchain, tokens) = Protocol.decodeFailureMessage(message);
+        tokens = _mapToThisSchainTokens(tokens, sourceSchain);
+        bool locked = _lock(metaActions[message.metaActionId], tokens);
+        if(!locked){
+            emit SendErrorFailed(message.metaActionId, "Failed to lock tokens received from failed failed message");
+            return;
+        }
+        _sendError(message.metaActionId, tokens);
+    }
+
+    function _receiveConfirmation(ProtocolTypes.Message memory message) private {
+        SchainHash sourceSchain;
+        ProtocolTypes.TokenInfo[] memory tokens;
+        (sourceSchain, tokens) = Protocol.decodeConfirmationMessage(message);
+        tokens = _mapToThisSchainTokens(tokens, sourceSchain);
+        bool locked = _lock(metaActions[message.metaActionId], tokens);
+
+        if(!locked){
+            _sendError(message.metaActionId, tokens);
+            return;
+        }
+
+        (bool success, string memory err) = _tryCallProcessMetaActionConfirmation(
+            message.metaActionId,
+            tokens
+        );
+
+        if (success) return;
+
+        emit MetaActionConfirmationFailed(message.metaActionId, err);
+
+        _sendError(message.metaActionId, tokens);
+    }
+
+    function _tryCallProcessMetaActionConfirmation(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+        returns (bool success, string memory error)
+    {
+        if (gasleft() < FAILSAFE_GAS + 20_000) {
+            // Dangerous zone
             return (false, "Not Enough Gas to Call processMetaActionConfirmation");
         }
-        try this.processMetaActionConfirmation{gas: gasleft() - FAILSAFE_GAS}(
+        try this.processMetaActionConfirmation{gas: gasleft() - (FAILSAFE_GAS + 20_000)}(
             id,
-            tokens,
-            sourceSchain
+            tokens
         ) {
             return (true, "");
         } catch Error(string memory reason) {
@@ -428,17 +498,37 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
             _receiveMetaAction(message, sourceChain);
         } else if (message.messageType == ProtocolTypes.MessageType.CONFIRMATION) {
             _receiveConfirmation(message);
+        } else if (message.messageType == ProtocolTypes.MessageType.FAILURE) {
+            _receiveFailure(message);
         } else {
             revert Protocol.UnknownMessageType(message.messageType);
         }
+    }
+
+    function _processMetaActionFailure(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
+        assert(metaAction.status == ProtocolTypes.MetaActionStatus.EXECUTING);
+        metaAction.status = ProtocolTypes.MetaActionStatus.FAILED;
+        if (_isOrigin(metaAction)) {
+            for (uint256 i = 0; i < tokens.length; ++i) {
+                IERC20 token = IERC20(tokens[i].token);
+                require(token.transfer(metaAction.sender, tokens[i].value), "Token Transfer Failed");
+            }
+            return;
+        }
+        tokens = _sendBackTokens(metaAction.id, tokens);
+        _sendFailure(metaAction, tokens);
     }
 
 
 
     function _processMetaActionConfirmation(
         MetaActionContainer storage metaAction,
-        ProtocolTypes.TokenInfo[] memory tokens,
-        SchainHash sourceSchain
+        ProtocolTypes.TokenInfo[] memory tokens
     )
         private
     {
@@ -446,8 +536,6 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
         ProtocolTypes.TokenInfo[] memory resultTokens = _postExecuteMetaAction(metaAction, tokens);
         metaAction.status = ProtocolTypes.MetaActionStatus.SUCCEED;
-
-        resultTokens = _mapToThisSchainTokens(resultTokens, sourceSchain);
 
         if (_isOrigin(metaAction)) {
             for (uint256 i = 0; i < resultTokens.length; ++i) {
@@ -518,7 +606,24 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         returns (ProtocolTypes.TokenInfo[] memory resultTokens)
     {
         ProtocolTypes.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.actions);
-        return _executeParsedActions(actions, tokens, metaAction.sourceChain);
+        return _executeParsedActions(actions, tokens);
+    }
+
+    function _unlock(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
+        if (tokens.length == 0) return;
+        tokenLocker.unlock(id);
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+            // address(tokenLocker) is controlled and trusted - slither false positive
+            // slither-disable-next-line arbitrary-send-erc20
+            require(token.transferFrom(address(tokenLocker), address(this), tokens[i].value), "Unlock failed");
+        }
+
     }
 
     function _lock(
@@ -528,6 +633,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         private
         returns(bool success)
     {
+        if (tokens.length == 0) return true;
         success = true;
         for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = IERC20(tokens[i].token);
@@ -550,20 +656,16 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         returns (ProtocolTypes.TokenInfo[] memory resultTokens)
     {
         ProtocolTypes.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.postActions);
-        return _executeParsedActions(actions, tokens, metaAction.sourceChain);
+        return _executeParsedActions(actions, tokens);
     }
 
     function _executeParsedActions(
         ProtocolTypes.Action[] memory actions,
-        ProtocolTypes.TokenInfo[] memory tokens,
-        SchainHash sourceChain
+        ProtocolTypes.TokenInfo[] memory tokens
     )
         private
         returns (ProtocolTypes.TokenInfo[] memory resultTokens)
     {
-        // executor may receive addresses of tokens in origin blockchain
-        tokens = _mapToThisSchainTokens(tokens, sourceChain);
-
         for (uint256 i = 0; i < actions.length; ++i) {
             IExecutor executor = getExecutor(actions[i].executor);
             for (uint256 j = 0; j < tokens.length; ++j) {
@@ -637,7 +739,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
                 )
             );
         } else {
-            _processMetaActionConfirmation(metaAction, tokens, metaAction.sourceChain);
+            _processMetaActionConfirmation(metaAction, tokens);
         }
     }
 
@@ -652,6 +754,20 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
             Protocol.encodeConfirmationMessage(metaAction.id, erc20TokenManager.schainHash(), tokens)
+        );
+    }
+
+    function _sendFailure(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
+        SchainHash targetChainHash = metaAction.sourceChain;
+        erc20TokenManager.messageProxy().postOutgoingMessage(
+            targetChainHash,
+            address(_getRemoteExecutionManager(targetChainHash)),
+            Protocol.encodeFailureMessage(metaAction.id, erc20TokenManager.schainHash(), tokens)
         );
     }
 

@@ -111,7 +111,6 @@ contract TokenLocker is AccessControlEnumerableUpgradeable, ReentrancyGuardUpgra
         onlyExecutionManager
         noLockForMetaAction(metaAction)
     {
-
         lockData[metaAction].timestamp = block.timestamp;
         lockData[metaAction].metaActionId = metaAction;
         lockData[metaAction].tokensOwner = owner;
@@ -156,14 +155,10 @@ contract TokenLocker is AccessControlEnumerableUpgradeable, ReentrancyGuardUpgra
             IERC20 token = IERC20(tokens[i].token);
             tokens[i].value = lockInfo.balances[token];
             lockInfo.balances[token] = 0;
+            require(token.approve(msg.sender, tokens[i].value), "Token Approval Failed");
         }
         assert(lockInfo.tokens.length == 0);
         emit TokensUnlocked(metaAction, msg.sender, tokens);
-
-        for (uint256 i = 0; i < length; ++i) {
-            IERC20 token = IERC20(tokens[i].token);
-            require(token.transfer(msg.sender, tokens[i].value), "Token Transfer Failed");
-        }
     }
 
     function getMetaActionsWithLockedTokens()
@@ -176,6 +171,17 @@ contract TokenLocker is AccessControlEnumerableUpgradeable, ReentrancyGuardUpgra
         for (uint256 i = 0; i < _metaActionsWithLockedTokens.length(); i++) {
             metaActions[i] = MetaActionId.wrap(_metaActionsWithLockedTokens.at(i));
         }
+    }
+    function  getLockedTokensForMetaAction(
+        MetaActionId id
+    )
+        external
+        view
+        override
+        lockForMetaActionExists(id)
+        returns (ProtocolTypes.TokenInfo[] memory tokens)
+    {
+        tokens = lockData[id].tokens;
     }
 
     // private

@@ -985,8 +985,8 @@ describe("ExecutionManager", () => {
             // tokens should be in the locker
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(value);
 
-            expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
-            expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+            expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.FAILED);
+            expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.FAILED);
 
             // Tokens are locked
             expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(1);
@@ -1006,7 +1006,13 @@ describe("ExecutionManager", () => {
             await tokenLockerB.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
 
             // User gets tokens
+            const tokens = await tokenLockerB.getLockedTokensForMetaAction(metaActionId);
             await tokenLockerB.connect(user).unlock(metaActionId);
+            for (const token of tokens) {
+                const contract = await ethers.getContractAt("IERC20", token.token);
+                const tx = await contract.connect(user).transferFrom(tokenLockerB, user, token.value);
+                await tx.wait();
+            }
             expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(0);
             expect(await token1B.balanceOf(user)).to.be.equal(value);
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);
@@ -1089,8 +1095,8 @@ describe("ExecutionManager", () => {
             // tokens should be in the locker
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(value);
 
-            expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
-            expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.EXECUTING);
+            expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.FAILED);
+            expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.FAILED);
 
             // Tokens are locked
             expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(1);
@@ -1110,7 +1116,13 @@ describe("ExecutionManager", () => {
             await tokenLockerB.connect(hacker).unlock(metaActionId).should.be.eventually.rejectedWith("Sender is not owner of tokens or is not Execution Manager.");
 
             // User gets tokens
+            const tokens = await tokenLockerB.getLockedTokensForMetaAction(metaActionId);
             await tokenLockerB.connect(user).unlock(metaActionId);
+            for (const token of tokens) {
+                const contract = await ethers.getContractAt("IERC20", token.token);
+                const tx = await contract.connect(user).transferFrom(tokenLockerB, user, token.value);
+                await tx.wait();
+            }
             expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(0);
             expect(await token1B.balanceOf(user)).to.be.equal(value);
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);

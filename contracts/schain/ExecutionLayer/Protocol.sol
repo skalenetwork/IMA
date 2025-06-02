@@ -144,6 +144,41 @@ library Protocol {
         return abi.decode(message.payload, (SchainHash, PT.TokenInfo[]));
     }
 
+    function encodeFailureMessage(
+        MetaActionId id,
+        SchainHash schainHash,
+        PT.TokenInfo[] memory tokens
+    )
+        internal
+        pure
+        returns (bytes memory encodedConfirmation)
+    {
+        return abi.encode(PT.Message({
+            version: VERSION,
+            messageType: PT.MessageType.FAILURE,
+            metaActionId: id,
+            payload: abi.encode(schainHash, tokens),
+            tokensOwner: address(0),
+            seqNumber: 0
+        }));
+    }
+
+    function decodeFailureMessage(
+        PT.Message memory message
+    )
+        internal
+        pure
+        returns (SchainHash sourceSchain, PT.TokenInfo[] memory tokens)
+    {
+        if (message.version != VERSION) {
+            revert IncompatibleVersion(message.version);
+        }
+        if (message.messageType != PT.MessageType.FAILURE) {
+            revert IncorrectMessageType(message.messageType, PT.MessageType.FAILURE);
+        }
+        return abi.decode(message.payload, (SchainHash, PT.TokenInfo[]));
+    }
+
     function decodeMessage(bytes memory encodedMessage) internal pure returns (PT.Message memory message) {
         message = abi.decode(encodedMessage, (PT.Message));
         if (message.version != VERSION) {
