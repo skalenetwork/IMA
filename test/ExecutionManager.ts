@@ -1127,5 +1127,105 @@ describe("ExecutionManager", () => {
             expect(await token1B.balanceOf(user)).to.be.equal(value);
             expect(await token1B.balanceOf(await executionManagerB.tokenLocker())).to.be.equal(0n);
         });
+
+
+        it.only("transfer from A to B, and try to send from B to A but fails because it's a cicle", async () => {
+
+            // Transfer the token to chain A
+            await token1B.connect(user).approve(tokenManagerB, value);
+            await tokenManagerB.connect(user).transferToSchainERC20(
+                schainAName,
+                token1B, value
+            );
+
+            await agent.deliverMessages();
+
+            // Setup executors
+            const swapMockSwap = await ethers.deployContract("SwapMockSwap");
+            await swapMockSwap.setExecutionManager(executionManagerB);
+            await swapMockSwap.setExchange(exchangeB);
+            await executionManagerB.setExecutor(await swapMockSwap.ID(), swapMockSwap);
+
+            // send balance to exchange
+
+            await token2B.connect(user).transfer(exchangeB, value);
+
+            expect(await token2A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(0n);
+            expect(await token1A.balanceOf(user)).to.be.equal(value);
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(value);
+            const sendRest = await ethers.getContractAt(
+                "SendRest",
+                await executionManagerA.getExecutor(ethers.id("SendRest"))
+            );
+
+            const send = await ethers.getContractAt(
+                "Send",
+                await executionManagerA.getExecutor(ethers.id("Send"))
+            )
+            const xAmount = value / 3n;
+
+            const metaAction = asMetaObject(await executionManagerA.createChainedMetaAction(
+                schainBHash,
+                [
+                    {
+                        executor: ethers.id("SwapMockSwap"),
+                        arguments: await swapMockSwap.encodeArguments(token1B, 0)
+                    },
+                    {
+                        executor: ethers.id("SendRest"),
+                        arguments: await sendRest.encodeArguments(user, xAmount)
+                    }
+
+                ],
+                asMetaObject(await executionManagerA.createSimpleMetaAction(
+                    schainAHash,
+                    [
+                        {
+                            executor: ethers.id("Send"),
+                            arguments: await send.encodeArguments(user)
+                        }
+                    ]
+                )),
+                []
+            ));
+            await token1A.connect(user).approve(executionManagerA, value);
+            await executionManagerA.connect(user).execute(
+                metaAction,
+                [{token: token1A, value: value}],
+                []
+            );
+
+            const logs = (await ethers.provider.getLogs({
+                address: executionManagerA,
+                fromBlock: 0,
+                toBlock: "latest",
+                topics: [
+                    executionManagerA.interface.getEvent("MetaActionCreated").topicHash
+                ]
+            })).map(log => executionManagerA.interface.parseLog(log));
+            const metaActionId = logs[0]?.args.id;
+
+            await agent.deliverMessages();
+            await agent.deliverMessages();
+
+
+            // Tokens are successfuly sent to chainA after exchange
+            // But chain A detects a cycle, and locks tokens.
+
+            expect(await token1A.balanceOf(user)).to.be.equal(0n);
+            expect(await token2B.balanceOf(user)).to.be.equal(value-xAmount);
+            expect(await token1B.balanceOf(exchangeB)).to.be.equal(value);
+            expect(await token2B.balanceOf(exchangeB)).to.be.equal(0n);
+            expect(await token2A.balanceOf(tokenLockerA)).to.be.equal(xAmount);
+
+            expect((await executionManagerA.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.FAILED);
+            expect((await executionManagerB.metaActions(metaActionId)).status).to.be.equal(MetaActionStatus.FAILED);
+
+            // Tokens are locked in chain A
+            expect((await executionManagerA.getMetaActionsWithLockedTokens()).length).to.be.equal(1);
+            expect((await executionManagerB.getMetaActionsWithLockedTokens()).length).to.be.equal(0);
+
+        });
     });
 });
