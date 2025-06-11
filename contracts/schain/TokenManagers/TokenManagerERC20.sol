@@ -21,7 +21,6 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
 
 // cspell:words IERC20Upgradeable
 
@@ -65,6 +64,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
     mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
+    mapping(SchainHash => mapping(ERC20OnChain => address)) public clonesErc20Inverted;
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
@@ -187,6 +187,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         }
         require(!addedClones[ERC20OnChain(newErc20OnSchain)], "Clone was already added");
         clonesErc20[originChainHash][erc20OnOriginChain] = ERC20OnChain(newErc20OnSchain);
+        clonesErc20Inverted[originChainHash][ERC20OnChain(newErc20OnSchain)] = erc20OnOriginChain;
         addedClones[ERC20OnChain(newErc20OnSchain)] = true;
         emit ERC20TokenAdded(originChainHash, erc20OnOriginChain, newErc20OnSchain);
     }
@@ -248,8 +249,12 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         onlySchainTarget(targetSchainHash, receiver)
     {
-        console.log("transferToSchainHashERC20Direct");
         communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+
+        // if it was given the address of the clone, change for main address
+        if (addedClones[ERC20OnChain(contractOnMainnet)]) {
+            contractOnMainnet = clonesErc20Inverted[targetSchainHash][ERC20OnChain(contractOnMainnet)];
+        }
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, amount);
     }
 
@@ -282,6 +287,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                     require(automaticDeploy, "Automatic deploy is disabled");
                     contractOnSchain = new ERC20OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
                     clonesErc20[fromChainHash][token] = contractOnSchain;
+                    clonesErc20Inverted[fromChainHash][contractOnSchain] = token;
                     addedClones[contractOnSchain] = true;
                     emit ERC20TokenCreated(fromChainHash, token, address(contractOnSchain));
                 }

@@ -34,12 +34,12 @@ import "./Linker.sol";
  */
 abstract contract DepositBox is IDepositBox, Twin {
 
+    bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
+
     ILinker public linker;
 
     // schainHash => true if automatic deployment tokens on schain was enabled
     mapping(bytes32 => bool) private _automaticDeploy;
-
-    bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
     /**
      * @dev Modifier for checking whether schain was not killed.

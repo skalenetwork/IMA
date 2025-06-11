@@ -21,8 +21,6 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
-
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
 import {ITokenManagerERC20} from "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
@@ -114,8 +112,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * if the value is 0 MINIMUM_BALANCE is used
      */
     uint256 public minimumReceiverBalance;
-
-    ITokenManagerERC20 public tokenManagerERC20;
 
     /**
      * @dev the event is emitted when value of receiver's minimum balance is changed
@@ -216,8 +212,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         override(IMessageListener, MessageProxy)
         messageInProgressLocker
     {
-        console.log("postIncomingMessages");
-        console.log(messages.length);
         SchainHash fromChainHash = _schainHash(fromChainName);
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");

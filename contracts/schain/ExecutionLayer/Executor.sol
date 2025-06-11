@@ -21,13 +21,12 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {IExecutor} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
-import {TokenInfo} from "./Protocol.sol";
+import {ProtocolTypes} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
 
 
 abstract contract Executor is Initializable, IExecutor {
@@ -38,53 +37,67 @@ abstract contract Executor is Initializable, IExecutor {
     }
 
     function execute(
-        TokenInfo[] memory inputTokens,
+        ProtocolTypes.TokenInfo[] memory inputTokens,
         bytes memory arguments
     )
         external
         override
-        returns (TokenInfo[] memory outputTokens)
+        returns (ProtocolTypes.TokenInfo[] memory outputTokens)
     {
+        require(msg.sender == address(executionManager), "Only Execution Manager");
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
-            token.transferFrom(address(executionManager), address(this), inputTokens[i].value);
+            IERC20 token = IERC20(inputTokens[i].token);
+            require(
+                token.transferFrom(msg.sender, address(this), inputTokens[i].value),
+                "Token Transfer Failed"
+            );
         }
-        outputTokens = pruneTokens(
-            executeWithTokens(inputTokens, arguments)
+        outputTokens = _pruneTokens(
+            _executeWithTokens(inputTokens, arguments)
         );
-        console.log("executed");
         for (uint256 i = 0; i < outputTokens.length; ++i) {
-            IERC20 token = IERC20(getTokenAddress(outputTokens[i]));
-            token.transfer(address(executionManager), inputTokens[i].value);
+            IERC20 token = IERC20(_getTokenAddress(outputTokens[i]));
+            token.approve(msg.sender, outputTokens[i].value);
         }
-        console.log("tokens returned to the executor");
     }
 
     // internal
 
-    function executeWithTokens(
-        TokenInfo[] memory inputTokens,
+    function _executeWithTokens(
+        ProtocolTypes.TokenInfo[] memory inputTokens,
         bytes memory
     )
         internal
         virtual
-        returns (TokenInfo[] memory outputTokens)
+        returns (ProtocolTypes.TokenInfo[] memory outputTokens)
     {
         return inputTokens;
     }
 
-    function getTokenAddress(TokenInfo memory tokenInfo) internal view returns (address) {
+    function _getTokenAddress(ProtocolTypes.TokenInfo memory tokenInfo) internal view returns (address) {
         return executionManager.getTokenAddress(tokenInfo);
     }
 
-    function copyTokens(TokenInfo[] memory tokenInfo) internal pure returns (TokenInfo[] memory tokenInfoCopy) {
-        tokenInfoCopy = new TokenInfo[](tokenInfo.length);
+    function _copyTokens(
+        ProtocolTypes.TokenInfo[] memory tokenInfo
+    )
+        internal
+        pure
+        returns (ProtocolTypes.TokenInfo[] memory tokenInfoCopy)
+    {
+        tokenInfoCopy = new ProtocolTypes.TokenInfo[](tokenInfo.length);
         for (uint256 i = 0; i < tokenInfo.length; ++i) {
             tokenInfoCopy[i] = tokenInfo[i];
         }
     }
 
-    function pruneTokens(TokenInfo[] memory tokenInfo) internal pure returns (TokenInfo[] memory tokenInfoPruned) {
+    function _pruneTokens(
+        ProtocolTypes.TokenInfo[] memory tokenInfo
+    )
+        internal
+        pure
+        returns (ProtocolTypes.TokenInfo[] memory tokenInfoPruned)
+    {
         uint256 count = 0;
         for (uint256 i = 0; i < tokenInfo.length; ++i) {
             if (tokenInfo[i].value > 0) {
@@ -94,7 +107,7 @@ abstract contract Executor is Initializable, IExecutor {
         if (count == tokenInfo.length) {
             return tokenInfo;
         }
-        tokenInfoPruned = new TokenInfo[](count);
+        tokenInfoPruned = new ProtocolTypes.TokenInfo[](count);
         count = 0;
         for (uint256 i = 0; i < tokenInfo.length; ++i) {
             if (tokenInfo[i].value > 0) {

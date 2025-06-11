@@ -21,51 +21,75 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
-
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
-import {TokenInfo} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IActionExecutor.sol";
+import {ProtocolTypes} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
 
 import {Executor, IExecutionManager} from "../../../schain/ExecutionLayer/Executor.sol";
 import {SwapMock} from "../SwapMock.sol";
 
 contract SwapMockSwap is Executor {
     ExecutorId public constant ID = ExecutorId.wrap(keccak256("SwapMockSwap"));
-    SwapMock exchange;
+    SwapMock public exchange;
 
+    // Executor-specific function
+    // solhint-disable-next-line comprehensive-interface
     function setExchange(SwapMock exchangeAddress) external {
         exchange = exchangeAddress;
     }
 
+    // Executor-specific function
+    // solhint-disable-next-line comprehensive-interface
     function setExecutionManager(IExecutionManager executionManagerAddress) external {
         executionManager = executionManagerAddress;
     }
 
+    // Input depends on each Executor
+    // solhint-disable-next-line comprehensive-interface
+    function encodeArguments(address toSwap, uint256 amount) external pure returns (bytes memory encodedArguments) {
+        return abi.encode(toSwap, amount);
+    }
+
     // internal
 
-    function executeWithTokens(
-        TokenInfo[] memory inputTokens,
-        bytes memory
+    function _executeWithTokens(
+        ProtocolTypes.TokenInfo[] memory inputTokens,
+        bytes memory arguments
     )
         internal
         override
-        returns (TokenInfo[] memory outputTokens)
+        returns (ProtocolTypes.TokenInfo[] memory outputTokens)
     {
-        console.log("Execute SwapMockSwap");
-        outputTokens = new TokenInfo[](inputTokens.length);
+        (address toSwap, uint256 amount) = abi.decode(arguments, (address, uint256));
+        IERC20 token = IERC20(toSwap);
+
+        if (amount == 0) {
+            amount = token.balanceOf(address(this));
+        }
+        IERC20 anotherToken = exchange.getAnotherToken(token);
+        token.approve(address(exchange), amount);
+        uint256 anotherValue = exchange.swap(token, amount);
+        uint256 finalBalance = token.balanceOf(address(this));
+        if (finalBalance > 0) {
+            outputTokens = new ProtocolTypes.TokenInfo[](inputTokens.length + 1);
+            outputTokens[inputTokens.length].token = toSwap;
+            outputTokens[inputTokens.length].value = finalBalance;
+        } else {
+            outputTokens = new ProtocolTypes.TokenInfo[](inputTokens.length);
+        }
+
+        // mindblowing .. but it's a mock so :(
         for (uint256 i = 0; i < inputTokens.length; ++i) {
-            console.log("Loop iteration");
-            IERC20 token = IERC20(getTokenAddress(inputTokens[i]));
-            console.log(address(token));
-            IERC20 anotherToken = exchange.getAnotherToken(token);
-            console.log(address(anotherToken));
-            token.approve(address(exchange), inputTokens[i].value);
-            console.log("approved to swap");
-            uint256 anotherValue = exchange.swap(token, inputTokens[i].value);
-            console.log("swapped");
-            outputTokens[i].token = address(anotherToken);
-            outputTokens[i].value = anotherValue;
+            if (inputTokens[i].token == address(anotherToken)) {
+                outputTokens[i] = inputTokens[i];
+                outputTokens[i].value += anotherValue;
+                anotherValue = 0;
+            } else if (inputTokens[i].token == toSwap) {
+                outputTokens[i].token = address(anotherToken);
+                outputTokens[i].value = anotherValue;
+            } else {
+                outputTokens[i] = inputTokens[i];
+            }
         }
     }
 }

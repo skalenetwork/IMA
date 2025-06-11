@@ -21,46 +21,73 @@
 
 pragma solidity 0.8.27;
 
-import "hardhat/console.sol";
-
-import {AccessControlEnumerableUpgradeable}
-from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {
+    AccessControlEnumerableUpgradeable
+} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IExecutionManager, SchainHash} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutionManager.sol";
 import {ITokenManagerERC20} from "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
-import {ExecutorId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
+import {ExecutorId, IExecutor} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/IExecutor.sol";
 import {IMessageProxy} from "@skalenetwork/ima-interfaces/IMessageProxy.sol";
 import {RoleRequired} from "../../CommonErrors.sol";
 import {ERC20OnChain, TokenManagerERC20} from "../TokenManagers/TokenManagerERC20.sol";
-import {MetaActionId, Protocol, TokenInfo} from "./Protocol.sol";
-import {Executor} from "./Executor.sol";
+import {Protocol} from "./Protocol.sol";
+import {ProtocolTypes, MetaActionId} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ProtocolTypes.sol";
+import {ITokenLocker} from "@skalenetwork/ima-interfaces/schain/ExecutionLayer/ITokenLocker.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManager {
+
+contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerableUpgradeable, IExecutionManager {
+    using AddressUpgradeable for address;
     using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using Protocol for MetaActionId;
-    using Protocol for Protocol.MetaAction;
+    using Protocol for ProtocolTypes.MetaAction;
+    using Protocol for ProtocolTypes.TokenInfo;
 
     struct MetaActionContainer {
         uint96 version;
+        uint256 seqNumber;
         address sender;
         SchainHash sourceChain;
         MetaActionId id;
-        Protocol.MetaActionStatus status;
-        Protocol.MetaAction metaAction;
+        ProtocolTypes.MetaActionStatus status;
+        ProtocolTypes.MetaAction metaAction;
     }
 
+    uint256 public constant FAILSAFE_GAS = 200_000;
+    uint256 public constant REVERT_REASON_LENGTH = 64;
     bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
 
     TokenManagerERC20 public erc20TokenManager;
+    ITokenLocker public tokenLocker;
     EnumerableMap.Bytes32ToAddressMap private _remoteExecutionManagers;
     EnumerableMap.Bytes32ToAddressMap private _executors;
     mapping (address sender => uint256 nonce) public nonces;
     mapping (MetaActionId metaActionId => MetaActionContainer) public metaActions;
 
-    event MetaActionCreated(
-        MetaActionId id
+    event SentError(
+        MetaActionId indexed id
     );
+
+    event SendErrorFailed(
+        MetaActionId indexed id,
+        string err
+    );
+
+    event FailedToLockTokens(
+        MetaActionId indexed id,
+        ProtocolTypes.MessageType messateType
+    );
+
+    event CycleDetected(
+        MetaActionId indexed id
+    );
+
 
     error MetaActionNotFound(
         MetaActionId id
@@ -79,10 +106,6 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         address sender
     );
 
-    error OriginAddressIsNotProvided(
-        address token
-    );
-
     modifier onlyController() {
         if (!hasRole(CONTROLLER_ROLE, msg.sender)) {
             revert RoleRequired(CONTROLLER_ROLE);
@@ -97,24 +120,26 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         _;
     }
 
-    function initialize(ITokenManagerERC20 erc20TokenManagerAddress) external override initializer {
+    function initialize(
+        ITokenManagerERC20 erc20TokenManagerAddress,
+        ITokenLocker locker
+    ) external override initializer {
+        __ReentrancyGuard_init();
+        __AccessControlEnumerable_init();
         erc20TokenManager = TokenManagerERC20(address(erc20TokenManagerAddress));
+        tokenLocker = locker;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function postMessage(
+    function postMessage (
         SchainHash sourceChain,
         address sender,
         bytes calldata data
-    ) external onlyMessageProxy override {
-        console.log("Process incoming message");
-        console.log(address(this));
+    ) external onlyMessageProxy nonReentrant override {
         if (!_remoteExecutionManagers.contains(SchainHash.unwrap(sourceChain))) {
-            console.log("SourceChainIsNotRegistered");
             revert SourceChainIsNotRegistered(sourceChain);
         }
         if (address(_getRemoteExecutionManager(sourceChain)) != sender) {
-            console.log("SenderIsNotExecutionManager");
             revert SenderIsNotExecutionManager(sourceChain, sender);
         }
         _processMessage(data, sourceChain);
@@ -133,61 +158,112 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
 
     function setExecutor(
         ExecutorId id,
-        Executor executorAddress
+        IExecutor executorAddress
     )
         external
+        override
         onlyController
     {
         _executors.set(ExecutorId.unwrap(id), address(executorAddress));
     }
 
     function execute(
-        Protocol.MetaAction calldata metaAction,
-        TokenInfo[] calldata tokens
+        ProtocolTypes.MetaAction calldata metaAction,
+        ProtocolTypes.TokenInfo[] calldata tokens,
+        ProtocolTypes.Action[] memory postActions
     )
         external
+        override
+        nonReentrant
     {
-        _processMetaAction(
+        _executeAndSendNextMetaAction(
             _createMetaAction(
                 msg.sender,
                 metaAction,
-                tokens
+                tokens,
+                postActions
             ),
             tokens
         );
     }
 
-    function getMetaActionStatus(MetaActionId id) external view returns (Protocol.MetaActionStatus status) {
+    // This works as a private function as the caller needs to be this
+    // Does not make sense to expose in the interface
+    // solhint-disable-next-line comprehensive-interface
+    function processMetaActionConfirmation (
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] calldata tokens
+    )
+        external
+    {
+        require(msg.sender == address(this), "Sender must be self");
+        _unlock(id, tokens);
+        _processMetaActionConfirmation(_getMetaAction(id), tokens);
+    }
+
+    // This works as a private function as the caller needs to be this
+    // Does not make sense to expose in the interface
+    // solhint-disable-next-line comprehensive-interface
+    function processMetaAction(MetaActionId id, ProtocolTypes.TokenInfo[] memory tokens) external {
+        require(msg.sender == address(this), "Sender must be self");
+        _unlock(id, tokens);
+        _executeAndSendNextMetaAction(_getMetaAction(id), tokens);
+    }
+
+    // This works as a private function as the caller needs to be this
+    // Does not make sense to expose in the interface
+    // solhint-disable-next-line comprehensive-interface
+    function sendBackError(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash schainHash
+    ) external {
+        require(msg.sender == address(this), "Sender must be self");
+        //Does not send back tokens in V1
+        _unlock(id, tokens);
+        _processMetaActionFailure(_getMetaAction(id), tokens, schainHash);
+    }
+
+    function getMetaActionStatus(
+        MetaActionId id
+    )
+        external
+        view
+        override
+        returns (ProtocolTypes.MetaActionStatus status)
+    {
         return _getMetaAction(id).status;
     }
 
-    function createMetaAction(
+    function createSimpleMetaAction(
         SchainHash targetChain,
-        Protocol.Action[] memory actions
+        ProtocolTypes.Action[] memory actions
     )
         external
         pure
-        returns (Protocol.MetaAction memory metaAction)
+        override
+        returns (ProtocolTypes.MetaAction memory metaAction)
     {
-        return Protocol.MetaAction({
+        return ProtocolTypes.MetaAction({
             targetChainHash: targetChain,
             actions: Protocol.encodeActions(actions),
             nextMetaAction: "",
-            postActions: ""
+            postActions: "" // TODO
         });
     }
 
-    function createMetaAction(
+    function createChainedMetaAction(
         SchainHash targetChain,
-        Protocol.Action[] memory actions,
-        Protocol.MetaAction memory nextMetaAction,
-        Protocol.Action[] memory postActions
+        ProtocolTypes.Action[] memory actions,
+        ProtocolTypes.MetaAction memory nextMetaAction,
+        ProtocolTypes.Action[] memory postActions
     )
         external
         pure
-        returns (Protocol.MetaAction memory metaAction)
+        override
+        returns (ProtocolTypes.MetaAction memory metaAction)
     {
-        return Protocol.MetaAction({
+        return ProtocolTypes.MetaAction({
             targetChainHash: targetChain,
             actions: Protocol.encodeActions(actions),
             nextMetaAction: Protocol.encodeMetaAction(nextMetaAction),
@@ -195,42 +271,62 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         });
     }
 
-    function getExecutor(ExecutorId id) public view returns (Executor executor) {
-        return Executor(_executors.get(ExecutorId.unwrap(id)));
+    function getExecutor(
+        ExecutorId id
+    )
+        public
+        view
+        override
+        returns (IExecutor executor)
+    {
+        return IExecutor(_executors.get(ExecutorId.unwrap(id)));
     }
 
-    function getTokenAddress(TokenInfo memory tokenInfo) public view override returns (address) {
-        if (tokenInfo.origin == address(0)) {
-            return tokenInfo.token;
-        } else if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
-            return tokenInfo.token;
-        } else {
-            return tokenInfo.origin;
-        }
+    function getMetaActionsWithLockedTokens()
+        public
+        view
+        override
+        returns (MetaActionId[] memory ids)
+    {
+        return tokenLocker.getMetaActionsWithLockedTokens();
+    }
+
+    function getTokenAddress(
+        ProtocolTypes.TokenInfo memory tokenInfo
+    )
+        public
+        pure
+        override
+        returns (address)
+    {
+        return tokenInfo.token;
     }
 
     // Private
 
     function _createMetaAction(
         address sender,
-        Protocol.MetaAction memory metaAction,
-        TokenInfo[] memory tokens
+        ProtocolTypes.MetaAction memory metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        ProtocolTypes.Action[] memory postActions
     )
         private
         returns (MetaActionContainer storage metaActionContainer)
     {
         MetaActionId id = _generateMetaActionId(sender);
+        _validateMetaAction(metaAction);
         metaActions[id] = MetaActionContainer({
             version: Protocol.VERSION,
             sender: sender,
+            seqNumber: 0,
             sourceChain: SchainHash.wrap(bytes32(0)),
             id: id,
-            status: Protocol.MetaActionStatus.EXECUTING,
-            metaAction: Protocol.MetaAction({
+            status: ProtocolTypes.MetaActionStatus.EXECUTING,
+            metaAction: ProtocolTypes.MetaAction({
                 targetChainHash: SchainHash.wrap(bytes32(0)),
                 actions: "",
                 nextMetaAction: Protocol.encodeMetaAction(metaAction),
-                postActions: ""
+                postActions: Protocol.encodeActions(postActions)
             })
         });
 
@@ -241,163 +337,496 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
         return metaActions[id];
     }
 
-    function _receiveMetaAction(Protocol.Message memory message, SchainHash sourceChain) private {
-        console.log("_receiveMetaAction");
-        (Protocol.MetaAction memory metaAction, TokenInfo[] memory tokens) = Protocol.decodeMetaActionMessage(message);
-        console.log("Number of tokens:", tokens.length);
+    function _receiveMetaAction(
+        ProtocolTypes.Message memory message,
+        SchainHash sourceChain
+    )
+        private
+    {
+        ProtocolTypes.MetaAction memory metaAction;
+        ProtocolTypes.TokenInfo[] memory tokens;
+        (metaAction, tokens) = Protocol.decodeMetaActionMessage(message);
+        tokens = _mapToThisSchainTokens(tokens, sourceChain);
+
+        // Handle cycle
+        // TODO: Discuss? - with current implementation we should not allow cycles
+        // because of fragmentation and of loops in confirm or fail msg
+        bool locked;
+        if (!metaActions[message.metaActionId].id.isZero()) {
+            _handleCycle(message, tokens, sourceChain);
+            return;
+        }
+
         metaActions[message.metaActionId] = MetaActionContainer({
             version: Protocol.VERSION,
-            sender: address(0),
+            sender: message.tokensOwner,
+            seqNumber: message.seqNumber + 1,
             sourceChain: sourceChain,
             id: message.metaActionId,
-            status: Protocol.MetaActionStatus.EXECUTING,
+            status: ProtocolTypes.MetaActionStatus.EXECUTING,
             metaAction: metaAction
         });
-        _processMetaAction(metaActions[message.metaActionId], tokens);
+
+        // Agents should allways send messages with more than enough gas to lock tokens.
+        locked = _lock(metaActions[message.metaActionId], tokens);
+        if(!locked){
+            emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.META_ACTION);
+            _sendError(message.metaActionId, tokens, sourceChain);
+            return;
+        }
+        // MetaAction is either fully successfull or fully reverted after locking.
+        (bool success, string memory err) = _tryCallProcessMetaAction(
+            message.metaActionId,
+            tokens
+        );
+
+        if (success) return;
+        emit MetaActionFailed(message.metaActionId, err);
+        _sendError(message.metaActionId, tokens, sourceChain);
     }
 
-    function _receiveConfirmation(Protocol.Message memory message, SchainHash sourceChain) private {
-        (Protocol.Confirmation memory confirmation, TokenInfo[] memory tokens) = Protocol.decodeConfirmationMessage(message);
-        _processMetaActionConfirmation(metaActions[message.metaActionId], tokens);
+    function _handleCycle(
+        ProtocolTypes.Message memory message,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash sourceChain
+    )
+        private
+    {
+        //This meta-action was here to ne processed before. Duplicate is 'impossible', so probabily a cycle
+        emit CycleDetected(message.metaActionId);
+        bool locked = _lock(metaActions[message.metaActionId], tokens);
+        if(!locked){
+            emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.META_ACTION);
+            // Fail to lock tokens and also a cycle.. PANIC :D
+        }
+        _sendError(message.metaActionId, tokens, sourceChain);
+    }
+
+    function _sendError(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash schainHash
+    )
+        private
+    {
+        // Zero tokens in V1
+        tokens = new ProtocolTypes.TokenInfo[](0);
+        (bool success, string memory err) = _tryCallSendError(
+            id,
+            tokens,
+            schainHash
+        );
+
+        if (success) {
+            emit SentError(id);
+            return;
+        }
+
+        emit SendErrorFailed(id, err);
+    }
+
+    function _tryCallProcessMetaAction(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+        returns (bool success, string memory error)
+    {
+
+        if (gasleft() < FAILSAFE_GAS + 20_000) {
+            // Dangerous zone
+            return (false, "Not Enough Gas to Call processMetaAction");
+        }
+        try this.processMetaAction{gas: gasleft() - (FAILSAFE_GAS + 20_000)}(
+            id,
+            tokens
+        ) {
+            return (true, "");
+        } catch Error(string memory reason) {
+            return (false, _getSlice(bytes(reason), REVERT_REASON_LENGTH));
+        } catch Panic(uint errorCode) {
+            return (false, string(abi.encodePacked(errorCode)));
+        } catch (bytes memory revertData) {
+            return (false, _getSlice(revertData, REVERT_REASON_LENGTH));
+        }
+    }
+
+    function _tryCallSendError(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash schainHash
+    )
+        private
+        returns (bool success, string memory error)
+    {
+        if (gasleft() < FAILSAFE_GAS) {
+            // Dangerous zone
+            return (false, "Not Enough Gas to Send Error");
+        }
+        try this.sendBackError{gas: gasleft() - FAILSAFE_GAS / 2}( // TODO: Maybe a fixed ammount is better. Review
+            id,
+            tokens,
+            schainHash
+        ) {
+            return (true, "");
+        } catch Error(string memory reason) {
+            return (false, _getSlice(bytes(reason), REVERT_REASON_LENGTH));
+        } catch Panic(uint errorCode) {
+            return (false, string(abi.encodePacked(errorCode)));
+        } catch (bytes memory revertData) {
+            return (false, _getSlice(revertData, REVERT_REASON_LENGTH));
+        }
+    }
+
+    function _receiveFailure(ProtocolTypes.Message memory message) private {
+        SchainHash sourceSchain;
+        ProtocolTypes.TokenInfo[] memory tokens;
+        (sourceSchain, tokens) = Protocol.decodeFailureMessage(message);
+        tokens = _mapToThisSchainTokens(tokens, sourceSchain);
+        bool locked = _lock(_getMetaAction(message.metaActionId), tokens);
+        if(!locked){
+            emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.FAILURE);
+            emit SendErrorFailed(message.metaActionId, "Failed to lock tokens received from failed failed message");
+            return;
+        }
+        _sendError(message.metaActionId, tokens, sourceSchain);
+    }
+
+    function _receiveConfirmation(ProtocolTypes.Message memory message) private {
+        SchainHash sourceSchain;
+        ProtocolTypes.TokenInfo[] memory tokens;
+        (sourceSchain, tokens) = Protocol.decodeConfirmationMessage(message);
+        tokens = _mapToThisSchainTokens(tokens, sourceSchain);
+        bool locked = _lock(_getMetaAction(message.metaActionId), tokens);
+
+        if(!locked){
+            emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.CONFIRMATION);
+            _sendError(message.metaActionId, tokens, sourceSchain);
+            return;
+        }
+
+        (bool success, string memory err) = _tryCallProcessMetaActionConfirmation(
+            message.metaActionId,
+            tokens
+        );
+
+        if (success) return;
+
+        emit MetaActionConfirmationFailed(message.metaActionId, err);
+
+        _sendError(message.metaActionId, tokens, sourceSchain);
+    }
+
+    function _tryCallProcessMetaActionConfirmation(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+        returns (bool success, string memory error)
+    {
+        if (gasleft() < FAILSAFE_GAS + 20_000) {
+            // Dangerous zone
+            return (false, "Not Enough Gas to Call processMetaActionConfirmation");
+        }
+        try this.processMetaActionConfirmation{gas: gasleft() - (FAILSAFE_GAS + 20_000)}(
+            id,
+            tokens
+        ) {
+            return (true, "");
+        } catch Error(string memory reason) {
+            return (false, _getSlice(bytes(reason), REVERT_REASON_LENGTH));
+        } catch Panic(uint errorCode) {
+            return (false, string(abi.encodePacked(errorCode)));
+        } catch (bytes memory revertData) {
+            return (false, _getSlice(revertData, REVERT_REASON_LENGTH));
+        }
     }
 
     function _processMessage(bytes memory encodedMessage, SchainHash sourceChain) private {
-        console.log("Parse message type");
-        Protocol.Message memory message = Protocol.decodeMessage(encodedMessage);
-        console.log("MessageType:");
-        console.log(uint(message.messageType));
-        if (message.messageType == Protocol.MessageType.META_ACTION) {
-            console.log("Process meta action");
+        ProtocolTypes.Message memory message = Protocol.decodeMessage(encodedMessage);
+        if (message.messageType == ProtocolTypes.MessageType.META_ACTION) {
             _receiveMetaAction(message, sourceChain);
-        } else if (message.messageType == Protocol.MessageType.CONFIRMATION) {
-            console.log("Process confirmation");
-            _receiveConfirmation(message, sourceChain);
+        } else if (message.messageType == ProtocolTypes.MessageType.CONFIRMATION) {
+            _receiveConfirmation(message);
+        } else if (message.messageType == ProtocolTypes.MessageType.FAILURE) {
+            _receiveFailure(message);
         } else {
             revert Protocol.UnknownMessageType(message.messageType);
         }
     }
 
-    function _processMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
-        console.log("_processMetaAction");
-        TokenInfo[] memory tokensAfterActions = _executeActions(metaAction, tokens);
+    function _processMetaActionFailure(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash targetSchainHash
+    )
+        private
+    {
+        assert(metaAction.status != ProtocolTypes.MetaActionStatus.SUCCEED);
+        metaAction.status = ProtocolTypes.MetaActionStatus.FAILED;
+        if (_isOrigin(metaAction) && metaAction.sourceChain == targetSchainHash) {
+            for (uint256 i = 0; i < tokens.length; ++i) {
+                IERC20 token = IERC20(tokens[i].token);
+                require(token.transfer(metaAction.sender, tokens[i].value), "Token Transfer Failed");
+            }
+            return;
+        }
+        tokens = _sendBackTokens(metaAction.id, tokens, targetSchainHash);
+        _sendFailure(metaAction, tokens, targetSchainHash);
+    }
+
+
+
+    function _processMetaActionConfirmation(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
+        assert(metaAction.status == ProtocolTypes.MetaActionStatus.EXECUTING);
+
+        ProtocolTypes.TokenInfo[] memory resultTokens = _postExecuteMetaAction(metaAction, tokens);
+        metaAction.status = ProtocolTypes.MetaActionStatus.SUCCEED;
+
+        if (_isOrigin(metaAction)) {
+            for (uint256 i = 0; i < resultTokens.length; ++i) {
+                IERC20 token = IERC20(resultTokens[i].token);
+                require(token.transfer(metaAction.sender, resultTokens[i].value), "Token Transfer Failed");
+            }
+            return;
+        }
+        resultTokens = _sendBackTokens(metaAction.id, resultTokens, metaAction.sourceChain);
+        _sendConfirmation(metaAction, resultTokens);
+    }
+
+    function _executeAndSendNextMetaAction(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
+        assert(metaAction.status == ProtocolTypes.MetaActionStatus.EXECUTING);
+        ProtocolTypes.TokenInfo[] memory tokensAfterActions = _executeActions(metaAction, tokens);
         _sendNextMetaAction(metaAction, tokensAfterActions);
     }
 
-    function _processMetaActionConfirmation(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
-        console.log("in _processMetaActionConfirmation");
-        console.log("Number of tokens");
-        console.log(tokens.length);
-        TokenInfo[] memory resultTokens = _postExecuteMetaAction(metaAction, tokens);
-        metaAction.status = Protocol.MetaActionStatus.SUCCEED;
-        console.log("Set status to ");
-        console.log(uint(metaAction.status));
-        if (!_isOrigin(metaAction)) {
-            _sendConfirmation(metaAction, resultTokens);
+    function _sendBackTokens(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash sourceSchain
+    )
+        private
+        returns (ProtocolTypes.TokenInfo[] memory finalTokens)
+    {
+
+        MetaActionContainer storage metaAction = _getMetaAction(id);
+
+        assert(
+            metaAction.status != ProtocolTypes.MetaActionStatus.EXECUTING
+        );
+
+        address destination = address(_getRemoteExecutionManager(sourceSchain));
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+
+            token.approve(address(erc20TokenManager), tokens[i].value);
+            // Do I know destination address ?
+            address dstAddress = erc20TokenManager.clonesErc20Inverted(sourceSchain, ERC20OnChain(tokens[i].token));
+            if (dstAddress != address(0)) {
+                tokens[i].token = dstAddress;
+            }
+            erc20TokenManager.transferToSchainHashERC20Direct(
+                sourceSchain,
+                tokens[i].token,
+                tokens[i].value,
+                destination
+            );
         }
+        finalTokens = tokens;
     }
 
     function _executeActions(
         MetaActionContainer storage metaAction,
-        TokenInfo[] memory tokens
+        ProtocolTypes.TokenInfo[] memory tokens
     )
         private
-        returns (TokenInfo[] memory resultTokens)
+        returns (ProtocolTypes.TokenInfo[] memory resultTokens)
     {
-        console.log("_executeActions");
-        Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.actions);
+        ProtocolTypes.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.actions);
         return _executeParsedActions(actions, tokens);
+    }
+
+    function _unlock(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
+        if (tokens.length == 0) return;
+        tokenLocker.unlock(id);
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+            // address(tokenLocker) is controlled and trusted - slither false positive
+            // slither-disable-next-line arbitrary-send-erc20
+            require(token.transferFrom(address(tokenLocker), address(this), tokens[i].value), "Unlock failed");
+        }
+
+    }
+
+    function _lock(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+        returns(bool success)
+    {
+        if (tokens.length == 0) return true;
+        success = true;
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = IERC20(tokens[i].token);
+            if (token.balanceOf(address(this)) >= tokens[i].value) {
+                token.approve(address(tokenLocker), tokens[i].value);
+            }
+            else {
+                tokens[i].value = 0;
+                success = false;
+            }
+        }
+        tokenLocker.lock(tokens, metaAction.id, metaAction.sender);
     }
 
     function _postExecuteMetaAction(
         MetaActionContainer storage metaAction,
-        TokenInfo[] memory tokens
+        ProtocolTypes.TokenInfo[] memory tokens
     )
         private
-        returns (TokenInfo[] memory resultTokens)
+        returns (ProtocolTypes.TokenInfo[] memory resultTokens)
     {
-        console.log("_postExecuteActions");
-        Protocol.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.postActions);
+        ProtocolTypes.Action[] memory actions = Protocol.decodeActions(metaAction.metaAction.postActions);
         return _executeParsedActions(actions, tokens);
     }
 
     function _executeParsedActions(
-        Protocol.Action[] memory actions,
-        TokenInfo[] memory tokens
+        ProtocolTypes.Action[] memory actions,
+        ProtocolTypes.TokenInfo[] memory tokens
     )
         private
-        returns (TokenInfo[] memory resultTokens)
+        returns (ProtocolTypes.TokenInfo[] memory resultTokens)
     {
-        console.log("_executeParsedActions");
-        TokenInfo[] memory currentTokens = tokens;
         for (uint256 i = 0; i < actions.length; ++i) {
-            Executor executor = getExecutor(actions[i].executor);
-            for (uint256 j = 0; j < currentTokens.length; ++j) {
-                IERC20 token = IERC20(getTokenAddress(currentTokens[j]));
-                token.approve(address(executor), currentTokens[j].value);
+            IExecutor executor = getExecutor(actions[i].executor);
+            for (uint256 j = 0; j < tokens.length; ++j) {
+                IERC20 token = IERC20(tokens[j].token);
+                token.approve(address(executor), tokens[j].value);
             }
-            // TODO: add gas limit guard
-            currentTokens = executor.execute(currentTokens, actions[i].arguments);
+            // TODO: check gas limit guard (?)
+            // We can leave it to the future for now
+            tokens = executor.execute(tokens, actions[i].arguments);
+
+            // Use pull-based approach.
+            // executor can return tokens info different from what he transfered otherwise
+            for (uint256 j = 0; j < tokens.length; ++j) {
+                IERC20 token = IERC20(tokens[j].token);
+                // executors are whitelisted - slither false positive
+                // slither-disable-next-line arbitrary-send-erc20
+                require(
+                    token.transferFrom(address(executor), address(this), tokens[j].value),
+                    "Executor Sent Incorrect Tokens Information."
+                );
+            }
         }
-        resultTokens = currentTokens;
+        resultTokens = tokens;
     }
 
-    function _sendNextMetaAction(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
-        console.log("_sendNextMetaAction");
+    function _sendNextMetaAction(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
         if (metaAction.metaAction.hasNextMetaAction()) {
-            console.log("tokens length:", tokens.length);
-            Protocol.MetaAction memory nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
+            ProtocolTypes.MetaAction memory nextMetaAction;
+            nextMetaAction = Protocol.decodeMetaAction(metaAction.metaAction.nextMetaAction);
             SchainHash targetChainHash = nextMetaAction.targetChainHash;
             address remoteExecutionManagerAddress = address(_getRemoteExecutionManager(targetChainHash));
 
             for (uint256 i = 0; i < tokens.length; ++i) {
-                console.log("Token", tokens[i].token);
-                console.log("Origin", tokens[i].origin);
-                IERC20 token = IERC20(getTokenAddress(tokens[i]));
-                // TODO: process revert when origin is unknown
-                address origin = _getOriginAddress(tokens[i]);
+                IERC20 token = IERC20(tokens[i].token);
+
+                // Do I know the target token address?
+                // If so, set it. Means I am likely in a chain that has a clone
+                // And I am bridging back to my 'original' version
+                address targetToken = erc20TokenManager.clonesErc20Inverted(
+                    targetChainHash,
+                    ERC20OnChain(tokens[i].token)
+                );
+
+                if (targetToken != address(0)) {
+                    tokens[i].token = targetToken;
+                }
+
                 token.approve(address(erc20TokenManager), tokens[i].value);
                 erc20TokenManager.transferToSchainHashERC20Direct(
                     targetChainHash,
-                    origin,
+                    tokens[i].token,
                     tokens[i].value,
-                    remoteExecutionManagerAddress);
+                    remoteExecutionManagerAddress
+                );
             }
 
             erc20TokenManager.messageProxy().postOutgoingMessage(
                 targetChainHash,
                 remoteExecutionManagerAddress,
-                Protocol.encodeMetaActionMessage(metaAction.id, nextMetaAction, tokens)
+                Protocol.encodeMetaActionMessage(
+                    metaAction.id,
+                    nextMetaAction,
+                    tokens,
+                    metaAction.sender,
+                    metaAction.seqNumber
+                )
             );
         } else {
             _processMetaActionConfirmation(metaAction, tokens);
         }
     }
 
-    function _sendConfirmation(MetaActionContainer storage metaAction, TokenInfo[] memory tokens) private {
+    function _sendConfirmation(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens
+    )
+        private
+    {
         SchainHash targetChainHash = metaAction.sourceChain;
-        Protocol.Confirmation memory confirmation = Protocol.Confirmation({
-            metaActionId: metaAction.id
-        });
         erc20TokenManager.messageProxy().postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
-            Protocol.encodeConfirmationMessage(metaAction.id, confirmation, tokens)
+            Protocol.encodeConfirmationMessage(metaAction.id, erc20TokenManager.schainHash(), tokens)
+        );
+    }
+
+    function _sendFailure(
+        MetaActionContainer storage metaAction,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash targetChainHash
+    )
+        private
+    {
+        erc20TokenManager.messageProxy().postOutgoingMessage(
+            targetChainHash,
+            address(_getRemoteExecutionManager(targetChainHash)),
+            Protocol.encodeFailureMessage(metaAction.id, erc20TokenManager.schainHash(), tokens)
         );
     }
 
     function _generateMetaActionId(address sender) private returns (MetaActionId) {
+        // Why not Schain hash instead of chainid?
         return MetaActionId.wrap(keccak256(abi.encode(block.chainid, sender, nonces[sender]++)));
     }
 
-    function _pullTokensFromSender(address sender, TokenInfo[] memory tokens) private {
-        console.log("_pullTokensFromSender");
-        console.log(tokens.length);
+    function _pullTokensFromSender(address sender, ProtocolTypes.TokenInfo[] memory tokens) private {
         for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = IERC20(tokens[i].token);
-            token.transferFrom(sender, address(this), tokens[i].value);
-            console.log("Address");
-            console.log(tokens[i].token);
-            console.log(token.balanceOf(sender));
+            require(token.transferFrom(sender, address(this), tokens[i].value), "Token Transfer Failed");
         }
     }
 
@@ -419,16 +848,53 @@ contract ExecutionManager is AccessControlEnumerableUpgradeable, IExecutionManag
     }
 
     function _isOrigin(MetaActionContainer storage metaAction) private view returns (bool result) {
-        return metaAction.sender != address(0);
+        //TODO: verify initial action for loops
+        return metaAction.seqNumber == 0;
     }
 
-    function _getOriginAddress(TokenInfo memory tokenInfo) private view returns (address) {
-        if (tokenInfo.origin != address(0)) {
-            return tokenInfo.origin;
-        } else if(erc20TokenManager.addedClones(ERC20OnChain(tokenInfo.token))) {
-            revert OriginAddressIsNotProvided(tokenInfo.token);
-        } else {
-            return tokenInfo.token;
+    function _mapToThisSchainTokens(
+        ProtocolTypes.TokenInfo[] memory tokenInfo,
+        SchainHash originSchain
+    )
+        private
+        view
+        returns (ProtocolTypes.TokenInfo[] memory updatedTokenInfo)
+    {
+        SchainHash thisSchain = erc20TokenManager.schainHash();
+        if (thisSchain == originSchain) {
+            // First message: If any token is invalid actions or transfers will
+            // revert on bridging out or executing actions
+            return tokenInfo;
         }
+        updatedTokenInfo = new ProtocolTypes.TokenInfo[](tokenInfo.length);
+        for (uint256 i = 0; i < tokenInfo.length; ++i) {
+            address addressInThisSchain = address(erc20TokenManager.clonesErc20(originSchain, tokenInfo[i].token));
+            if (addressInThisSchain == address(0)) {
+                // I am probabily already the address on this chain
+                // TODO: replace by check _schainToERC20[fromChainHash].contains(token) ?
+                require(tokenInfo[i].token.isContract(), "This is not a valid token");
+                addressInThisSchain = tokenInfo[i].token;
+            }
+            updatedTokenInfo[i] = ProtocolTypes.TokenInfo({
+                token: addressInThisSchain,
+                value: tokenInfo[i].value
+            });
+        }
+        return updatedTokenInfo;
+    }
+
+    function _validateMetaAction(ProtocolTypes.MetaAction memory) private pure {
+        //TODO: valididate ?
+        // Maybe remove
+        assert(true);
+    }
+
+    function _getSlice(bytes memory text, uint end) private pure returns (string memory) {
+        uint slicedEnd = end < text.length ? end : text.length;
+        bytes memory sliced = new bytes(slicedEnd);
+        for(uint i = 0; i < slicedEnd; i++){
+            sliced[i] = text[i];
+        }
+        return string(sliced);
     }
 }

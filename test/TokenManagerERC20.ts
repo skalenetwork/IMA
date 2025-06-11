@@ -1298,7 +1298,7 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc202
                 .connect(user)
                 .transferToSchainERC20(newSchainNameZ, erc20OnTargetChain, amount)
-                .should.be.eventually.rejectedWith("Incorrect main chain token");
+                .should.be.eventually.rejectedWith("No token clone on schain");
         });
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
