@@ -213,11 +213,15 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
     // This works as a private function as the caller needs to be this
     // Does not make sense to expose in the interface
     // solhint-disable-next-line comprehensive-interface
-    function sendBackError(MetaActionId id, ProtocolTypes.TokenInfo[] memory tokens) external {
+    function sendBackError(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash schainHash
+    ) external {
         require(msg.sender == address(this), "Sender must be self");
         //Does not send back tokens in V1
         _unlock(id, tokens);
-        _processMetaActionFailure(_getMetaAction(id), tokens);
+        _processMetaActionFailure(_getMetaAction(id), tokens, schainHash);
     }
 
     function getMetaActionStatus(
@@ -346,8 +350,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
         // Handle cycle
         // TODO: Discuss? - with current implementation we should not allow cycles
-        // because of loops in confirm or fail msg
-        // But maybe we want to change implementation to allow them ..
+        // because of fragmentation and of loops in confirm or fail msg
         bool locked;
         if (!metaActions[message.metaActionId].id.isZero()) {
             _handleCycle(message, tokens, sourceChain);
@@ -368,7 +371,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         locked = _lock(metaActions[message.metaActionId], tokens);
         if(!locked){
             emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.META_ACTION);
-            _sendError(message.metaActionId, tokens);
+            _sendError(message.metaActionId, tokens, sourceChain);
             return;
         }
         // MetaAction is either fully successfull or fully reverted after locking.
@@ -379,7 +382,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
         if (success) return;
         emit MetaActionFailed(message.metaActionId, err);
-        _sendError(message.metaActionId, tokens);
+        _sendError(message.metaActionId, tokens, sourceChain);
     }
 
     function _handleCycle(
@@ -396,26 +399,22 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
             emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.META_ACTION);
             // Fail to lock tokens and also a cycle.. PANIC :D
         }
-
-        // Need to manipulate source Schain and seqNumber send error to the right place here..
-        // SeqNumber might be 0, which will make the error to not be sent back when it should
-        // TODO: refactor to remove slither warning
-        // slither-disable-start all
-        SchainHash helper = metaActions[message.metaActionId].sourceChain;
-        metaActions[message.metaActionId].sourceChain = sourceChain;
-        metaActions[message.metaActionId].seqNumber +=1;
-        _sendError(message.metaActionId, tokens);
-        metaActions[message.metaActionId].seqNumber -=1;
-        metaActions[message.metaActionId].sourceChain = helper;
-        // slither-disable-end all
+        _sendError(message.metaActionId, tokens, sourceChain);
     }
 
-    function _sendError(MetaActionId id, ProtocolTypes.TokenInfo[] memory tokens) private {
+    function _sendError(
+        MetaActionId id,
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash schainHash
+    )
+        private
+    {
         // Zero tokens in V1
         tokens = new ProtocolTypes.TokenInfo[](0);
         (bool success, string memory err) = _tryCallSendError(
             id,
-            tokens
+            tokens,
+            schainHash
         );
 
         if (success) {
@@ -454,7 +453,8 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
     function _tryCallSendError(
         MetaActionId id,
-        ProtocolTypes.TokenInfo[] memory tokens
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash schainHash
     )
         private
         returns (bool success, string memory error)
@@ -465,7 +465,8 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         }
         try this.sendBackError{gas: gasleft() - FAILSAFE_GAS / 2}( // TODO: Maybe a fixed ammount is better. Review
             id,
-            tokens
+            tokens,
+            schainHash
         ) {
             return (true, "");
         } catch Error(string memory reason) {
@@ -488,7 +489,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
             emit SendErrorFailed(message.metaActionId, "Failed to lock tokens received from failed failed message");
             return;
         }
-        _sendError(message.metaActionId, tokens);
+        _sendError(message.metaActionId, tokens, sourceSchain);
     }
 
     function _receiveConfirmation(ProtocolTypes.Message memory message) private {
@@ -500,7 +501,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
         if(!locked){
             emit FailedToLockTokens(message.metaActionId, ProtocolTypes.MessageType.CONFIRMATION);
-            _sendError(message.metaActionId, tokens);
+            _sendError(message.metaActionId, tokens, sourceSchain);
             return;
         }
 
@@ -513,7 +514,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
         emit MetaActionConfirmationFailed(message.metaActionId, err);
 
-        _sendError(message.metaActionId, tokens);
+        _sendError(message.metaActionId, tokens, sourceSchain);
     }
 
     function _tryCallProcessMetaActionConfirmation(
@@ -556,21 +557,22 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
     function _processMetaActionFailure(
         MetaActionContainer storage metaAction,
-        ProtocolTypes.TokenInfo[] memory tokens
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash targetSchainHash
     )
         private
     {
-        assert(metaAction.status == ProtocolTypes.MetaActionStatus.EXECUTING);
+        assert(metaAction.status != ProtocolTypes.MetaActionStatus.SUCCEED);
         metaAction.status = ProtocolTypes.MetaActionStatus.FAILED;
-        if (_isOrigin(metaAction)) {
+        if (_isOrigin(metaAction) && metaAction.sourceChain == targetSchainHash) {
             for (uint256 i = 0; i < tokens.length; ++i) {
                 IERC20 token = IERC20(tokens[i].token);
                 require(token.transfer(metaAction.sender, tokens[i].value), "Token Transfer Failed");
             }
             return;
         }
-        tokens = _sendBackTokens(metaAction.id, tokens);
-        _sendFailure(metaAction, tokens);
+        tokens = _sendBackTokens(metaAction.id, tokens, targetSchainHash);
+        _sendFailure(metaAction, tokens, targetSchainHash);
     }
 
 
@@ -593,7 +595,7 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
             }
             return;
         }
-        resultTokens = _sendBackTokens(metaAction.id, resultTokens);
+        resultTokens = _sendBackTokens(metaAction.id, resultTokens, metaAction.sourceChain);
         _sendConfirmation(metaAction, resultTokens);
     }
 
@@ -610,7 +612,8 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
     function _sendBackTokens(
         MetaActionId id,
-        ProtocolTypes.TokenInfo[] memory tokens
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash sourceSchain
     )
         private
         returns (ProtocolTypes.TokenInfo[] memory finalTokens)
@@ -619,14 +622,9 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
         MetaActionContainer storage metaAction = _getMetaAction(id);
 
         assert(
-            metaAction.status == ProtocolTypes.MetaActionStatus.FAILED ||
-            metaAction.status == ProtocolTypes.MetaActionStatus.SUCCEED
+            metaAction.status != ProtocolTypes.MetaActionStatus.EXECUTING
         );
 
-        // first metaAction should not send tokens anywhere
-        assert(metaAction.seqNumber > 0);
-
-        SchainHash sourceSchain = metaAction.sourceChain;
         address destination = address(_getRemoteExecutionManager(sourceSchain));
         for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = IERC20(tokens[i].token);
@@ -808,11 +806,11 @@ contract ExecutionManager is ReentrancyGuardUpgradeable, AccessControlEnumerable
 
     function _sendFailure(
         MetaActionContainer storage metaAction,
-        ProtocolTypes.TokenInfo[] memory tokens
+        ProtocolTypes.TokenInfo[] memory tokens,
+        SchainHash targetChainHash
     )
         private
     {
-        SchainHash targetChainHash = metaAction.sourceChain;
         erc20TokenManager.messageProxy().postOutgoingMessage(
             targetChainHash,
             address(_getRemoteExecutionManager(targetChainHash)),
