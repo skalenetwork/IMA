@@ -121,6 +121,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     event TransferSkipped(uint256 id);
 
     /**
+     * @dev Emitted when token transfer is not reverted
+     */
+    event TransferSucceeded(uint256 id);
+
+    /**
      * @dev Emitted when big transfer threshold is changed
      */
     event BigTransferThresholdIsChanged(
@@ -726,9 +731,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     {
         for (uint256 i = 0; i < countToTransfer; ++i){
             DelayedTransfer memory transfer = transfers[i];
-            try this.doTransfer(transfer.token, transfer.receiver, transfer.amount)
-                // solhint-disable-next-line no-empty-blocks
-                {}
+            try this.doTransfer(transfer.token, transfer.receiver, transfer.amount) {
+                emit TransferSucceeded(transfersIds[i]);
+            }
             catch {
                 emit TransferSkipped(transfersIds[i]);
             }
