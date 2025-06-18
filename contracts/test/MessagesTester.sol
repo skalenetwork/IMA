@@ -98,6 +98,8 @@ interface IMessagesTester {
         uint256[] memory amounts,
         Messages.Erc1155TokenInfo memory tokenInfo
     ) external pure returns (bytes memory);
+    function encodeTransferSFuelToHubMessage(address receiver, uint256 amount) external pure returns (bytes memory);
+    function encodeTransferSFuelBackMessage(address receiver, uint256 amount) external pure returns (bytes memory);
 }
 
 
@@ -225,4 +227,19 @@ contract MessagesTester is IMessagesTester {
     ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc1155BatchAndTokenInfoMessage(token, receiver, ids, amounts, tokenInfo);
     }
+
+    function encodeTransferSFuelToHubMessage(
+        address receiver,
+        uint256 amount
+    ) external pure override returns (bytes memory) {
+        return Messages.encodeTransferSFuelToHubMessage(receiver, amount);
+    }
+
+    function encodeTransferSFuelBackMessage(
+        address receiver,
+        uint256 amount
+    ) external pure override returns (bytes memory) {
+        return Messages.encodeTransferSFuelBackMessage(receiver, amount);
+    }
+
 }

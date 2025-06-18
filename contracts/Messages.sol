@@ -47,7 +47,9 @@ library Messages {
         TRANSFER_ERC1155_BATCH,
         TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO,
         TRANSFER_ERC721_WITH_METADATA,
-        TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO
+        TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO,
+        TRANSFER_SFUEL_TO_HUB,
+        TRANSFER_SFUEL_BACK
     }
 
     /**
@@ -205,6 +207,73 @@ library Messages {
         TransferErc1155BatchMessage baseErc1155Batchtransfer;
         Erc1155TokenInfo tokenInfo;
     }
+
+    /**
+     * @dev Structure for sFuel transfers to Europa hub.
+     */
+    struct TransferSFuelToHubMessage {
+        BaseMessage message;
+        address receiver;
+        uint256 amount;
+    }
+
+    /**
+     * @dev Structure for sFuel transfers back from Europa to source.
+     */
+    struct TransferSFuelBackMessage {
+        BaseMessage message;
+        address receiver;
+        uint256 amount;
+    }
+
+    /**
+     * @dev Encode sFuel transfer to hub message.
+     */
+    function encodeTransferSFuelToHubMessage(
+        address receiver,
+        uint256 amount
+    ) internal pure returns (bytes memory) {
+        TransferSFuelToHubMessage memory message = TransferSFuelToHubMessage({
+            message: BaseMessage({messageType: MessageType.TRANSFER_SFUEL_TO_HUB}),
+            receiver: receiver,
+            amount: amount
+        });
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decode sFuel transfer to hub message.
+     */
+    function decodeTransferSFuelToHubMessage(
+        bytes calldata data
+    ) internal pure returns (TransferSFuelToHubMessage memory) {
+        return abi.decode(data, (TransferSFuelToHubMessage));
+    }
+
+    /**
+     * @dev Encode sFuel transfer back message.
+     */
+    function encodeTransferSFuelBackMessage(
+        address receiver,
+        uint256 amount
+    ) internal pure returns (bytes memory) {
+        TransferSFuelBackMessage memory message = TransferSFuelBackMessage({
+            message: BaseMessage({messageType: MessageType.TRANSFER_SFUEL_BACK}),
+            receiver: receiver,
+            amount: amount
+        });
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decode sFuel transfer back message.
+     */
+    function decodeTransferSFuelBackMessage(
+        bytes calldata data
+    ) internal pure returns (TransferSFuelBackMessage memory) {
+        return abi.decode(data, (TransferSFuelBackMessage));
+    }
+
 
 
     /**
