@@ -224,16 +224,16 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     /**
      * @dev Allows `msg.sender` to add reimbursed contract for being able to reimburse gas amount from CommunityPool
      * during message transfers from custom contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
      * - Schain name must not be `Mainnet`.
      * - `reimbursedContract` should be registered as extra contract
      */
     function addReimbursedContract(string memory schainName, address reimbursedContract) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");        
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -250,9 +250,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Allows `msg.sender` to remove reimbursed contract,
      * thus `reimbursedContract` will no longer be available to reimburse gas amount from CommunityPool during
      * message transfers from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
      * - Schain name must not be `Mainnet`.
      */
@@ -309,7 +309,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (isReimbursedContract(fromSchainHash, messages[i].destinationContract)) {
+
+            if (isReimbursedContract(fromSchainHash, _toMigrated(messages[i].destinationContract))) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(
@@ -403,7 +404,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Should return a range of reimbursed contracts by schainHash.
-     * 
+     *
      * Requirements:
      * range should be less or equal 10 contracts
      */

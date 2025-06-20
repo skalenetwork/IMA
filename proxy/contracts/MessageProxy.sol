@@ -322,7 +322,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         emit OutgoingMessage(
             targetChainHash,
             outgoingMessageCounter,
-            msg.sender,
+            _toOld(msg.sender), // TODO: remove when updated communityPool in Schains
             targetContract,
             data
         );
@@ -459,7 +459,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
             return;
         }
-        try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
+        // TODO: remove when updated linker in Schains
+        try IMessageReceiver(_toMigrated(message.destinationContract)).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data
@@ -494,7 +495,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         internal
         returns (address)
     {
-        try IGasReimbursable(message.destinationContract).gasPayer{gas: gasLimit}(
+        // TODO: remove when updated linker in Schains
+        try IGasReimbursable(_toMigrated(message.destinationContract)).gasPayer{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data
@@ -567,6 +569,27 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
         }
         return hash;
+    }
+
+    // we can't change linker and comunityPool addresses on schain side without upgrade!!
+    function _toMigrated(address from) internal pure returns (address migrated) {
+        if (from == address(0x073D44c9f025dc423C7F327FA3f437403852a2FD)){// original linker
+            return address(0x2545f5f6683e10D95e667Cb0111A5b00BB7a2b07);// new linker
+        }
+        if (from == address(0xC42Dd5855d2BE24Af0CEF26b859f8B7a77281dc7)){// original comunity pool
+            return address(0x893eB64CB3BEF531Db17021ee6cf5c2CFcBB3198);// // new comunity pool
+        }
+        return from;
+    }
+
+    function _toOld(address from) internal pure returns (address migrated) {
+        if (from == address(0x893eB64CB3BEF531Db17021ee6cf5c2CFcBB3198)){ // new comunity pool
+            return address(0xC42Dd5855d2BE24Af0CEF26b859f8B7a77281dc7);// original comunity pool
+        }
+        if (from == address(0x2545f5f6683e10D95e667Cb0111A5b00BB7a2b07)){ // new linker
+            return address(0x073D44c9f025dc423C7F327FA3f437403852a2FD);// original linker
+        }
+        return from;
     }
 
     function _getSlice(bytes memory text, uint end) private pure returns (bytes memory) {
