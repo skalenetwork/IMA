@@ -131,7 +131,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     event LockUser(
         bytes32 schainHash,
         address user
-    ); 
+    );
 
     /**
      * @dev Emitted when constants updated.
@@ -160,7 +160,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * or SKALE chains.
      *
      * Requirements:
-     * 
+     *
      * - MessageProxy must be the caller of the function.
      * - CommunityPool must be an origin of the message on mainnet.
      * - The message must come from the mainnet.
@@ -194,7 +194,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Reverts if {receiver} is not allowed to send a message.
      *
      * Requirements:
-     * 
+     *
      * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
      * - {receiver} must be an active user.
      * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
@@ -220,9 +220,9 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Set value of {timeLimitPerMessage} of given chain.
      *
      * Requirements:
-     * 
+     *
      * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
-     * 
+     *
      * Emits a {ConstantUpdated} event.
      */
     function setTimeLimitPerMessage(string memory chainName, uint newTimeLimitPerMessage) external override {
@@ -241,9 +241,9 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Set value of {mainnetGasPrice}.
      *
      * Requirements:
-     * 
+     *
      * - Signature should be verified.
-     * 
+     *
      * Emits a {ConstantUpdated} event.
      */
     function setGasPrice(

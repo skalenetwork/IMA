@@ -1,13 +1,14 @@
 import chalk from "chalk";
 import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
-import { ethers, network } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 import { JsonRpcProvider } from "ethers";
 import {Migrator} from "@skalenetwork/upgrade-tools/dist/src/migration/migrator"
 import { getAbi, getVersion } from "@skalenetwork/upgrade-tools";
-import { contracts } from "./deployMainnet";
-import { ContractManager, MessageProxyForMainnet, SchainsInternal, TokenManager } from "../typechain";
+import { contracts, contractsToDeploy } from "./deployMainnet";
+import { CommunityPool, ContractManager, DepositBox, Linker, MessageProxyForMainnet, SchainsInternal, TokenManager } from "../typechain";
 import {promises as fs} from 'fs';
 import { ethers as ethers2} from "ethers";
+import { checkCounters } from "./postMigrationChecks";
 const skaleManagerContracts = [
     "ContractManager",
 
@@ -34,6 +35,17 @@ const skaleManagerContracts = [
     "Wallets",
     "SyncManager",
     "PaymasterController"
+];
+
+export const msigTestnetEndpoints: {name: string, endpoint: string}[] = [
+    /*
+    { name:"juicy-low-small-testnet", endpoint: "http://3.140.123.81:10003/"},
+    { name:"giant-half-dual-testnet", endpoint: "http://3.140.123.81:10067/"},
+    { name:"lanky-ill-funny-testnet", endpoint: "http://3.140.123.81:10131/"},
+    { name:"aware-fake-trim-testnet", endpoint: "http://3.140.123.81:10195/"}
+    */
+    {name: "livid-innocent-altair", endpoint: "http://10.3.155.171:10003/"},
+    {name: "unconscious-subdued-alshain", endpoint: "http://10.3.155.171:10067/"}
 ];
 
 export function getContractKeyInAbiFile(contract: string) {
@@ -69,16 +81,6 @@ async function main() {
         console.log(chalk.red("Specify SCHAINS_OWNER for existing schains"));
         process.exit(1);
     }
-    if (!process.env.HOODI_ENDPOINT) {
-        console.log(chalk.red("Specify skale-manager linked to IMA instance to migrate"));
-        console.log(chalk.red("Set desired old skale-manager instance to SKALE_MANAGER_INSTANCE environment variable"));
-        process.exit(1);
-    }
-    if (!process.env.HOLESKY_ENDPOINT) {
-        console.log(chalk.red("Specify skale-manager linked to IMA instance to migrate"));
-        console.log(chalk.red("Set desired old skale-manager instance to SKALE_MANAGER_INSTANCE environment variable"));
-        process.exit(1);
-    }
 
     /*if (!process.env.SCHAIN_OWNER_PRIV_KEY) {
         console.log(chalk.red("Specify SCHAIN_OWNER_PRIV_KEY for existing schains"));
@@ -89,6 +91,8 @@ async function main() {
     const provider = new JsonRpcProvider(process.env.ARCHIVE_NODE_ENDPOINT);
     const blockHash = (await provider.getBlock("latest"))?.hash;
     console.log(blockHash);
+    //console.log(await provider.getCode(process.env.SCHAIN_OWNER));
+    //console.log((await ethers.provider.getCode(process.env.NEW_SCHAINS_OWNER)));
     if ((await provider.getCode(process.env.SCHAIN_OWNER)).length < 5 || (await ethers.provider.getCode(process.env.NEW_SCHAINS_OWNER)).length < 5) { // is Multisig
         console.log("Schain owners are not a multi-sig. Only multi-sig owner should be set");
         process.exit(1);
@@ -106,9 +110,16 @@ async function main() {
     const skaleManagerOldProject = oldNetwork.getProject("skale-manager");
     const skaleManagerOldInstance = await skaleManagerOldProject.getInstance(process.env.SKALE_MANAGER_INSTANCE);
     console.log(await skaleManagerOldInstance.getContractAddress("ContractManager"));
-
+    if(! await checkCounters(imaInstance, msigTestnetEndpoints)){
+        process.exit(1);
+    }
     const newNetwork = await skaleContracts.getNetworkByProvider(ethers.provider);
-
+    const oldProxyForMainnet = await imaInstance.getContract("MessageProxyForMainner") as unknown as MessageProxyForMainnet;
+    const oldOwner = oldProxyForMainnet.getRoleMember("0x0000000000000000000000000000000000000000000000000000000000000000",0);
+    if ((await provider.getCode(oldOwner)).length > 2) {
+        console.log("Initial owner is not EOA account, aborting");
+        process.exit(1);
+    }
     const skaleManagerNewProject = newNetwork.getProject("skale-manager");
     const skaleManagerNewInstance = await skaleManagerNewProject.getInstance(process.env.SKALE_MANAGER_INSTANCE_MIGRATED);
     const balanceDepositBox = await provider.getBalance(imaInstance.getContractAddress("DepositBoxEth"));
@@ -135,9 +146,11 @@ async function main() {
     // dump storage from intance contracts
     await migrator.dumpStorage();
 
-    // deploy mock implementations of each contract = RayStorageSetter.sol
+    // deploy mock implementations of each contract = RawStorageSetter.sol
     await migrator.init();
-
+    if(! await checkCounters(imaInstance, msigTestnetEndpoints)){
+        process.exit(1);
+    }
     // will set values that contain old smart-contract addresses to the new addresses
     migrator.setDefaultValuesToUpdate();
 
@@ -152,26 +165,30 @@ async function main() {
 
     // safe-contracts
     migrator.addValueToUpdate(
-        await skaleManagerOldInstance.getContractAddress(process.env.SCHAIN_OWNER),
-        await skaleManagerNewInstance.getContractAddress(process.env.NEW_SCHAINS_OWNER),
+        process.env.SCHAIN_OWNER,
+        process.env.NEW_SCHAINS_OWNER,
     );
 
     // triggers the migration of data to new contracts and transfers old balances
     console.log("Starting data migration...")
     await migrator.migrateData();
-
+    if(! await checkCounters(imaInstance, msigTestnetEndpoints)){
+        process.exit(1);
+    }
 
     // upgrades contracts to new implementation
     console.log("Starting contract upgrades...");
     await migrator.upgrade();
 
     //set new addresses in contractManager -- I gotta be the owner
+    console.log("Updating contracts in skale-manager");
     const newContractManager = ((await skaleManagerNewInstance.getContract("ContractManager")) as unknown as ContractManager).connect(owner);
     for (const contract of contracts) {
         const newAddr = migrator.getContractNewAddress(contract);
         if (!newAddr) continue;
         const tx = await newContractManager.setContractsAddress(contract, newAddr);
         await tx.wait();
+        console.log(contract, " DONE");
     }
 
     //TODO: set PaymasterController addresses in skale-manager
@@ -179,6 +196,7 @@ async function main() {
     const paymasterController: any = await skaleManagerNewInstance.getContract("PaymasterController");
     const tx = await paymasterController.connect(owner)["setImaAddress"](migrator.getContractNewAddress("MessageProxyForMainnet"));
     await tx.wait();
+    console.log("Set IMA address on PaymasterController");
 
     //TODO:
 
@@ -200,6 +218,9 @@ async function main() {
 
     // Register new and unregister old contracts
     const schainsInternal = await skaleManagerNewInstance.getContract("SchainsInternal") as unknown as SchainsInternal;
+    const oldLinker = await imaInstance.getContract("Linker") as unknown as Linker;
+    const newLinker = await ethers.getContractAt("Linker", migrator.getContractNewAddress("Linker")!);
+
     const schainHashes = await schainsInternal.getSchains();
     const msgProxy = (
         await ethers.getContractAt(
@@ -209,24 +230,73 @@ async function main() {
     ).connect(owner);
 
     const oldContractManager = (await skaleManagerOldInstance.getContract("ContractManager")) as unknown as ContractManager;
-    for(const contractName of contracts){
-        if (contractName == "MessageProxyForMainnet") continue;
+    const paymasterC = await skaleManagerOldInstance.getContract("PaymasterController") as any;
+    const paymasterHash = await paymasterC["paymasterChainHash"]() as string;
+    const toLink = [];
+    const toRegister = [];
+    const isReg = await msgProxy.isContractRegistered(paymasterHash, await skaleManagerOldInstance.getContractAddress("PaymasterController"))
+    if (isReg) {
+        console.log("Unregister old paymaster");
+        let tx2 = await msgProxy.removeExtraContract(paymasterHash, await skaleManagerOldInstance.getContractAddress("PaymasterController"));
+        await tx2.wait();
+        console.log("Allowing PaymasterController to send messages to all schains");
+        tx2 = await msgProxy.registerExtraContract(paymasterHash, await skaleManagerNewInstance.getContractAddress("PaymasterController"));
+        await tx2.wait();
+    }
+    for(const contractName of contracts.reverse()){
         const old = await oldContractManager.getContract(contractName);
+        if (await newLinker.hasMainnetContract(old)) {
+            try {
+                const tx = await newLinker.connect(owner).removeMainnetContract(old);
+                await tx.wait();
+                console.log("successfuly removed", contractName);
+            } catch (error) {
+                console.log("Failed to remove old MainnetContract on Linker", error)
+            }
+            toLink.push(contractName);
+        }
         if (await msgProxy.isContractRegistered(ethers2.ZeroHash, old)) {
-            let tx = await msgProxy.removeExtraContractForAll(old);
-            await tx.wait();
-            tx = await msgProxy.registerExtraContractForAll(migrator.getContractNewAddress(contractName)!);
-            await tx.wait();
+            toRegister.push(contractName);
+            try {
+                const tx = await msgProxy.removeExtraContractForAll(old);
+                await tx.wait();
+                console.log("successfuly removed", contractName)
+            } catch (error) {
+                console.log("Failed to remove old registered contract", error);
+            }
         }
     }
-    console.log("Allowing PaymasterController to send messages to all schains");
-    const tx2 = await msgProxy.registerExtraContractForAll(await skaleManagerNewInstance.getContractAddress("PaymasterController"));
-    await tx2.wait();
+    for (const contractName of toRegister.reverse()){
+        const tx = await msgProxy.registerExtraContractForAll(migrator.getContractNewAddress(contractName)!);
+        await tx.wait();
+    }
+    console.log("All contracts Registered.");
+    for (const contractName of toLink.reverse()) {
+        const tx = await newLinker.connect(owner).registerMainnetContract(migrator.getContractNewAddress(contractName)!);
+        await tx.wait();
+    }
+    console.log("All contracts set on Linker.");
+    if (isReg) {
+
+    }
+    // Set Roles
+    const chainConnectorRole = await msgProxy.CHAIN_CONNECTOR_ROLE();
+    await (await msgProxy.grantRole(chainConnectorRole, newLinker)).wait();
+
+    for (const contractName of contractsToDeploy) {
+        const contract = await ethers.getContractAt(contractName, migrator.getContractNewAddress(contractName)!) as unknown as DepositBox;
+        await (await contract.connect(owner).grantRole(chainConnectorRole, newLinker)).wait();
+    }
+    const newPool = await ethers.getContractAt("CommunityPool", migrator.getContractNewAddress("CommunityPool")!) as unknown as CommunityPool;
+    await (await newPool.connect(owner).grantRole(chainConnectorRole, newLinker)).wait();
+    await (await newLinker.connect(owner).grantRole(chainConnectorRole, newLinker)).wait();
+
+    // ---
     console.log("SUCCESS");
 
     const EOAowned: string[] = [];
     for (const chain of schainHashes) {
-        if (await schainsInternal.isOwnerAddress(process.env.SCHAIN_OWNER, chain)) {
+        if (await schainsInternal.isOwnerAddress(process.env.NEW_SCHAINS_OWNER, chain)) {
             if (await msgProxy.isContractRegistered(chain, process.env.SCHAIN_OWNER)) {
                 console.log("Owner was registered as extra contract. Unregistring..");
                 const tx1 = await msgProxy.removeExtraContract(chain, process.env.SCHAIN_OWNER);
@@ -240,17 +310,20 @@ async function main() {
             EOAowned.push(chain);
         }
     }
-    console.log("EOA owned..")
+    console.log("EOA owned..", EOAowned)
 
-
+    if(! await checkCounters(imaInstance, msigTestnetEndpoints)){
+        process.exit(1);
+    }
     // TODO: Set deposit Boxes addresses in all Schains
     // This is custom for each tesnet migration and only for EOA-owned Schains
 
-    const endpoints = [
-        { name:"juicy-low-small-testnet", endpoint: "http://3.140.123.81:10003/", privKey:""},
+    const endpoints: {name:string, endpoint:string, privKey: string}[] = [
+        /*{ name:"juicy-low-small-testnet", endpoint: "http://3.140.123.81:10003/", privKey:""},
         { name:"giant-half-dual-testnet", endpoint: "http://3.140.123.81:10067/", privKey:""},
         { name:"lanky-ill-funny-testnet", endpoint: "http://3.140.123.81:10131/", privKey:""},
         { name:"aware-fake-trim-testnet", endpoint: "http://3.140.123.81:10195/", privKey:""}
+        */
     ];
     const tokenManagers = [
         {manager:"TokenManagerERC20",box:"DepositBoxERC20"},
@@ -259,7 +332,7 @@ async function main() {
         {manager:"TokenManagerERC1155",box:"DepositBoxERC1155"},
         {manager:"TokenManagerEth",box:"DepositBoxEth"}
     ];
-    if (endpoints.length === EOAowned.length) {
+    if (endpoints.length === EOAowned.length && EOAowned.length > 0) {
         try {
             for (const network of endpoints) {
                 if (network.privKey === "") {
