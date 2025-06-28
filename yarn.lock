@@ -1679,10 +1679,10 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@skalenetwork/etherbase-interfaces@^0.0.1-develop.20":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1.tgz#97ed2069256a835efa1b088a58de17e2783a9e71"
-  integrity sha512-CgAo41sSL1KT9e1d3sUTxW5WPbEvHQwoqo3hLt+VW/6kGYukCuW4AHWMyDr5Jjw9KtjDKSOySDcoukhaeKxToQ==
+"@skalenetwork/etherbase-interfaces@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-1.0.0.tgz#bff0d905b2bcc2000efec32e441f3925bd81cf8e"
+  integrity sha512-aoVTYahw4hp7aY6uLSFFQnKxXJnj7kPhkk2aaCm1GBwxbgheaZ8SjyYjg1ct+k81FVYsjNGaZZodiiVsxysWPg==
 
 "@skalenetwork/ima-interfaces@2.0.0-develop.98":
   version "2.0.0-develop.98"
