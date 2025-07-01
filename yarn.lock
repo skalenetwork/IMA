@@ -1684,10 +1684,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1.tgz#97ed2069256a835efa1b088a58de17e2783a9e71"
   integrity sha512-CgAo41sSL1KT9e1d3sUTxW5WPbEvHQwoqo3hLt+VW/6kGYukCuW4AHWMyDr5Jjw9KtjDKSOySDcoukhaeKxToQ==
 
-"@skalenetwork/ima-interfaces@2.0.0-develop.98":
-  version "2.0.0-develop.98"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-develop.98.tgz#5791c73419dad97453f6d1e03e471b4692dec901"
-  integrity sha512-N+Gnc5rc5T6ALIYO0ryHNyrV2YQ9VI5LjEwKkqVxuFPiXK0oIEW1hJQ/T4hAPrcYT6n40rQEpPnEZf+d00EqVQ==
+"@skalenetwork/ima-interfaces@2.0.0-native-gas-token.10":
+  version "2.0.0-native-gas-token.10"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-native-gas-token.10.tgz#f6668723daf23a805aded97ccaaf047f802d107c"
+  integrity sha512-pjRwCO2EYh3xbvhLzTZxnYCuzUbAnfopF3OEAWkQ6fERP3W6gSrwssp7K4cKWm+0LC+IU20hd6+1G/320NCz6g==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^3.2.0-develop.0"
 

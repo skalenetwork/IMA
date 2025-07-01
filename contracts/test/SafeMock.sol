@@ -27,7 +27,6 @@ interface ISafeMock {
     enum Operation {Call, DelegateCall}
 
     function transferProxyAdminOwnership(OwnableUpgradeable proxyAdmin, address newOwner) external;
-    function destroy() external;
     function multiSend(bytes memory transactions) external;
     function getTransactionHash(
         address to,
@@ -63,9 +62,6 @@ contract SafeMock is OwnableUpgradeable, ISafeMock {
         proxyAdmin.transferOwnership(newOwner);
     }
 
-    function destroy() external override onlyOwner {
-        selfdestruct(payable(msg.sender));
-    }
 
     /// @dev Sends multiple transactions and reverts all if one fails.
     /// @param transactions Encoded transactions. Each transaction is encoded as a packed bytes of
