@@ -26,7 +26,7 @@ import {SchainHash} from "@skalenetwork/ima-interfaces/DomainTypes.sol";
 import "../../Messages.sol";
 import "../TokenManager.sol";
 import "../tokens/EthErc20.sol";
-import "hardhat/console.sol";
+
 
 /**
  * @title TokenManagerSFuelHub

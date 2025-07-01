@@ -86,9 +86,9 @@ contract TokenManagerSFuelSource is TokenManager, ITokenManagerSFuelSource {
         require(receiver != address(0), "Incorrect receiver");
         require(address(this).balance >= decodedMessage.amount, "Insufficient locked sFuel");
 
-        payable(receiver).transfer(decodedMessage.amount);
-
         emit SFuelReceivedFromHub(receiver, decodedMessage.amount);
+
+        payable(receiver).transfer(decodedMessage.amount);
     }
 
     function initialize(
