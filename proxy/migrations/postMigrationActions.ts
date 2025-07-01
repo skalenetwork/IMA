@@ -1,9 +1,80 @@
-import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
-import { JsonRpcProvider, Network, Wallet } from "ethers";
+import { Instance, skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
+import { JsonRpcProvider, Wallet } from "ethers";
 import {ethers} from "hardhat";
 import chalk from "chalk";
 import { msigTestnetEndpoints } from "./migrateMainnet";
+async function submitMarionetteTx(marionette: any, targetContract: string, data: string){
+    const tx = await marionette.execute(
+        targetContract,
+        0,
+        data,
+        {gasLimit: 2_000_000}
+    );
+    await tx.wait();
+}
+async function changeLinkerAndPool(signer: Wallet, imaInstance: Instance, marionette: any) {
+    const proxyAdmin = await ethers.getContractAt("ProxyAdmin", "0xd2aAa00000000000000000000000000000000000", signer);
+    const pool = await imaInstance.getContractAddress("CommunityPool");
+    const linker = await imaInstance.getContractAddress("Linker");
+    const comLocker = await ethers.getContractAt("CommunityLocker", "0xD2aaa00300000000000000000000000000000000", signer);
+    const tokenLinker = await ethers.getContractAt("TokenManagerLinker", "0xD2aAA00800000000000000000000000000000000", signer);
+    const currentLockerImpl = await proxyAdmin.getProxyImplementation(await comLocker.getAddress());
+    const currentTokenLinkerImpl = await proxyAdmin.getProxyImplementation(await tokenLinker.getAddress());
 
+    const mockLocker = await (await ethers.deployContract("CommunityLocker", signer)).waitForDeployment();
+    const mockLinker = await (await ethers.deployContract("TokenManagerLinker", signer)).waitForDeployment();
+
+    const changeImplLockerData = proxyAdmin.interface.encodeFunctionData(
+        "upgrade",
+        [comLocker, mockLocker]
+    );
+    const revertImplLockerData = proxyAdmin.interface.encodeFunctionData(
+        "upgrade",
+        [comLocker, currentLockerImpl]
+    );
+    await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), changeImplLockerData);
+    await (await comLocker.setPoolAddress(pool)).wait();
+    await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), revertImplLockerData);
+    if (await proxyAdmin.getProxyImplementation(await comLocker.getAddress()) != currentLockerImpl) {
+        console.log("Community Pool Implementation address was not updated, current:", await proxyAdmin.getProxyImplementation(await comLocker.getAddress()));
+        console.log("Expected:", currentLockerImpl);
+    }
+    if (await comLocker.communityPool() != pool) {
+        console.log("CommunityPool address on CommunityLocker not updated");
+    }
+
+    const changeImplLinkerData = proxyAdmin.interface.encodeFunctionData(
+        "upgrade",
+        [tokenLinker, mockLinker]
+    );
+    const revertImplLinkerData = proxyAdmin.interface.encodeFunctionData(
+        "upgrade",
+        [tokenLinker, currentTokenLinkerImpl]
+    );
+
+    await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), changeImplLinkerData);
+    await (await tokenLinker.setLinkerAddress(linker)).wait();
+    await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), revertImplLinkerData);
+
+    if (await proxyAdmin.getProxyImplementation(await tokenLinker.getAddress()) != currentTokenLinkerImpl) {
+        console.log("TokenManagerLinker Implementation address was not updated, current:", await proxyAdmin.getProxyImplementation(await tokenLinker.getAddress()));
+        console.log("Expected:", currentTokenLinkerImpl);
+    }
+    if (await tokenLinker.linkerAddress() != linker) {
+        console.log("Linker address on TokenManagerLinker not updated, it is:", await tokenLinker.linkerAddress());
+    }
+
+    try {
+        await (await tokenLinker.setLinkerAddress(linker)).wait();
+    } catch (error) {
+        console.log("Looks like success on TokenManagerLinker");
+    }
+    try {
+        await (await comLocker.setPoolAddress(pool)).wait();
+    } catch (error) {
+        console.log("Looks like success on CommunityLocker");
+    }
+}
 
 // The idea is to give PUPPETTEER ROLE to an EOA account on Schains, to be able to easily set the parameters during migration
 // This script should run post Migration to set things on Schain side.

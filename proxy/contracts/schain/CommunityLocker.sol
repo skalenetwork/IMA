@@ -155,6 +155,10 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         _;
     }
 
+    function setPoolAddress(address newPool) external {
+        communityPool = newPool;
+    }
+
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.

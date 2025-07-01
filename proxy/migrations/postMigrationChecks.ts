@@ -229,9 +229,6 @@ async function checkMainnetIMA(
         }
     }
     if (!ok) process.exit(1);
-
-    // check if old owner was registered
-
 }
 async function checkSchainIMA(
     newIMA: Instance,
@@ -244,6 +241,8 @@ async function checkSchainIMA(
         const url = schain.endpoint;
         const provider = new JsonRpcProvider(url);
         const signer = Wallet.createRandom(provider);
+        const comLocker = await ethers.getContractAt("CommunityLocker", "0xD2aaa00300000000000000000000000000000000", signer);
+        const tokenLinker = await ethers.getContractAt("TokenManagerLinker", "0xD2aAA00800000000000000000000000000000000", signer);
         const marionette: any = await ethers.getContractAt(marionetteInterface, "0xD2c0DeFACe000000000000000000000000000000", signer);
         const ownerIsPuppetteer = await marionette["hasRole"](
             "0xdbe8b307f60c9ed0e3764e9100b17f1d4c5fd58ba7889d208d166f481302d4cf",
@@ -278,6 +277,18 @@ async function checkSchainIMA(
             }
         }
         if (!ok) process.exit(1);
+        if (await comLocker.communityPool() != await newIMA.getContractAddress("CommunityPool")) {
+            console.log("CommunityPool address not updated");
+            console.log("Expected:", await newIMA.getContractAddress("CommunityPool"));
+            console.log("Current:", await comLocker.communityPool());
+            process.exit(1);
+        }
+        if (await tokenLinker.linkerAddress() != await newIMA.getContractAddress("Linker")) {
+            console.log("Linker address not updated");
+            console.log("Expected:", await newIMA.getContractAddress("Linker"));
+            console.log("Current:", await tokenLinker.linkerAddress());
+            process.exit(1);
+        }
     }
 }
 
@@ -299,14 +310,14 @@ async function main() {
     );
     console.log("Success on Skale-Manager");
 
-    /*await checkMainnetIMA(
+    await checkMainnetIMA(
         oldIMA,
         newIMA,
         hoodiProvider,
         holeskyProvider,
         schainHashes,
         newSkaleManager
-    );*/
+    );
     console.log("Success on IMA");
 
     const options = program.opts();
