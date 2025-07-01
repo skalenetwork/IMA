@@ -62,6 +62,8 @@ export const contracts = [
     "TokenManagerERC721",
     "TokenManagerERC1155",
     // "TokenManagerERC721WithMetadata",
+    "TokenManagerSFuelHub",
+    "TokenManagerSFuelSource",
     "EthErc20",
     "KeyStorage"
 ];
@@ -232,12 +234,44 @@ async function main() {
     });
         console.log("Contract TokenManagerERC721WithMetadata deployed to", await tokenManagerERC721WithMetadata.getAddress());
 
+    console.log("Deploy TokenManagerSFuelHub");
+    const tokenManagerSFuelHubFactory = await ethers.getContractFactory("TokenManagerSFuelHub");
+    const tokenManagerSFuelHub = await upgrades.deployProxy(tokenManagerSFuelHubFactory, [
+        schainName,
+        messageProxyAddress,
+        await tokenManagerLinker.getAddress(),
+        await communityLocker.getAddress()
+    ]);
+    await tokenManagerSFuelHub.waitForDeployment();
+    deployed.set("TokenManagerSFuelHub", {
+        address: await tokenManagerSFuelHub.getAddress(),
+        interface: tokenManagerSFuelHub.interface
+    });
+    console.log("Contract TokenManagerSFuelHub deployed to", await tokenManagerSFuelHub.getAddress());
+
+    console.log("Deploy TokenManagerSFuelSource");
+    const tokenManagerSFuelSourceFactory = await ethers.getContractFactory("TokenManagerSFuelSource");
+    const tokenManagerSFuelSource = await upgrades.deployProxy(tokenManagerSFuelSourceFactory, [
+        schainName,
+        messageProxyAddress,
+        await tokenManagerLinker.getAddress(),
+        await communityLocker.getAddress()
+    ]);
+    await tokenManagerSFuelSource.waitForDeployment();
+    deployed.set("TokenManagerSFuelSource", {
+        address: await tokenManagerSFuelSource.getAddress(),
+        interface: tokenManagerSFuelSource.interface
+    });
+    console.log("Contract TokenManagerSFuelSource deployed to", await tokenManagerSFuelSource.getAddress());
+
     console.log("Register token managers");
     await (await tokenManagerLinker.registerTokenManager(await tokenManagerEth.getAddress())).wait();
     await (await tokenManagerLinker.registerTokenManager(await tokenManagerERC20.getAddress())).wait();
     await (await tokenManagerLinker.registerTokenManager(await tokenManagerERC721.getAddress())).wait();
     await (await tokenManagerLinker.registerTokenManager(await tokenManagerERC1155.getAddress())).wait();
     await (await tokenManagerLinker.registerTokenManager(await tokenManagerERC721WithMetadata.getAddress())).wait();
+    await (await tokenManagerLinker.registerTokenManager(await tokenManagerSFuelHub.getAddress())).wait();
+    await (await tokenManagerLinker.registerTokenManager(await tokenManagerSFuelSource.getAddress())).wait();
 
     console.log("Deploy EthErc20");
     const ethERC20Factory = await ethers.getContractFactory("EthErc20");
@@ -264,7 +298,9 @@ async function main() {
         tokenManagerERC721,
         tokenManagerERC1155,
         communityLocker,
-        tokenManagerERC721WithMetadata
+        tokenManagerERC721WithMetadata,
+        tokenManagerSFuelHub,
+        tokenManagerSFuelSource
     ];
     const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
     await messageProxy.grantRole(extraContractRegistrarRole, await owner.getAddress());

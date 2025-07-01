@@ -506,12 +506,11 @@ describe("TokenManagerSFuelSource", () => {
         it("should handle gas optimization for small transfers", async () => {
             const verySmallAmount = 1n;
 
-            const tx = await tokenManagerSource.connect(user1).sendSFuelToHub(
+            await tokenManagerSource.connect(user1).sendSFuelToHub(
                 user2.address,
                 { value: verySmallAmount }
             );
 
-            const receipt = await tx.wait();
         });
 
         it("should maintain state consistency across multiple operations", async () => {
