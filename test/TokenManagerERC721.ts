@@ -250,6 +250,40 @@ describe("TokenManagerERC721", () => {
             outgoingMessagesCounter.should.be.equal(1);
         });
 
+        it("should invoke `transferToSchainERC721Direct` without mistakes", async () => {
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, tokenId);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721, tokenId);
+
+            await tokenManagerERC721
+                .connect(user)
+                .transferToSchainERC721Direct(newSchainName, erc721OnOriginChain, tokenId, deployer.address)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC721
+                .connect(user)
+                .transferToSchainERC721Direct("Mainnet", erc721OnOriginChain, tokenId, deployer.address)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC721.addTokenManager(newSchainName, tokenManagerERC7212);
+
+            // execution:
+            await tokenManagerERC721
+                .connect(user)
+                .transferToSchainERC721Direct(newSchainName, erc721OnOriginChain, tokenId, deployer.address)
+                .should.emit(messageProxyForSchain, "OutgoingMessage");
+
+            // expectation:
+            const outgoingMessagesCounter = await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName);
+            outgoingMessagesCounter.should.be.deep.equal(1n);
+        });
+
+
         it("should reject `transferToSchainERC721` when executing earlier then allowed", async () => {
             await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721);
 
