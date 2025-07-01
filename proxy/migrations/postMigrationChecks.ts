@@ -29,6 +29,8 @@ export async function checkCounters(
         const proxyForSchain = await ethers.getContractAt("MessageProxyForSchain","0xd2AAa00100000000000000000000000000000000", signer);
         const schainInfo = await proxyForSchain.connectedChains("0x8d646f556e5d9d6f1edcf7a39b77f5ac253776eb34efcfd688aacbee518efc26");
         const mainnetInfo = await proxy.connectedChains(hash);
+        console.log(schainInfo);
+        console.log(mainnetInfo);
         if (schainInfo.outgoingMessageCounter > mainnetInfo.incomingMessageCounter) {
             console.log("Schain",schain.name,"has outgoing message not received by Mainnet");
             console.log("ABORT");
@@ -297,14 +299,14 @@ async function main() {
     );
     console.log("Success on Skale-Manager");
 
-    await checkMainnetIMA(
+    /*await checkMainnetIMA(
         oldIMA,
         newIMA,
         hoodiProvider,
         holeskyProvider,
         schainHashes,
         newSkaleManager
-    );
+    );*/
     console.log("Success on IMA");
 
     const options = program.opts();

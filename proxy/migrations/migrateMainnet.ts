@@ -1,14 +1,15 @@
 import chalk from "chalk";
 import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
-import { ethers, network, upgrades } from "hardhat";
-import { JsonRpcProvider } from "ethers";
+import { ethers, network, upgrades, run } from "hardhat";
+import { JsonRpcProvider, keccak256, Wallet } from "ethers";
 import {Migrator} from "@skalenetwork/upgrade-tools/dist/src/migration/migrator"
 import { getAbi, getVersion } from "@skalenetwork/upgrade-tools";
 import { contracts, contractsToDeploy } from "./deployMainnet";
-import { CommunityPool, ContractManager, DepositBox, Linker, MessageProxyForMainnet, SchainsInternal, TokenManager } from "../typechain";
+import { AccessControlEnumerableUpgradeable, CommunityPool, ContractManager, DepositBox, Linker, MessageProxyForMainnet, SchainsInternal, TokenManager } from "../typechain";
 import {promises as fs} from 'fs';
 import { ethers as ethers2} from "ethers";
 import { checkCounters } from "./postMigrationChecks";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 const skaleManagerContracts = [
     "ContractManager",
 
@@ -47,6 +48,22 @@ export const msigTestnetEndpoints: {name: string, endpoint: string}[] = [
     {name: "livid-innocent-altair", endpoint: "http://10.3.155.171:10003/"},
     {name: "unconscious-subdued-alshain", endpoint: "http://10.3.155.171:10067/"}
 ];
+
+async function roleSetterHelper(
+    contract: AccessControlEnumerableUpgradeable,
+    owner: Wallet | HardhatEthersSigner,
+    role: string,
+    oldAcc: string,
+    newAcc: string
+)
+{
+    const roleHash = keccak256(role);
+    if (await contract.connect(owner).hasRole(roleHash, oldAcc)) {
+        await(await contract.connect(owner).revokeRole(roleHash, oldAcc)).wait();
+        await(await contract.connect(owner).grantRole(roleHash, newAcc)).wait();
+        console.log(`Granted ${role} to ${newAcc}`);
+    }
+}
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -115,7 +132,7 @@ async function main() {
     }
     const newNetwork = await skaleContracts.getNetworkByProvider(ethers.provider);
     const oldProxyForMainnet = await imaInstance.getContract("MessageProxyForMainner") as unknown as MessageProxyForMainnet;
-    const oldOwner = oldProxyForMainnet.getRoleMember("0x0000000000000000000000000000000000000000000000000000000000000000",0);
+    const oldOwner = oldProxyForMainnet.getRoleMember("0x0000000000000000000000000000000000000000000000000000000000000000", 0);
     if ((await provider.getCode(oldOwner)).length > 2) {
         console.log("Initial owner is not EOA account, aborting");
         process.exit(1);
@@ -239,10 +256,14 @@ async function main() {
         console.log("Unregister old paymaster");
         let tx2 = await msgProxy.removeExtraContract(paymasterHash, await skaleManagerOldInstance.getContractAddress("PaymasterController"));
         await tx2.wait();
-        console.log("Allowing PaymasterController to send messages to all schains");
+        console.log("Allowing PaymasterController to send messages to Schain");
         tx2 = await msgProxy.registerExtraContract(paymasterHash, await skaleManagerNewInstance.getContractAddress("PaymasterController"));
         await tx2.wait();
     }
+    // The reason for the reverse is complex. During deployment, contracts are registered in certain order.
+    // During migration, EnumerableSets that used to hold contract addresses are corrupted and old items MUST be deleted from last to first!
+    // This is due to how EnumerableSets are implemented, and how the migration process touches raw storage.
+    // The following code might need changes for different IMA instances so it's good to double check contracts registered and their order before running this script
     for(const contractName of contracts.reverse()){
         const old = await oldContractManager.getContract(contractName);
         if (await newLinker.hasMainnetContract(old)) {
@@ -276,20 +297,18 @@ async function main() {
         await tx.wait();
     }
     console.log("All contracts set on Linker.");
-    if (isReg) {
-
-    }
     // Set Roles
-    const chainConnectorRole = await msgProxy.CHAIN_CONNECTOR_ROLE();
-    await (await msgProxy.grantRole(chainConnectorRole, newLinker)).wait();
+    const newPool = await ethers.getContractAt("CommunityPool", migrator.getContractNewAddress("CommunityPool")!) as unknown as CommunityPool;
+
+    await roleSetterHelper(msgProxy, owner, "CHAIN_CONNECTOR_ROLE", await oldLinker.getAddress(), await newLinker.getAddress());
 
     for (const contractName of contractsToDeploy) {
         const contract = await ethers.getContractAt(contractName, migrator.getContractNewAddress(contractName)!) as unknown as DepositBox;
-        await (await contract.connect(owner).grantRole(chainConnectorRole, newLinker)).wait();
+        await roleSetterHelper(contract, owner, "LINKER_ROLE", await oldLinker.getAddress(), await newLinker.getAddress());
     }
-    const newPool = await ethers.getContractAt("CommunityPool", migrator.getContractNewAddress("CommunityPool")!) as unknown as CommunityPool;
-    await (await newPool.connect(owner).grantRole(chainConnectorRole, newLinker)).wait();
-    await (await newLinker.connect(owner).grantRole(chainConnectorRole, newLinker)).wait();
+
+    await roleSetterHelper(newPool, owner, "LINKER_ROLE", await oldLinker.getAddress(), await newLinker.getAddress());
+    await roleSetterHelper(newLinker, owner, "LINKER_ROLE", await oldLinker.getAddress(), await newLinker.getAddress());
 
     // ---
     console.log("SUCCESS");
@@ -299,12 +318,12 @@ async function main() {
         if (await schainsInternal.isOwnerAddress(process.env.NEW_SCHAINS_OWNER, chain)) {
             if (await msgProxy.isContractRegistered(chain, process.env.SCHAIN_OWNER)) {
                 console.log("Owner was registered as extra contract. Unregistring..");
-                const tx1 = await msgProxy.removeExtraContract(chain, process.env.SCHAIN_OWNER);
+                let tx1 = await msgProxy.removeExtraContract(chain, process.env.SCHAIN_OWNER);
                 await tx1.wait();
+                tx1 = await msgProxy.registerExtraContract(chain, process.env.NEW_SCHAINS_OWNER);
+                await tx1.wait();
+                console.log("Registered new owner",process.env.NEW_SCHAINS_OWNER,"for",chain);
             }
-            const tx1 = await msgProxy.registerExtraContract(chain, process.env.NEW_SCHAINS_OWNER);
-            await tx1.wait();
-            console.log("Registered new owner",process.env.NEW_SCHAINS_OWNER,"for",chain);
         }
         else {
             EOAowned.push(chain);
@@ -315,16 +334,12 @@ async function main() {
     if(! await checkCounters(imaInstance, msigTestnetEndpoints)){
         process.exit(1);
     }
-    // TODO: Set deposit Boxes addresses in all Schains
-    // This is custom for each tesnet migration and only for EOA-owned Schains
 
-    const endpoints: {name:string, endpoint:string, privKey: string}[] = [
-        /*{ name:"juicy-low-small-testnet", endpoint: "http://3.140.123.81:10003/", privKey:""},
-        { name:"giant-half-dual-testnet", endpoint: "http://3.140.123.81:10067/", privKey:""},
-        { name:"lanky-ill-funny-testnet", endpoint: "http://3.140.123.81:10131/", privKey:""},
-        { name:"aware-fake-trim-testnet", endpoint: "http://3.140.123.81:10195/", privKey:""}
-        */
-    ];
+    // Set deposit Boxes addresses in all Schains
+    // This is custom for each tesnet migration and only for EOA-owned Schains
+    // Before running the script fill the endpoinds table with data. Likely never used for production
+
+    const endpoints: {name: string, endpoint: string, privKey: string}[] = [];
     const tokenManagers = [
         {manager:"TokenManagerERC20",box:"DepositBoxERC20"},
         {manager:"TokenManagerERC721",box:"DepositBoxERC721"},
@@ -361,6 +376,13 @@ async function main() {
     }
     console.log("Verifying..");
     await migrator.verify();
+    for (const contract of contracts){
+        const address = migrator.getContractNewAddress(contract);
+        if(!address) continue;
+        await run("verify:verify", {
+            address: address
+        })
+    }
     console.log("All done!!");
 }
 
