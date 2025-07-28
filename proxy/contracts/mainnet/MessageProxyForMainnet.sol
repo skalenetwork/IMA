@@ -310,7 +310,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
 
-            if (isReimbursedContract(fromSchainHash, _toMigrated(messages[i].destinationContract))) {
+            if (isReimbursedContract(fromSchainHash, messages[i].destinationContract)) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(

@@ -35,13 +35,26 @@ function getGasPrice(gasPrice: string | undefined) {
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
-    version: '0.8.16',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200
+    compilers: [
+      {
+        version: '0.8.16',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      },
+      {
+        version: '0.8.26',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 300
+          }
+        }
       }
-    }
+    ]
   },
   mocha: {
     timeout: 1000000
@@ -73,7 +86,7 @@ const config: HardhatUserConfig = {
         network: "hoodi",
         chainId: 560048,
         urls: {
-          apiURL: "https://api-hoodi.etherscan.io/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=560048",
           browserURL: "https://hoodi.etherscan.io"
         }
       }

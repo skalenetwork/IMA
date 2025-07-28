@@ -12,28 +12,182 @@ async function submitMarionetteTx(marionette: any, targetContract: string, data:
     );
     await tx.wait();
 }
+const proxyAdminAbi = [
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "proxy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "newAdmin",
+        "type": "address"
+      }
+    ],
+    "name": "changeProxyAdmin",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "proxy",
+        "type": "address"
+      }
+    ],
+    "name": "getProxyAdmin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "proxy",
+        "type": "address"
+      }
+    ],
+    "name": "getProxyImplementation",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "proxy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "upgrade",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "proxy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  }
+];
 async function changeLinkerAndPool(signer: Wallet, imaInstance: Instance, marionette: any) {
-    const proxyAdmin = await ethers.getContractAt("ProxyAdmin", "0xd2aAa00000000000000000000000000000000000", signer);
+    const proxyAdmin = await ethers.getContractAt(proxyAdminAbi, "0xd2aAa00000000000000000000000000000000000", signer);
     const pool = await imaInstance.getContractAddress("CommunityPool");
     const linker = await imaInstance.getContractAddress("Linker");
     const comLocker = await ethers.getContractAt("CommunityLocker", "0xD2aaa00300000000000000000000000000000000", signer);
     const tokenLinker = await ethers.getContractAt("TokenManagerLinker", "0xD2aAA00800000000000000000000000000000000", signer);
     const currentLockerImpl = await proxyAdmin.getProxyImplementation(await comLocker.getAddress());
     const currentTokenLinkerImpl = await proxyAdmin.getProxyImplementation(await tokenLinker.getAddress());
-
+    console.log(currentLockerImpl);
+    console.log(currentTokenLinkerImpl);
     const mockLocker = await (await ethers.deployContract("CommunityLocker", signer)).waitForDeployment();
     const mockLinker = await (await ethers.deployContract("TokenManagerLinker", signer)).waitForDeployment();
-
+    console.log("Deployed Mock Linker at:", await mockLinker.getAddress());
+    console.log("Deployed Mock Locker at:", await mockLocker.getAddress());
     const changeImplLockerData = proxyAdmin.interface.encodeFunctionData(
         "upgrade",
-        [comLocker, mockLocker]
+        ["0xD2aaa00300000000000000000000000000000000", await mockLocker.getAddress()]
     );
     const revertImplLockerData = proxyAdmin.interface.encodeFunctionData(
         "upgrade",
-        [comLocker, currentLockerImpl]
+        ["0xD2aaa00300000000000000000000000000000000", currentLockerImpl]
     );
     await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), changeImplLockerData);
     await (await comLocker.setPoolAddress(pool)).wait();
+    console.log("changed Pool Address");
     await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), revertImplLockerData);
     if (await proxyAdmin.getProxyImplementation(await comLocker.getAddress()) != currentLockerImpl) {
         console.log("Community Pool Implementation address was not updated, current:", await proxyAdmin.getProxyImplementation(await comLocker.getAddress()));
@@ -45,15 +199,16 @@ async function changeLinkerAndPool(signer: Wallet, imaInstance: Instance, marion
 
     const changeImplLinkerData = proxyAdmin.interface.encodeFunctionData(
         "upgrade",
-        [tokenLinker, mockLinker]
+        ["0xD2aAA00800000000000000000000000000000000", await mockLinker.getAddress()]
     );
     const revertImplLinkerData = proxyAdmin.interface.encodeFunctionData(
         "upgrade",
-        [tokenLinker, currentTokenLinkerImpl]
+        ["0xD2aAA00800000000000000000000000000000000", currentTokenLinkerImpl]
     );
 
     await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), changeImplLinkerData);
     await (await tokenLinker.setLinkerAddress(linker)).wait();
+    console.log("changed Linker Address");
     await submitMarionetteTx(marionette, await proxyAdmin.getAddress(), revertImplLinkerData);
 
     if (await proxyAdmin.getProxyImplementation(await tokenLinker.getAddress()) != currentTokenLinkerImpl) {
@@ -161,7 +316,7 @@ async function main() {
             )
         );
         await tx.wait();
-
+        await changeLinkerAndPool(signer, instance, marionette);
         try {
             tx = await marionette.execute(
                 "0xD2c0DeFACe000000000000000000000000000000",
