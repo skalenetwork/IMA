@@ -121,6 +121,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     event TransferSkipped(uint256 id);
 
     /**
+     * @dev Emitted when token transfer is not reverted
+     */
+    event TransferSucceeded(uint256 id);
+
+    /**
      * @dev Emitted when big transfer threshold is changed
      */
     event BigTransferThresholdIsChanged(
@@ -598,11 +603,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         return _delayConfig[schainHash].arbitrageDuration;
     }
 
-    // TODO:
-    // Known issue to fix in further releases.
-    // https://github.com/skalenetwork/IMA/issues/1717
-    // slither-disable-start reentrancy-no-eth
-
     /**
      * @dev Retrieve tokens that were unlocked after delay for specified receiver
      */
@@ -611,14 +611,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             delayedTransfersByReceiver[receiver].length(),
             _QUEUE_PROCESSING_LIMIT
         );
-
         uint256 currentIndex = 0;
         bool retrieved = false;
+        uint256 countToTransfer = 0;
+        DelayedTransfer[] memory transfers = new DelayedTransfer[](transfersAmount);
+        uint256[] memory transfersIds = new uint256[](transfersAmount);
         for (uint256 i = 0; i < transfersAmount; ++i) {
-            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
+            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex++));
             DelayedTransfer memory transfer = delayedTransfers[transferId];
-            ++currentIndex;
-
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
                     // disable detector until slither fixes false positive
@@ -626,12 +626,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                     // slither-disable-next-line incorrect-equality
                     if (transfer.status == DelayedTransferStatus.DELAYED) {
                         break;
-                    } else {
-                        // status is ARBITRAGE
-                        continue;
-                    }
-                } else {
-                    // it's time to unlock
+                    } // else status is ARBITRAGE -> continue
+                } else { // it's time to unlock
                     if (currentIndex == 1) {
                         --currentIndex;
                         _removeOldestDelayedTransfer(receiver);
@@ -639,16 +635,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
                     retrieved = true;
-                    try
-                        this.doTransfer(transfer.token, transfer.receiver, transfer.amount)
-                    // solhint-disable-next-line no-empty-blocks
-                    {}
-                    catch {
-                        emit TransferSkipped(transferId);
-                    }
+                    transfers[countToTransfer] = transfer;
+                    transfersIds[countToTransfer] = transferId;
+                    ++countToTransfer;
                 }
-            } else {
-                // status is COMPLETED
+            } else { // status is COMPLETED
                 if (currentIndex == 1) {
                     --currentIndex;
                     retrieved = true;
@@ -657,8 +648,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             }
         }
         require(retrieved, "There are no transfers available for retrieving");
+        _doNTransfers(transfers, transfersIds, countToTransfer);
     }
-    // slither-disable-end reentrancy-no-eth
 
     /**
      * @dev Creates a new DepositBoxERC20 contract.
@@ -728,6 +719,26 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     // private
 
+    /**
+     * @dev Tries to do N amount of ERC20 transfers
+     */
+    function _doNTransfers(
+        DelayedTransfer[] memory transfers,
+        uint256[] memory transfersIds,
+        uint256 countToTransfer
+    )
+        private
+    {
+        for (uint256 i = 0; i < countToTransfer; ++i){
+            DelayedTransfer memory transfer = transfers[i];
+            try this.doTransfer(transfer.token, transfer.receiver, transfer.amount) {
+                emit TransferSucceeded(transfersIds[i]);
+            }
+            catch {
+                emit TransferSkipped(transfersIds[i]);
+            }
+        }
+    }
     /**
      * @dev Saves amount of tokens that was transferred to schain.
      */
