@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "../mainnet/MessageProxyForMainnet.sol";
 import "../schain/MessageProxyForSchain.sol";
@@ -28,24 +28,24 @@ import "../schain/MessageProxyForSchain.sol";
 interface IMessageProxyCaller {
     function postOutgoingMessageTester(
         MessageProxyForMainnet messageProxyForMainnet,
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes calldata data
     ) external;
     function postOutgoingMessageTesterOnSchain(
         MessageProxyForSchain messageProxyForSchain,
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes calldata data
     ) external;
 }
 
 
-contract MessageProxyCaller is IMessageProxyCaller {    
+contract MessageProxyCaller is IMessageProxyCaller {
 
     function postOutgoingMessageTester(
         MessageProxyForMainnet messageProxyForMainnet,
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes calldata data
     )
@@ -57,7 +57,7 @@ contract MessageProxyCaller is IMessageProxyCaller {
 
     function postOutgoingMessageTesterOnSchain(
         MessageProxyForSchain messageProxyForSchain,
-        bytes32 targetChainHash,
+        SchainHash targetChainHash,
         address targetContract,
         bytes calldata data
     )

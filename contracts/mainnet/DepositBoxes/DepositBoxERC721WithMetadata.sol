@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -38,15 +38,15 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
 
     /**
      * @dev Allows MessageProxyForMainnet contract to execute transferring ERC721 token from schain to mainnet.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain from which the tokens came should not be killed.
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      * - DepositBoxERC721 contract should own token.
      */
     function postMessage(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -79,7 +79,7 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      */
     function gasPayer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -96,11 +96,11 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
 
     /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
-     * 
+     *
      * Emits an {ERC721TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
      */
     function _receiveERC721(

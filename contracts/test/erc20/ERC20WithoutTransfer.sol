@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 interface IERC20WithoutTransfer {
     function mint(address account, uint256 amount) external returns (bool);
@@ -49,7 +49,7 @@ abstract contract ERC20WithoutTransfer is IERC20WithoutTransfer {
      *
      * NEED TO HAVE THIS FUNCTION ON SKALE-CHAIN
      *
-     * @param amount - amount of tokens 
+     * @param amount - amount of tokens
      */
     function burn(uint256 amount) external override {
         _burn(msg.sender, amount);

@@ -6,16 +6,11 @@ import { Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
-import { MessageProxyForSchain } from "../typechain";
+import { MessageProxyForSchain, CommunityLocker } from "../typechain";
 import { ContractAddressMap } from "@skalenetwork/skale-contracts/lib/domain/types";
 
 
 async function getImaSchainInstance() {
-    if (!process.env.TARGET) {
-        console.log(chalk.red("Specify desired schain-ima instance"));
-        console.log(chalk.red("Set instance alias or MessageProxyForSchain address to TARGET environment variable"));
-        process.exit(1);
-    }
     const network = await skaleContracts.getNetworkByProvider(ethers.provider);
     const project = network.getProject("schain-ima");
     const contractAddresses: ContractAddressMap = {};
@@ -29,6 +24,11 @@ async function getImaSchainInstance() {
             contractAddresses[contract] = abi[getContractKeyInAbiFile(contract) + "_address"];
         }
         return await project.getInstance(contractAddresses);
+    }
+    if (!process.env.TARGET) {
+        console.log(chalk.red("Specify desired schain-ima instance"));
+        console.log(chalk.red("Set instance alias or MessageProxyForSchain address to TARGET environment variable"));
+        process.exit(1);
     }
     return await project.getInstance(process.env.TARGET);
 }
@@ -74,21 +74,28 @@ class ImaSchainUpgrader extends Upgrader {
 
     // deployNewContracts = () => { };
 
-    // initialize = async () => { };
+    initialize = async () => {
+        const imaInstance = await getImaSchainInstance();
+        const communityLocker = await imaInstance.getContract("CommunityLocker") as unknown as CommunityLocker;
+        const communityLockerFactory = await ethers.getContractFactory("CommunityLocker");
+        console.log(chalk.yellow("Prepare transaction to initialize timestamp"));
+        this.transactions.push(Transaction.from(
+            {
+                to: await communityLocker.getAddress(),
+                data: communityLockerFactory.interface.encodeFunctionData("initializeTimestamp")
+            }
+        ))
 
+    };
 }
 
 
 async function main() {
     const pathToManifest: string = process.env.MANIFEST || "";
     await manifestSetup(pathToManifest);
-    let contractNamesToUpgrade: string[] = [
-    ]
-    if (process.env.UPGRADE_ALL) {
-        contractNamesToUpgrade = contracts;
-    }
+    const contractNamesToUpgrade = contracts;
     const upgrader = new ImaSchainUpgrader(
-        "2.2.0",
+        "1.1.3-beta.0",
         await getImaSchainInstance(),
         contractNamesToUpgrade
     );

@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -59,7 +59,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     struct DelayedTransfer {
         address receiver;
-        bytes32 schainHash;
+        SchainHash schainHash;
         address token;
         uint256 amount;
         uint256 untilTimestamp;
@@ -78,19 +78,24 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
 
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => bool))
     // schainHash => address of ERC20 on Mainnet
     // Deprecated
     // slither-disable-next-line unused-state
-    mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC20;
-    mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
+    mapping(SchainHash => mapping(address => bool)) private _deprecatedSchainToERC20;
+    /// @custom:oz-retyped-from mapping(bytes32 => mapping(address => uint256))
+    mapping(SchainHash => mapping(address => uint256)) public transferredAmount;
+    /// @custom:oz-retyped-from mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)
+    mapping(SchainHash => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
     // exits delay configuration
     //   schainHash => delay config
-    mapping(bytes32 => DelayConfig) private _delayConfig;
+    /// @custom:oz-retyped-from mapping(bytes32 => struct DepositBoxERC20.DelayConfig)
+    mapping(SchainHash => DelayConfig) private _delayConfig;
 
     uint256 public delayedTransfersSize;
     // delayed transfer id => delayed transfer
+    /// @custom:oz-retyped-from mapping(uint256 => struct DepositBoxERC20.DelayedTransfer)
     mapping(uint256 => DelayedTransfer) public delayedTransfers;
     // receiver address => delayed transfers ids queue
     mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedTransfersByReceiver;
@@ -116,10 +121,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     event TransferSkipped(uint256 id);
 
     /**
+     * @dev Emitted when token transfer is not reverted
+     */
+    event TransferSucceeded(uint256 id);
+
+    /**
      * @dev Emitted when big transfer threshold is changed
      */
     event BigTransferThresholdIsChanged(
-        bytes32 indexed schainHash,
+        SchainHash indexed schainHash,
         address indexed token,
         uint256 oldValue,
         uint256 newValue
@@ -129,7 +139,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Emitted when big transfer delay is changed
      */
     event BigTransferDelayIsChanged(
-        bytes32 indexed schainHash,
+        SchainHash indexed schainHash,
         uint256 oldValue,
         uint256 newValue
     );
@@ -138,7 +148,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Emitted when arbitrage duration is changed
      */
     event ArbitrageDurationIsChanged(
-        bytes32 indexed schainHash,
+        SchainHash indexed schainHash,
         uint256 oldValue,
         uint256 newValue
     );
@@ -175,7 +185,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
      */
     function postMessage(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -241,7 +251,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         onlySchainOwner(schainName)
         whenKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
         IERC20MetadataUpgradeable(erc20OnMainnet).safeTransfer(receiver, amount);
@@ -266,7 +276,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         emit BigTransferThresholdIsChanged(
             schainHash,
             token,
@@ -294,7 +304,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
         emit BigTransferDelayIsChanged(schainHash, _delayConfig[schainHash].transferDelay, delayInSeconds);
@@ -317,7 +327,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
         emit ArbitrageDurationIsChanged(schainHash, _delayConfig[schainHash].arbitrageDuration, delayInSeconds);
@@ -380,7 +390,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - transfer must be delayed and arbitrage must not be started
      */
     function escalate(uint256 transferId) external override {
-        bytes32 schainHash = delayedTransfers[transferId].schainHash;
+        SchainHash schainHash = delayedTransfers[transferId].schainHash;
         require(
             hasRole(ARBITER_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash),
             "Not enough permissions to request escalation"
@@ -452,7 +462,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      */
     function gasPayer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         address sender,
         bytes calldata data
     )
@@ -561,7 +571,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     /**
      * @dev Get amount of addresses that are added to the whitelist
      */
-    function getTrustedReceiversAmount(bytes32 schainHash) external view override returns (uint256) {
+    function getTrustedReceiversAmount(SchainHash schainHash) external view override returns (uint256) {
         return _delayConfig[schainHash].trustedReceivers.length();
     }
 
@@ -575,53 +585,49 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     /**
      * @dev Get amount of tokens that are considered as a big transfer
      */
-    function getBigTransferThreshold(bytes32 schainHash, address token) external view override returns (uint256) {
+    function getBigTransferThreshold(SchainHash schainHash, address token) external view override returns (uint256) {
         return _delayConfig[schainHash].bigTransferThreshold[token];
     }
 
     /**
      * @dev Get time delay of big transfers
      */
-    function getTimeDelay(bytes32 schainHash) external view override returns (uint256) {
+    function getTimeDelay(SchainHash schainHash) external view override returns (uint256) {
         return _delayConfig[schainHash].transferDelay;
     }
 
     /**
      * @dev Get duration of an arbitrage
      */
-    function getArbitrageDuration(bytes32 schainHash) external view override returns (uint256) {
+    function getArbitrageDuration(SchainHash schainHash) external view override returns (uint256) {
         return _delayConfig[schainHash].arbitrageDuration;
     }
 
     /**
-     * @dev Retrive tokens that were unlocked after delay for specified receiver
+     * @dev Retrieve tokens that were unlocked after delay for specified receiver
      */
     function retrieveFor(address receiver) public override {
         uint256 transfersAmount = MathUpgradeable.min(
             delayedTransfersByReceiver[receiver].length(),
             _QUEUE_PROCESSING_LIMIT
         );
-
         uint256 currentIndex = 0;
         bool retrieved = false;
+        uint256 countToTransfer = 0;
+        DelayedTransfer[] memory transfers = new DelayedTransfer[](transfersAmount);
+        uint256[] memory transfersIds = new uint256[](transfersAmount);
         for (uint256 i = 0; i < transfersAmount; ++i) {
-            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
+            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex++));
             DelayedTransfer memory transfer = delayedTransfers[transferId];
-            ++currentIndex;
-
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
-                    // disable detector untill slither fixes false positive
+                    // disable detector until slither fixes false positive
                     // https://github.com/crytic/slither/issues/778
                     // slither-disable-next-line incorrect-equality
                     if (transfer.status == DelayedTransferStatus.DELAYED) {
                         break;
-                    } else {
-                        // status is ARBITRAGE
-                        continue;
-                    }
-                } else {
-                    // it's time to unlock
+                    } // else status is ARBITRAGE -> continue
+                } else { // it's time to unlock
                     if (currentIndex == 1) {
                         --currentIndex;
                         _removeOldestDelayedTransfer(receiver);
@@ -629,16 +635,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
                     retrieved = true;
-                    try
-                        this.doTransfer(transfer.token, transfer.receiver, transfer.amount)
-                    // solhint-disable-next-line no-empty-blocks
-                    {}
-                    catch {
-                        emit TransferSkipped(transferId);
-                    }
+                    transfers[countToTransfer] = transfer;
+                    transfersIds[countToTransfer] = transferId;
+                    ++countToTransfer;
                 }
-            } else {
-                // status is COMPLETED
+            } else { // status is COMPLETED
                 if (currentIndex == 1) {
                     --currentIndex;
                     retrieved = true;
@@ -647,6 +648,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             }
         }
         require(retrieved, "There are no transfers available for retrieving");
+        _doNTransfers(transfers, transfersIds, countToTransfer);
     }
 
     /**
@@ -666,9 +668,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain to specified receiver.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain name must not be `Mainnet`.
      * - Receiver account on schain cannot be null.
      * - Schain that receives tokens should not be killed.
@@ -686,7 +688,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         rightTransaction(schainName, receiver)
         whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
@@ -711,23 +713,43 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     /**
      * @dev Check if the receiver is in the delay whitelist
      */
-    function isReceiverTrusted(bytes32 schainHash, address receiver) public view override returns (bool) {
+    function isReceiverTrusted(SchainHash schainHash, address receiver) public view override returns (bool) {
         return _delayConfig[schainHash].trustedReceivers.contains(receiver);
     }
 
     // private
 
     /**
+     * @dev Tries to do N amount of ERC20 transfers
+     */
+    function _doNTransfers(
+        DelayedTransfer[] memory transfers,
+        uint256[] memory transfersIds,
+        uint256 countToTransfer
+    )
+        private
+    {
+        for (uint256 i = 0; i < countToTransfer; ++i){
+            DelayedTransfer memory transfer = transfers[i];
+            try this.doTransfer(transfer.token, transfer.receiver, transfer.amount) {
+                emit TransferSucceeded(transfersIds[i]);
+            }
+            catch {
+                emit TransferSkipped(transfersIds[i]);
+            }
+        }
+    }
+    /**
      * @dev Saves amount of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+    function _saveTransferredAmount(SchainHash schainHash, address erc20Token, uint256 amount) private {
         transferredAmount[schainHash][erc20Token] += amount;
     }
 
     /**
      * @dev Removes amount of tokens that was transferred from schain.
      */
-    function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+    function _removeTransferredAmount(SchainHash schainHash, address erc20Token, uint256 amount) private {
         transferredAmount[schainHash][erc20Token] -= amount;
     }
 
@@ -750,7 +772,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         private
         returns (bytes memory data)
     {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         IERC20MetadataUpgradeable erc20 = IERC20MetadataUpgradeable(erc20OnMainnet);
         uint256 totalSupply = erc20.totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
@@ -786,7 +808,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - Given address should be contract.
      */
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
-        bytes32 schainHash = _schainHash(schainName);
+        SchainHash schainHash = _schainHash(schainName);
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         require(!_schainToERC20[schainHash].contains(erc20OnMainnet), "ERC20 Token was already added");
         _schainToERC20[schainHash].add(erc20OnMainnet);
@@ -837,7 +859,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * Create instance of DelayedTransfer and initialize all auxiliary fields.
      */
     function _createDelayedTransfer(
-        bytes32 schainHash,
+        SchainHash schainHash,
         Messages.TransferErc20Message memory message,
         uint256 delay
     )

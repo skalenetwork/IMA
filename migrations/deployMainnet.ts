@@ -188,8 +188,8 @@ async function deployCommunityPool(
         "CommunityPool",
         [
             await contractManager.getAddress(),
-            await messageProxyForMainnet.getAddress(),
-            await linker.getAddress()
+            await linker.getAddress(),
+            await messageProxyForMainnet.getAddress()
         ],
         'initialize(address,address,address)'
     ) as unknown as CommunityPool;
