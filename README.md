@@ -1,162 +1,189 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-# SKALE Interchain Messaging Contracts
+# SKALE IMA (Interchain Messaging Agent)
 
-[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
+<div align="center">
 
-## A critical note about production readiness
+[![License](https://img.shields.io/github/license/skalenetwork/IMA.svg)](LICENSE)
+[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/skale)
+[![Build Status](https://github.com/skalenetwork/IMA/actions/workflows/test.yml/badge.svg)](https://github.com/skalenetwork/IMA/actions)
+[![codecov](https://codecov.io/gh/skalenetwork/IMA/branch/develop/graph/badge.svg)](https://codecov.io/gh/skalenetwork/IMA)
 
-The IMA is still in active development and therefore should be regarded as _alpha software_. The development is still subject to further security hardening, testing, and breaking changes.
+<p>Smart contracts enabling secure cross-chain asset transfers and messaging within SKALE Network echosystem: Ethereum to Schains, and Schains to Schains</p>
 
-**The proxy contracts have been reviewed and audited by a third-parties for security.**
-Please see [SECURITY.md](.github/SECURITY.md) for audit reports and reporting policies.
+</div>
 
-## Software Architecture
 
-IMA consists of the following three parts:
+## Introduction
 
-1) `Mainnet` smart contracts.
-2) `SKALE Chain` smart contracts.
-3) A containerized [IMA Agent](https://github.com/skalenetwork/ima-agent) application.
+SKALE IMA (Interchain Messaging Agent) is the bridge infrastructure that enables secure, trustless communication between Ethereum Mainnet and SKALE Chains. It provides the smart contract layer for the SKALE Network's interchain messaging system, allowing users to transfer ETH, ERC-20, ERC-721, and ERC-1155 tokens between chains in the SKALE Network.
 
-Smart contracts are interfaces for any software working with `Mainnet` and `SKALE Chain` like other smart contracts deployed there or software connecting these Ethereum networks.
-The Agent is a Node JS application connecting the smart contracts on Mainnet with SKALE Chains.
+The system consists of paired smart contracts deployed on both Mainnet and SKALE Chains, coordinated by the [IMA Agent](https://github.com/skalenetwork/ima-agent) service. Messages are cryptographically signed using BLS threshold signatures by SKALE Chain validator nodes, ensuring decentralized security for all cross-chain operations.
 
-## SKALE IMA Proxy
+**Core Capabilities:**
 
-SKALE Interchain Messaging Smart Contracts
+- **ETH Bridging:** Deposit and withdraw native ETH between Mainnet and SKALE Chains via `DepositBoxEth` and wrapped ETH (EthERC20) on SKALE.
+- **ERC-20 Token Transfers:** Bridge fungible tokens using `DepositBoxERC20` on Mainnet and `TokenManagerERC20` on SKALE Chains.
+- **ERC-721 / ERC-721 with Metadata:** Transfer NFTs with optional metadata preservation via dedicated deposit boxes and token managers.
+- **ERC-1155 Multi-Token Support:** Bridge semi-fungible tokens using `DepositBoxERC1155` and `TokenManagerERC1155`.
+- **Generic Message Proxy:** Send arbitrary cross-chain messages via `MessageProxyForMainnet` and `MessageProxyForSchain` for custom dApp integrations.
+- **Community Pool & Locker:** Manage gas reimbursement and community-controlled asset locking for SKALE Chain operations.
 
-Proxy is a library with smart contracts for the SKALE Interchain Messaging Agent. This system allows transferring ETH, ERC20 and ERC721 and is based on the Message Proxy system.
+For a detailed overview of the repository structure and organization, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-- Smart contract language: Solidity 0.8.16
-- NodeJS version: v18
-- Yarn Classic
 
-### Message Proxy system
+## Installation & Setup
 
-This system allows sending and receiving messages from other chains. `MessageProxy.sol` contract needs to be deployed to Mainnet, and deployed to each SKALE chain to use it with the SKALE Interchain Messaging Agent.
-You can use MessageProxy contract separately by Interchain Messaging Smart Contracts:
+### Prerequisites
 
-1) Add interface:
+- Node.js v18 (V20+ might work but currently are not actively tested by CI)
+- Python 3.8+ (for static analysis and predeployed scripts)
 
-    ```solidity
-    interface Proxy {
-        function postOutgoingMessage(
-            string calldata targetSchainName,
-            address targetContract,
-            uint256 amount,
-            address to,
-            bytes calldata data
-        )
-            external;
-    }
-    ```
-
-2) Write `postMessage` function, which will receive and process messages from other chains:
-
-    ```solidity
-    function postMessage(
-        address sender,
-        string memory fromSchainName,
-        address payable to,
-        uint256 amount,
-        bytes memory data
-    )
-        public
-    {
-        ...
-    }
-    ```
-
-3) Add the address of MessageProxy on some chain:
-    Data of Smart contracts stores in `data` folder
-
-4) Then continue developing your dApp
-
-### Ether clone on SKALE chain
-
-There is a Wrapped Ether clone(EthERC20.sol) on SKALE chains - it is an ERC20 token and inherits the known ERC-20 approve issue. Please find more details here <https://blog.smartdec.net/erc20-approve-issue-in-simple-words-a41aaf47bca6>
-
-### Interchain Messaging Agent system
-
-This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
-It consists of 3 additional smart contracts (not including MessageProxy contract):
-
-1) `DepositBox.sol` - contract only on a mainnet: DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains. \- `deposit(string memory schainName, address to)` - transfer ETH. ...
-2) `TokenManager.sol`
-3) `TokenFactory.sol`
-
-### Install
-
-1) Clone this repo
-2) run `npm install`
-3) run `npm start`, this command will compile contracts
-
-### Deployment
-
-Configure your networks for SKALE chain and mainnet in `truffle-config.js`
-
-There are several example networks in comments.
-
-The `.env` file should include the following variables:
+### Clone and Install
 
 ```bash
-URL_W3_ETHEREUM="your mainnet RPC url, it also can be an infura endpoint"
-URL_W3_S_CHAIN="your SKALE chain RPC url, it also can be an infura endpoint"
-CHAIN_NAME_SCHAIN="your SKALE chain name"
-PRIVATE_KEY_FOR_ETHEREUM="your private key for mainnet"
-PRIVATE_KEY_FOR_SCHAIN="your private key for SKALE chain"
-ACCOUNT_FOR_ETHEREUM="your account for mainnet"
-ACCOUNT_FOR_SCHAIN="your account for SKALE chain"
-NETWORK_FOR_ETHEREUM="your created network for mainnet"
-NETWORK_FOR_SCHAIN="your created network for SKALE chain"
+git clone --recurse-submodules https://github.com/skalenetwork/IMA.git
+cd IMA
+yarn install
+pip3 install -r scripts/requirements.txt # installs slither
 ```
 
-- deploy only to your mainnet:
+The `postinstall` script automatically compiles all contracts.
+
+
+## Running Tests
+
+Tests run on a local Hardhat network and do not require additional setup beyond installation.
+
+**All tests**
 
 ```bash
-npm run deploy-to-mainnet
+yarn test
 ```
 
-- deploy only to your schain:
+**Single test / suite**
 
 ```bash
-npm run deploy-to-schain
+yarn test test/DepositBoxERC20.ts
 ```
 
-- deploy only to your mainnet and to schain:
+**Coverage**
 
 ```bash
-npm run deploy-to-both
+npx hardhat coverage --solcoverjs .solcover.js
 ```
-
-#### Generate IMA data file for skale-node
-
-Results will be saved to `[RESULTS_FOLDER]/ima_data.json`
-
-- `ARTIFACTS_FOLDER` - path to `build/contracts` folder
-- `RESULTS_FOLDER` - path to the folder where `ima_data.json` will be saved
+### Testing Deployment
 
 ```bash
-cd proxy
-npm run compile
-python ima_datafile_generator.py [ARTIFACTS_FOLDER] [RESULTS_FOLDER]
+bash ./scripts/test_deploy.sh
 ```
 
-## For more information
+This command will create a ganache instance and deploy all contracts to it. Starts by deploying and setting up the required components from skale-manager project. It follows with the deployment of the IMA contracts. There's no need for the .env file used in the next section as the scripts handles the entire workflow.
 
-- [SKALE Network Website](https://skale.network)
-- [SKALE Network Twitter](https://twitter.com/SkaleNetwork)
-- [SKALE Network Blog](https://skale.network/blog)
+## Deployment
 
-Learn more about the SKALE community over on [Discord](https://discord.gg/vvUtWJB).
+### Environment Configuration
 
-## Security and Liability
+Create a `.env` file with the following variables:
 
-All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+```dotenv
+# for mainnet-ima deployment
+URL_W3_ETHEREUM="your Mainnet RPC URL (e.g., Infura endpoint)"
+PRIVATE_KEY_FOR_ETHEREUM="deployer private key for Mainnet"
+SKALE_MANAGER_ADDRESS="SkaleManager address or instance alias"
+GASPRICE="(optional) gas price in wei for ETHEREUM mainnet"
+ETHERSCAN="(optional) Etherscan API key for verification"
+
+# for schain-ima deployment
+URL_W3_S_CHAIN="your SKALE Chain RPC URL"
+CHAIN_NAME_SCHAIN="your SKALE Chain name"
+PRIVATE_KEY_FOR_SCHAIN="deployer private key for SKALE Chain"
+```
+
+### Deploy Commands
+
+**Deploy to Ethereum Mainnet only:**
+
+```bash
+yarn deploy-to-mainnet
+```
+
+**Deploy to SKALE Chain only:**
+
+```bash
+yarn deploy-to-schain
+```
+
+**Deploy to both chains in 1 command:**
+
+```bash
+yarn deploy-to-both-chains
+```
+
+Deployment artifacts are saved to the `data/` directory as `proxyMainnet.json` and `proxySchain_${CHAIN_NAME_SCHAIN}.json`.
+
+### Official deployments - Ethereum Mainnet
+* Blockscout: [message-proxy-for-mainnet](https://eth.blockscout.com/address/0x8629703a9903515818C2FeB45a6f6fA5df8Da404)
+* Etherscan: [message-proxy-for-mainnet](https://etherscan.io/address/0x8629703a9903515818C2FeB45a6f6fA5df8Da404)
+
+**NOTE:** Just like in skale-manager, other contracts related to mainnet-ima can be found from the ContractManager contract, by using the `getContract` function.
+
+
+## Security and Audits
+
+**Static Analysis**
+
+This project uses [slither](https://github.com/crytic/slither) as main tool for static analysis.
+
+The following commands can be used to run static analysis:
+
+```bash
+# Solidity linting
+yarn lint
+
+# TypeScript linting
+yarn eslint
+
+# Slither analysis
+yarn slither
+
+# Full check (all analysers)
+yarn fullCheck
+```
+
+### Third-party Audits
+
+| Company        | Audit Report URL                                                                 | Scope/Date            |
+| :------------- | :------------------------------------------------------------------------------- | :-------------------- |
+| Quantstamp     | [Report](https://certificate.quantstamp.com/full/skale-proxy-contracts.pdf)         | Proxy Contracts, Feb 2021 |
+| Bramah Systems | [Report](./audits/SKALE_Audit_Bramah.pdf)                                        | IMA Contracts, Jun 2021   |
+| Code4rena      | [Report](https://code4rena.com/reports/2022-02-skale)                            | IMA v1, Feb 2022          |
+| Solidified     | [Report](https://github.com/solidified-platform/audits/blob/master/Audit%20Report%20-%20SKALE.pdf) | IMA Contracts, Nov 2022 |
+
+### Bug Bounty Programs
+
+Please see [HackerOne](https://hackerone.com/skale_network?type=team) for SKALE's active bug bounty program **or** submit a bug directly via [encrypted email](mailto:security@skalelabs.com).
+
+
+## Main Branches
+
+- **develop** – Active development branch with the latest features and ongoing work. This is where contributions should be opened.
+- **stable** – Latest stable release, suitable for production deployments.
+
+
+## Resources
+
+- **SKALE Developer Documentation** – https://docs.skale.space/
+- **IMA Agent Repository** – https://github.com/skalenetwork/ima-agent
+- **SKALE Whitepaper** – Whitepaper of SKALE Network: https://skale.space/whitepaper
+- **SKALE Main Website** – High-level overview of the network, architecture, and ecosystem: https://www.skale.space/
+- **SKALE Ecosystem Portal** – Explorer, bridges, staking dashboard, live chains & projects: https://portal.skale.space/
+
 
 ## License
 
 [![License](https://img.shields.io/github/license/skalenetwork/IMA)](LICENSE)
+
 All contributions are made under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE](LICENSE).
+
 Copyright (C) 2019-Present SKALE Labs.
