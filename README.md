@@ -9,7 +9,7 @@
 [![Build Status](https://github.com/skalenetwork/IMA/actions/workflows/test.yml/badge.svg)](https://github.com/skalenetwork/IMA/actions)
 [![codecov](https://codecov.io/gh/skalenetwork/IMA/branch/develop/graph/badge.svg)](https://codecov.io/gh/skalenetwork/IMA)
 
-<p>Smart contracts enabling secure cross-chain asset transfers and messaging within SKALE Network echosystem: Ethereum to Schains, and Schains to Schains</p>
+<p>Smart contracts enabling secure cross-chain asset transfers and messaging within SKALE Network echosystem</p>
 
 </div>
 
@@ -18,7 +18,7 @@
 
 SKALE IMA (Interchain Messaging Agent) is the bridge infrastructure that enables secure, trustless communication between Ethereum Mainnet and SKALE Chains. It provides the smart contract layer for the SKALE Network's interchain messaging system, allowing users to transfer ETH, ERC-20, ERC-721, and ERC-1155 tokens between chains in the SKALE Network.
 
-The system consists of paired smart contracts deployed on both Mainnet and SKALE Chains, coordinated by the [IMA Agent](https://github.com/skalenetwork/ima-agent) service. Messages are cryptographically signed using BLS threshold signatures by SKALE Chain validator nodes, ensuring decentralized security for all cross-chain operations.
+The system consists of paired smart contracts deployed on both Mainnet and SKALE Chains. Messages are relayed using the [IMA Agent](https://github.com/skalenetwork/ima-agent) service created by SKALE. Messages are cryptographically signed and verified using BLS threshold signatures by SKALE Chain validator nodes, ensuring decentralized security for all cross-chain operations.
 
 **Core Capabilities:**
 
