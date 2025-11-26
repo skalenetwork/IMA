@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-# SKALE IMA (Interchain Messaging Agent)
+# SKALE IMA (Interchain Messaging Agent) Contracts
 
 <div align="center">
 
