@@ -26,7 +26,7 @@ The system consists of paired smart contracts deployed on both Mainnet and SKALE
 - **ERC-20 Token Transfers:** Bridge fungible tokens using `DepositBoxERC20` on Mainnet and `TokenManagerERC20` on SKALE Chains.
 - **ERC-721 / ERC-721 with Metadata:** Transfer NFTs with optional metadata preservation via dedicated deposit boxes and token managers.
 - **ERC-1155 Multi-Token Support:** Bridge semi-fungible tokens using `DepositBoxERC1155` and `TokenManagerERC1155`.
-- **Generic Message Proxy:** Send arbitrary cross-chain messages via `MessageProxyForMainnet` and `MessageProxyForSchain` for custom dApp integrations.
+- **Generic Message Proxy:** Send arbitrary cross-chain messages via `MessageProxyForMainnet` and `MessageProxyForSchain` for custom dApp integrations. The modular design of the system allows for easy integration for sending arbitrary cross-chain messages besides the above-mentioned token-transfer capabilities.
 - **Community Pool & Locker:** Manage gas reimbursement and community-controlled asset locking for SKALE Chain operations.
 
 For a detailed overview of the repository structure and organization, see [ARCHITECTURE.md](./ARCHITECTURE.md).
@@ -36,7 +36,7 @@ For a detailed overview of the repository structure and organization, see [ARCHI
 
 ### Prerequisites
 
-- Node.js v18 (V20+ might work but currently are not actively tested by CI)
+- Node.js v18 (v20+ versions reportedly work, but are not actively tested by CI)
 - Python 3.8+ (for static analysis and predeployed scripts)
 
 ### Clone and Install
