@@ -155,9 +155,9 @@ yarn fullCheck
 
 | Company        | Audit Report URL                                                                 | Scope/Date            |
 | :------------- | :------------------------------------------------------------------------------- | :-------------------- |
-| Quantstamp     | [Report](https://certificate.quantstamp.com/full/skale-proxy-contracts.pdf)         | Proxy Contracts, Feb 2021 |
+| Quantstamp     | [Report](https://certificate.quantstamp.com/full/skale-proxy-contracts.pdf)         | IMA Contracts, Feb 2021 |
 | Bramah Systems | [Report](./audits/SKALE_Audit_Bramah.pdf)                                        | IMA Contracts, Jun 2021   |
-| Code4rena      | [Report](https://code4rena.com/reports/2022-02-skale)                            | IMA v1, Feb 2022          |
+| Code4rena      | [Report](https://code4rena.com/reports/2022-02-skale)                            | IMA Contracts, Feb 2022          |
 | Solidified     | [Report](https://github.com/solidified-platform/audits/blob/master/Audit%20Report%20-%20SKALE.pdf) | IMA Contracts, Nov 2022 |
 
 ### Bug Bounty Programs
