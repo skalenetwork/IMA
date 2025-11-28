@@ -22,14 +22,14 @@ The system consists of paired smart contracts deployed on both Mainnet and SKALE
 
 **Core Capabilities:**
 
-- **ETH Bridging:** Deposit and withdraw native ETH between Mainnet and SKALE Chains via `DepositBoxEth` and wrapped ETH (EthERC20) on SKALE.
+- **ETH Bridging:** Deposit and withdraw native ETH between Mainnet and SKALE Chains via `DepositBoxEth` and wrapped ETH (EthERC20) on SKALE Chains.
 - **ERC-20 Token Transfers:** Bridge fungible tokens using `DepositBoxERC20` on Mainnet and `TokenManagerERC20` on SKALE Chains.
 - **ERC-721 / ERC-721 with Metadata:** Transfer NFTs with optional metadata preservation via dedicated deposit boxes and token managers.
 - **ERC-1155 Multi-Token Support:** Bridge semi-fungible tokens using `DepositBoxERC1155` and `TokenManagerERC1155`.
-- **Generic Message Proxy:** Send arbitrary cross-chain messages via `MessageProxyForMainnet` and `MessageProxyForSchain` for custom dApp integrations. The modular design of the system allows for easy integration for sending arbitrary cross-chain messages besides the above-mentioned token-transfer capabilities.
-- **Community Pool & Locker:** Manage gas reimbursement and community-controlled asset locking for SKALE Chain operations.
+- **Generic Message Proxy:** Send arbitrary cross-chain messages via `MessageProxyForMainnet` and `MessageProxyForSchain` for custom dApp integrations. The modular design of the system allows for easy integration for sending arbitrary cross-chain messages - besides the above-mentioned token-transfer capabilities.
+- **Community Pool & Locker:** Manage gas reimbursement to cross-chain messaging agents.
 
-For a detailed overview of the repository structure and organization, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+For an overview of the repository structure, see [ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 
 ## Installation & Setup
@@ -78,7 +78,7 @@ npx hardhat coverage --solcoverjs .solcover.js
 bash ./scripts/test_deploy.sh
 ```
 
-This command will create a ganache instance and deploy all contracts to it. Starts by deploying and setting up the required components from skale-manager project. It follows with the deployment of the IMA contracts. There's no need for the .env file used in the next section as the scripts handles the entire workflow.
+This command will create a ganache instance and deploy all contracts to it. Starts by deploying and setting up the required components from skale-manager project. It follows with the deployment of the IMA contracts. There's no need for the .env file used in the next section as the script handles the entire workflow.
 
 ## Deployment
 
