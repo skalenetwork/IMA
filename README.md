@@ -9,10 +9,12 @@
 [![Build Status](https://github.com/skalenetwork/IMA/actions/workflows/test.yml/badge.svg)](https://github.com/skalenetwork/IMA/actions)
 [![codecov](https://codecov.io/gh/skalenetwork/IMA/branch/develop/graph/badge.svg)](https://codecov.io/gh/skalenetwork/IMA)
 
-<p>Smart contracts enabling secure cross-chain asset transfers and messaging within SKALE Network echosystem</p>
-
+<p>Smart contracts enabling secure cross-chain asset transfers and messaging within SKALE Network ecosystem</p>
 </div>
 
+## A critical note about production readiness
+
+The IMA is still in active development and therefore should be regarded as _alpha software_. The development is still subject to further security hardening, testing, and breaking changes.
 
 ## Introduction
 
