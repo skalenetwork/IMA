@@ -2,6 +2,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { cleanDirectory, ensureDirectory } from "./generateTypes";
 
 const TYPECHAIN_OUTPUT_DIR = "typechain-output";
 const TYPES_PACKAGE_DIR = "types-package";
@@ -90,19 +91,6 @@ For usage examples, contract documentation, and more details, see the [Skale Man
 AGPL-3.0
 `;
 
-function cleanDirectory(dir: string) {
-    if (fs.existsSync(dir)) {
-        console.log(`Cleaning directory: ${dir}`);
-        fs.rmSync(dir, {recursive: true, force: true});
-    }
-}
-
-function ensureDirectory(dir: string) {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, {recursive: true});
-    }
-}
-
 function copyDirectoryRecursive(src: string, dest: string) {
     if (!fs.existsSync(src)) {
         throw new Error(`Source directory does not exist: ${src}`);
@@ -129,16 +117,6 @@ function getVersion(): string {
     if (process.env.VERSION) {
         return process.env.VERSION;
     }
-
-    // Try to get version from main package.json
-    // Currently irrelevant, so commented out
-    /*const packageJsonPath = path.join(process.cwd(), "package.json");
-    if (fs.existsSync(packageJsonPath)) {
-        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-        if (packageJson.version) {
-            return packageJson.version;
-        }
-    }*/
 
     // Default fallback
     return "0.0.1-mock";

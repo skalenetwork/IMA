@@ -8,7 +8,9 @@
         "coverage/**",
         "coverage.json",
         "data/**",
+        "typechain-output/**",
         "typechain-types/**",
+        "types-package/**",
         "**/venv/**",
         "types-package/**",
         "typechain-output/**"
