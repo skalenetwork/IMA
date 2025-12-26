@@ -1538,6 +1538,21 @@
     proper-lockfile "^4.1.1"
     undici "^6.11.1"
 
+"@openzeppelin/hardhat-upgrades@^3.9.0":
+  version "3.9.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/hardhat-upgrades/-/hardhat-upgrades-3.9.1.tgz#7235edb9b2cd1ec3212cb92275daca7f1869732a"
+  integrity sha512-pSDjlOnIpP+PqaJVe144dK6VVKZw2v6YQusyt0OOLiCsl+WUzfo4D0kylax7zjrOxqy41EK2ipQeIF4T+cCn2A==
+  dependencies:
+    "@openzeppelin/defender-sdk-base-client" "^2.1.0"
+    "@openzeppelin/defender-sdk-deploy-client" "^2.1.0"
+    "@openzeppelin/defender-sdk-network-client" "^2.1.0"
+    "@openzeppelin/upgrades-core" "^1.41.0"
+    chalk "^4.1.0"
+    debug "^4.1.1"
+    ethereumjs-util "^7.1.5"
+    proper-lockfile "^4.1.1"
+    undici "^6.11.1"
+
 "@openzeppelin/upgrades-core@^1.27.1":
   version "1.44.2"
   resolved "https://registry.yarnpkg.com/@openzeppelin/upgrades-core/-/upgrades-core-1.44.2.tgz#c38d6adc075f4d5e946c0fef9ba4b68953adec6a"
