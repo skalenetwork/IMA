@@ -104,7 +104,7 @@ async function deployContract(name: string, args: string[], initializer: string)
     await proxy.waitForDeployment();
     const address = await proxy.getAddress();
     console.log("Proxy Contract", name, "deployed to", address);
-    await verifyProxy(name, address, []);
+    await verifyProxy(name, address);
     return proxy;
 }
 
@@ -188,8 +188,8 @@ async function deployCommunityPool(
         "CommunityPool",
         [
             await contractManager.getAddress(),
-            await messageProxyForMainnet.getAddress(),
-            await linker.getAddress()
+            await linker.getAddress(),
+            await messageProxyForMainnet.getAddress()
         ],
         'initialize(address,address,address)'
     ) as unknown as CommunityPool;

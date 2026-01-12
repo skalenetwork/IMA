@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.27;
 
 import "../schain/bls/FieldOperations.sol";
 
@@ -46,9 +46,9 @@ contract SkaleVerifierMock is ISkaleVerifierMock {
 
     /**
     * @dev Verifies a BLS signature.
-    * 
+    *
     * Requirements:
-    * 
+    *
     * - Signature is in G1.
     * - Hash is in G1.
     * - G2.one in G2.
