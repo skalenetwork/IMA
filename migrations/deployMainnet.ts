@@ -104,7 +104,7 @@ async function deployContract(name: string, args: string[], initializer: string)
     await proxy.waitForDeployment();
     const address = await proxy.getAddress();
     console.log("Proxy Contract", name, "deployed to", address);
-    await verifyProxy(name, address, []);
+    await verifyProxy(name, address);
     return proxy;
 }
 
