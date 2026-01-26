@@ -28,7 +28,7 @@ import { AddressLike, Interface } from 'ethers';
 import { ethers, upgrades } from "hardhat";
 import { MessageProxyForMainnet, Linker, ContractManager, CommunityPool } from "../typechain";
 import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
-import { Manifest } from "@openzeppelin/upgrades-core";
+import { isDevelopmentNetwork, Manifest } from "@openzeppelin/upgrades-core";
 import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
 
 
@@ -55,6 +55,32 @@ export function getContractKeyInAbiFile(contract: string) {
 
 export async function getManifestFile(): Promise<string> {
     return (await Manifest.forNetwork(ethers.provider)).file;
+}
+
+export async function isLocalNetwork() {
+    let result = false;
+    try {
+        result = await isDevelopmentNetwork(ethers.provider);
+    } catch {
+        console.error("Failed to detect network type, assuming non-development network");
+    }
+    return result;
+}
+
+export async function calculateGasSpent(startBlock: number, endBlock: number, user: string) {
+    let totalGasUsed = BigInt(0);
+    for (let blockNumber = startBlock; blockNumber <= endBlock; blockNumber++) {
+        const block = await ethers.provider.getBlock(blockNumber, true);
+        if (block === null) throw new Error(`Block ${blockNumber} not found`);
+        for (const txHash of block.transactions) {
+            const tx = await ethers.provider.getTransactionReceipt(txHash);
+            if (tx === null) throw new Error(`Transaction ${txHash} not found`);
+            if (tx.from.toLowerCase() === user.toLowerCase()) {
+                totalGasUsed += BigInt(tx.gasUsed);
+            }
+        }
+    }
+    return totalGasUsed;
 }
 
 async function getContractManager() {
@@ -239,7 +265,8 @@ async function deployDepositBoxes(
 async function main() {
     const deployed = new Map<string, { address: string; interface: Interface }>();
     const version = await getVersion();
-
+    const startBlock = await ethers.provider.getBlockNumber();
+    const [owner] = await ethers.getSigners();
     const messageProxyForMainnet =  await deployMessageProxyForMainnet(deployed);
     await setVersion(messageProxyForMainnet, version);
 
@@ -262,6 +289,13 @@ async function main() {
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 
     console.log("Done");
+
+    if (await isLocalNetwork()) {
+        console.log("Calculating gas used by deployer", owner.address);
+        const endBlock = await ethers.provider.getBlockNumber();
+        const gasUsed = await calculateGasSpent(startBlock, endBlock, owner.address);
+        console.log(`Gas used by deployer: ${gasUsed}`);
+    }
 }
 
 if (require.main === module) {
