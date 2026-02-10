@@ -4,7 +4,7 @@ import { Transaction } from "ethers";
 import { Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
-import { calculateGasSpent, contracts, isLocalNetwork } from "./deployMainnet";
+import { calculateGasSpent, contracts, shouldCalculateGas } from "./deployMainnet";
 
 
 async function getImaMainnetInstance() {
@@ -75,7 +75,7 @@ async function main() {
     );
     await upgrader.upgrade();
 
-    if (await isLocalNetwork()) {
+    if (await shouldCalculateGas()) {
         const [owner] = await ethers.getSigners();
         console.log("Calculating gas used by deployer", owner.address);
         const endBlock = await ethers.provider.getBlockNumber();
