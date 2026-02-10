@@ -16,7 +16,7 @@ on:
       - 'custom-release-*'
 
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 22
   PYTHON_VERSION: 3.8
 
 jobs:
