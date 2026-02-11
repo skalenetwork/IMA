@@ -95,6 +95,7 @@ PRIVATE_KEY_FOR_ETHEREUM="deployer private key for Mainnet"
 SKALE_MANAGER_ADDRESS="SkaleManager address or instance alias"
 GASPRICE="(optional) gas price in wei for ETHEREUM mainnet"
 ETHERSCAN="(optional) Etherscan API key for verification"
+CALCULATE_GAS=true # (Optional) Have script output total gas units spent during deployment
 
 # for schain-ima deployment
 URL_W3_S_CHAIN="your SKALE Chain RPC URL"
