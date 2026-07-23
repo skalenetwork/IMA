@@ -59,10 +59,7 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
         Messages.TransferErc721MessageWithMetadata memory message =
             Messages.decodeTransferErc721MessageWithMetadata(data);
         require(message.erc721message.token.isContract(), "Given address is not a contract");
-        require(
-            IERC721Upgradeable(message.erc721message.token).ownerOf(message.erc721message.tokenId) == address(this),
-            "Incorrect tokenId"
-        );
+        require(transferredAmount[message.erc721message.token][message.erc721message.tokenId] == schainHash, "Incorrect tokenId");
         _removeTransferredAmount(message.erc721message.token, message.erc721message.tokenId);
         IERC721Upgradeable(message.erc721message.token).transferFrom(
             address(this),
