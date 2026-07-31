@@ -13,6 +13,8 @@ module.exports = {
     ignorePatterns: [
         "coverage/**",
         "typechain-types/**",
-        "**/venv/**"
+        "**/venv/**",
+        "types-package/**",
+        "typechain-output/**"
     ]
   };

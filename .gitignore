@@ -5,6 +5,10 @@ cache/
 test-tokens/cache/
 typechain
 test-tokens/typechain
+/typechain-output
+
+# Types package (generated)
+/types-package
 
 # openzeppelin
 .openzeppelin/dev-*.json

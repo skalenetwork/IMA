@@ -15,13 +15,15 @@
         "typeRoots": ["./node_modules/@types", "./typechain"],
         "types": ["node"],
         "esModuleInterop": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
     },
     "include": ["**/*.ts"],
     "exclude": [
         "node_modules",
         "example",
         "build",
-        "test-tokens"
+        "test-tokens",
+        "typechain-output",
+        "types-package"
     ]
 }
