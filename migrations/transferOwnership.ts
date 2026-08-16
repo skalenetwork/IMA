@@ -1,4 +1,4 @@
-import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
+import { calculateGasSpent, contracts, getContractKeyInAbiFile, shouldCalculateGas } from "./deployMainnet";
 import { ethers } from "hardhat";
 import { promises as fs } from "fs";
 import {getAdminAddress } from '@openzeppelin/upgrades-core';
@@ -78,7 +78,16 @@ export async function transferOwnership(contractNamesToTransfer: string[])
 }
 
 async function main() {
+    const startBlock = await ethers.provider.getBlockNumber();
     await transferOwnership(contracts);
+
+    if (await shouldCalculateGas()) {
+        const [owner] = await ethers.getSigners();
+        console.log("Calculating gas used by ", owner.address);
+        const endBlock = await ethers.provider.getBlockNumber();
+        const gasUsed = await calculateGasSpent(startBlock, endBlock, owner.address);
+        console.log(`Gas used to change Ownership: ${gasUsed}`);
+    }
 }
 
 if (require.main === module) {
