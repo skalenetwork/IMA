@@ -68,7 +68,7 @@ async function main() {
         contractNamesToUpgrade = contracts;
     }
     const upgrader = new ImaMainnetUpgrader(
-        "2.2.0",
+        "2.3.0",
         await getImaMainnetInstance(),
         contractNamesToUpgrade
     );

@@ -88,7 +88,7 @@ async function main() {
         contractNamesToUpgrade = contracts;
     }
     const upgrader = new ImaSchainUpgrader(
-        "2.2.0",
+        "2.3.0",
         await getImaSchainInstance(),
         contractNamesToUpgrade
     );
