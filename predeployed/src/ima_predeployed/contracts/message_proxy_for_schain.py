@@ -1,4 +1,5 @@
 from os.path import join, dirname
+from importlib.metadata import version
 from typing import Dict
 
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
@@ -10,7 +11,6 @@ from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MAN
     TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
     TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS
 from web3 import Web3
-from pkg_resources import get_distribution
 
 
 class MessageProxyForSchainGenerator(Generator):
@@ -97,7 +97,7 @@ class MessageProxyForSchainGenerator(Generator):
         cls._write_uint256(storage, inited_slot, 1)
         cls._write_uint256(storage, cls.GAS_LIMIT_SLOT, cls.GAS_LIMIT)
         cls._write_string(storage, cls.VERSION_SLOT,
-                          get_distribution('ima_predeployed').version)
+                          version('ima-predeployed'))
         registry_contracts_slot = Generator.calculate_mapping_value_slot(
             cls.REGISTRY_CONTRACTS_SLOT, cls.ANY_SCHAIN, 'bytes32')
         allowed_contracts = [
