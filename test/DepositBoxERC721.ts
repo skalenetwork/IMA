@@ -323,7 +323,8 @@ describe("DepositBoxERC721", () => {
             };
 
             await erc721.connect(deployer).mint(deployer.address, tokenId);
-            await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721, tokenId);
+            await erc721.connect(deployer).approve(depositBoxERC721, tokenId);
+            await depositBoxERC721.connect(deployer).depositERC721(schainName, erc721, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
@@ -372,6 +373,47 @@ describe("DepositBoxERC721", () => {
             await expect(tx)
                 .to.emit(messageProxy, "PostMessageError")
                 .withArgs(0n, ethers.toUtf8Bytes("Incorrect tokenId"));
+        });
+
+        it("should reject ERC721 exit from a schain that did not receive the deposited NFT", async () => {
+            const tokenId = 10;
+            const attackerSchainName = "AttackerSchain";
+            const attacker = user2.address;
+            const senderFromAttackerSchain = deployer.address;
+
+            const message = {
+                data: await messages.encodeTransferErc721Message(erc721, attacker, tokenId),
+                destinationContract: depositBoxERC721,
+                sender: senderFromAttackerSchain
+            };
+
+            await initializeSchain(contractManager, attackerSchainName, user.address, 2, 1);
+            await addNodesToSchain(contractManager, attackerSchainName, [0]);
+            await rechargeSchainWallet(contractManager, attackerSchainName, user2.address, weiAmount);
+            await setCommonPublicKey(contractManager, attackerSchainName);
+            await linker
+                .connect(deployer)
+                .connectSchain(attackerSchainName, [deployer.address, deployer.address, deployer.address]);
+            await messageProxy.registerExtraContract(attackerSchainName, communityPool);
+            await communityPool
+                .connect(user)
+                .rechargeUserWallet(attackerSchainName, attacker, { value: weiAmount });
+
+            await erc721.mint(deployer.address, tokenId);
+            await erc721.approve(depositBoxERC721, tokenId);
+            await depositBoxERC721.depositERC721(schainName, erc721, tokenId);
+
+            const tx = await messageProxy.connect(nodeAddress).postIncomingMessages(
+                attackerSchainName,
+                0,
+                [message],
+                sign
+            );
+
+            await expect(tx)
+                .to.emit(messageProxy, "PostMessageError")
+                .withArgs(0n, ethers.toUtf8Bytes("Incorrect tokenId"));
+            expect(await erc721.ownerOf(tokenId)).to.equal(depositBoxERC721);
         });
 
         it("should transfer ERC721 token", async () => {

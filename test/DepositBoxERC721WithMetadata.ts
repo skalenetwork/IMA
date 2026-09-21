@@ -329,7 +329,8 @@ describe("DepositBoxERC721WithMetadata", () => {
 
             await erc721.connect(deployer).mint(deployer.address, tokenId);
             await erc721.connect(deployer).setTokenURI(tokenId, tokenURI);
-            await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721WithMetadata, tokenId);
+            await erc721.connect(deployer).approve(depositBoxERC721WithMetadata, tokenId);
+            await depositBoxERC721WithMetadata.connect(deployer).depositERC721(schainName, erc721, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
