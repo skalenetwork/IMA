@@ -19,7 +19,10 @@
         "slither": "slither .",
         "fullCheck": "yarn lint && yarn tsc && yarn eslint && yarn slither",
         "hooks": "git config core.hooksPath .githooks",
-        "no-hooks": "git config core.hooksPath .git/hooks"
+        "no-hooks": "git config core.hooksPath .git/hooks",
+        "generateTypes": "yarn ts-node scripts/generateTypes.ts",
+        "buildTypesPackage": "yarn ts-node scripts/buildTypesPackage.ts",
+        "buildTypes": "yarn generateTypes && yarn buildTypesPackage"
     },
     "dependencies": {
         "@nomicfoundation/hardhat-ethers": "^3.0.8",
@@ -38,6 +41,7 @@
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
         "@nomicfoundation/hardhat-verify": "^2.0.0",
+        "@typechain/ethers-v5": "^11.1.2",
         "@typechain/ethers-v6": "^0.5.1",
         "@typechain/hardhat": "^9.1.0",
         "@types/chai": "^4.2.12",

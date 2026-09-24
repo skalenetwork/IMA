@@ -8,8 +8,12 @@
         "coverage/**",
         "coverage.json",
         "data/**",
+        "typechain-output/**",
         "typechain-types/**",
-        "**/venv/**"
+        "types-package/**",
+        "**/venv/**",
+        "types-package/**",
+        "typechain-output/**"
     ],
     "dictionaries": ["domain-terms", "libraries", "names", "skale-terms", "solidity"],
     "dictionaryDefinitions": [
