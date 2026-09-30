@@ -4,7 +4,7 @@ import { Transaction } from "ethers";
 import { Submitter, Upgrader } from "@skalenetwork/upgrade-tools";
 import { skaleContracts, Instance } from "@skalenetwork/skale-contracts-ethers-v6";
 import { MessageProxyForMainnet } from "../typechain";
-import { contracts } from "./deployMainnet";
+import { calculateGasSpent, contracts, shouldCalculateGas } from "./deployMainnet";
 
 
 async function getImaMainnetInstance() {
@@ -64,6 +64,7 @@ class ImaMainnetUpgrader extends Upgrader {
 
 async function main() {
     let contractNamesToUpgrade: string[] = [];
+    const startBlock = await ethers.provider.getBlockNumber();
     if (process.env.UPGRADE_ALL) {
         contractNamesToUpgrade = contracts;
     }
@@ -73,6 +74,14 @@ async function main() {
         contractNamesToUpgrade
     );
     await upgrader.upgrade();
+
+    if (await shouldCalculateGas()) {
+        const [owner] = await ethers.getSigners();
+        console.log("Calculating gas used by deployer", owner.address);
+        const endBlock = await ethers.provider.getBlockNumber();
+        const gasUsed = await calculateGasSpent(startBlock, endBlock, owner.address);
+        console.log(`Gas used by deployer: ${gasUsed}`);
+    }
 }
 
 if (require.main === module) {
