@@ -24,24 +24,59 @@
  *
  * Moves ownership of the IMA mainnet contracts from an old owner (EOA or Safe)
  * to a new owner:
- * - ownership of every ProxyAdmin (one per proxy or shared)
- * - DEFAULT_ADMIN_ROLE and every role listed in `rolesToCheck`
+ * - ownership of every ProxyAdmin (one per proxy or shared); ProxyAdmins already owned
+ *   by the new owner are skipped, ProxyAdmins owned by any third address make the script fail
+ * - DEFAULT_ADMIN_ROLE and every role listed in `rolesToCheck` that the old owner holds
  * The old owner's roles are renounced afterwards (unless REVOKE_ROLES=false).
+ * Roles held by other accounts (e.g. other admins or contracts) are not touched.
+ *
+ * Contract addresses are resolved through skale-contracts (Linker and the deposit boxes via the
+ * SKALE Manager ContractManager). Run with READONLY=true first and check the printed addresses.
  *
  * Environment variables:
  * - TARGET          (required) mainnet-ima instance alias or MessageProxyForMainnet address
  * - NEW_OWNER       (required) address that receives ownership
- * - MULTISIG_OWNER  (optional) Safe address of the old owner. Transactions are proposed to the Safe.
+ * - MULTISIG_OWNER  (optional) Safe address of the old owner. Transactions are proposed to the Safe
+ *                   (requires GNOSIS_API_KEY; the hardhat signer must be an owner of the Safe).
  *                   If not set, the old owner is the first hardhat signer and transactions are sent directly.
  * - READONLY        (optional) "true" only prints the current state
  * - REVOKE_ROLES    (optional) "false" keeps the old owner's roles after granting them to the new owner
- * - TEST_MODE       (optional) "true" skips interactive confirmations (local testing only)
+ * - TEST_MODE       (optional) "true" skips interactive confirmations (local testing only).
+ *                   It overrides READONLY.
  */
 
 import { ethers } from "hardhat";
+import { Transaction } from "ethers";
 import { skaleContracts } from "@skalenetwork/skale-contracts-ethers-v6";
 import { EoaSubmitter, InstanceAdmin, InstanceAdminOptions, SafeSubmitter } from "@skalenetwork/upgrade-tools";
 import { contracts } from "./deployMainnet";
+
+// When several proxies share one ProxyAdmin, InstanceAdmin creates one ownership transfer of that
+// ProxyAdmin per proxy and submits all of them (it filters duplicates only for logging).
+// The second transfer reverts, so drop identical transactions before submitting.
+function removeDuplicates(transactions: Transaction[]) {
+    const seen = new Set<string>();
+    return transactions.filter(transaction => {
+        const key = `${transaction.to}:${transaction.data}`;
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
+class UniqueEoaSubmitter extends EoaSubmitter {
+    async submit(transactions: Transaction[]) {
+        await super.submit(removeDuplicates(transactions));
+    }
+}
+
+class UniqueSafeSubmitter extends SafeSubmitter {
+    async submit(transactions: Transaction[]) {
+        await super.submit(removeDuplicates(transactions));
+    }
+}
 
 // DEFAULT_ADMIN_ROLE is not listed: InstanceAdmin always handles it
 export const rolesToCheck = [
@@ -109,12 +144,16 @@ async function main() {
     // InstanceAdmin compares addresses as strings, so they must be checksummed
     if (process.env.MULTISIG_OWNER) {
         oldOwner = ethers.getAddress(process.env.MULTISIG_OWNER);
-        submitter = new SafeSubmitter(oldOwner);
+        submitter = new UniqueSafeSubmitter(oldOwner);
     } else {
         oldOwner = (await ethers.getSigners())[0].address;
-        submitter = new EoaSubmitter();
+        submitter = new UniqueEoaSubmitter();
     }
     const newOwner = ethers.getAddress(process.env.NEW_OWNER);
+    if (newOwner === oldOwner) {
+        // Nothing would be granted, but the old owner's roles would still be renounced
+        throw new Error("NEW_OWNER is the same as the old owner");
+    }
 
     console.log(`Old owner: ${oldOwner}`);
     console.log(`New owner: ${newOwner}`);

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# Tests migrations/changeOwnershipMainnet.ts on a local hardhat node:
-#   1. EOA -> EOA: deployer owns every ProxyAdmin and holds extra roles
-#   2. EOA -> Safe: ProxyAdmins (one per proxy) are already owned by a Safe (SafeMock),
-#      the deployer still holds DEFAULT_ADMIN_ROLE and extra roles
+# Tests migrations/changeOwnershipMainnet.ts on a local hardhat node.
+# In every scenario the deployer (old owner, EOA) holds DEFAULT_ADMIN_ROLE and extra roles.
+#   1. EOA -> EOA:  one ProxyAdmin per proxy, owned by the deployer
+#   2. EOA -> Safe: one ProxyAdmin per proxy, already owned by the Safe (SafeMock)
+#   3. EOA -> Safe: one ProxyAdmin shared by all proxies, owned by the deployer
 #
 # The contracts are built from the current sources, but their version() is set to the
 # DEPLOYED version. skale-contracts resolves an instance by downloading the ABI of the
@@ -28,6 +29,15 @@ node_responds() {
         "http://127.0.0.1:$PORT" > /dev/null
 }
 
+# A node started by a previous CI step may still be shutting down
+for _ in $(seq 1 30)
+do
+    if ! node_responds
+    then
+        break
+    fi
+    sleep 1
+done
 if node_responds
 then
     echo "Port $PORT is already in use. Stop the node running there or set PORT"
@@ -90,10 +100,12 @@ change_ownership() {
     npx hardhat run migrations/changeOwnershipMainnet.ts --network mainnet
 }
 
+# run_scenario <new owner: eoa|safe> <ProxyAdmin layout: per-proxy|shared> <ProxyAdmin owner: old|new>
 run_scenario() {
-    echo "=== Scenario: EOA -> $1 ==="
+    echo "=== Scenario: EOA -> $1, $2 ProxyAdmin owned by the $3 owner ==="
     deploy
-    ACTION=prepare NEW_OWNER_TYPE="$1" npx hardhat run scripts/changeOwnershipMainnetTestHelper.ts --network mainnet
+    ACTION=prepare NEW_OWNER_TYPE="$1" PROXY_ADMIN="$2" PROXY_ADMIN_OWNER="$3" \
+    npx hardhat run scripts/changeOwnershipMainnetTestHelper.ts --network mainnet
     change_ownership
     ACTION=verify npx hardhat run scripts/changeOwnershipMainnetTestHelper.ts --network mainnet
     echo "=== Running again: nothing should be left to do ==="
@@ -101,7 +113,8 @@ run_scenario() {
     ACTION=verify npx hardhat run scripts/changeOwnershipMainnetTestHelper.ts --network mainnet
 }
 
-run_scenario eoa
-run_scenario safe
+run_scenario eoa per-proxy old
+run_scenario safe per-proxy new
+run_scenario safe shared old
 
 echo "Change ownership test passed"
