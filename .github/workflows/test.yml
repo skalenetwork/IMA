@@ -81,7 +81,8 @@ jobs:
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
 
   test-predeployed:
-    runs-on: ubuntu-latest
+    # The ethereum PPA (geth) has no packages for the Ubuntu release behind ubuntu-latest yet
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v7

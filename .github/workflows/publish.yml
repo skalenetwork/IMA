@@ -15,6 +15,10 @@ on:
     tags:
       - 'custom-release-*'
 
+# Release creation and the ABI commit to the abi branch use the built-in GITHUB_TOKEN
+permissions:
+  contents: write
+
 env:
   NODE_VERSION: 24
   PYTHON_VERSION: "3.12"
