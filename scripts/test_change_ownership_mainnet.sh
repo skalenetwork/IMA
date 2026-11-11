@@ -22,7 +22,20 @@ PORT=${PORT:-8545}
 NODE_LOG=$(mktemp)
 STATE_FILE=$(mktemp)
 
-npx hardhat node --port "$PORT" > "$NODE_LOG" 2>&1 &
+node_responds() {
+    curl -s -X POST -H "Content-Type: application/json" \
+        --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
+        "http://127.0.0.1:$PORT" > /dev/null
+}
+
+if node_responds
+then
+    echo "Port $PORT is already in use. Stop the node running there or set PORT"
+    exit 1
+fi
+
+# Run the hardhat binary directly (not via npx) so that NODE_PID is the node process itself
+./node_modules/.bin/hardhat node --port "$PORT" > "$NODE_LOG" 2>&1 &
 NODE_PID=$!
 
 cleanup() {
@@ -33,22 +46,26 @@ cleanup() {
 }
 trap cleanup EXIT
 
+NODE_READY=false
 for _ in $(seq 1 60)
 do
-    if curl -s -X POST -H "Content-Type: application/json" \
-        --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
-        "http://127.0.0.1:$PORT" > /dev/null
+    if ! kill -0 "$NODE_PID" 2> /dev/null
     then
         break
     fi
-    if ! kill -0 "$NODE_PID" 2> /dev/null
+    if node_responds
     then
-        cat "$NODE_LOG"
-        echo "Hardhat node failed to start"
-        exit 1
+        NODE_READY=true
+        break
     fi
     sleep 1
 done
+if [ "$NODE_READY" != true ]
+then
+    cat "$NODE_LOG"
+    echo "Hardhat node failed to start"
+    exit 1
+fi
 
 # First default hardhat account. Local test key only.
 export PRIVATE_KEY_FOR_ETHEREUM="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
