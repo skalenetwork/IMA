@@ -16,8 +16,8 @@ on:
       - 'custom-release-*'
 
 env:
-  NODE_VERSION: 22
-  PYTHON_VERSION: 3.8
+  NODE_VERSION: 24
+  PYTHON_VERSION: "3.12"
 
 jobs:
   build:
@@ -33,18 +33,18 @@ jobs:
       version: ${{ steps.version.outputs.version }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
           submodules: recursive
 
     - name: Install NODE JS
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'yarn'
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
@@ -103,7 +103,7 @@ jobs:
         python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
     - name: Store artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: data
         path: data
@@ -136,17 +136,17 @@ jobs:
       VERSION: ${{ needs.build.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: abi
 
       - name: Load artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: data
 
       - name: Commit ABI
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v11
         with:
           default_author: github_actions
           message: "Add ABI for version ${{ env.VERSION }}"
