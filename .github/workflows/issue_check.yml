@@ -15,8 +15,10 @@ jobs:
       - name: Get issues
         id: get-issues
         uses: mondeja/pr-linked-issues-action@v2
+        # The action reads the token from this env var. github.token is the token GitHub creates
+        # for every run (no stored secret); the permissions above limit it to read access.
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
       - name: PR has not linked issues
         if: join(steps.get-issues.outputs.issues) == ''
         run:
