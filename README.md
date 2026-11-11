@@ -38,8 +38,8 @@ For an overview of the repository structure, see [ARCHITECTURE.md](./docs/ARCHIT
 
 ### Prerequisites
 
-- Node.js v18 (v20+ versions reportedly work, but are not actively tested by CI)
-- Python 3.8+ (for static analysis and predeployed scripts)
+- Node.js v24 (the version used by CI)
+- Python 3.12 (for static analysis and predeployed scripts; the version used by CI)
 
 ### Clone and Install
 

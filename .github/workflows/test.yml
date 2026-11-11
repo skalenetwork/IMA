@@ -11,8 +11,8 @@ on:
       - 'docs-v*'
 
 env:
-  NODE_VERSION: 22
-  PYTHON_VERSION: 3.8
+  NODE_VERSION: 24
+  PYTHON_VERSION: "3.12"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -20,19 +20,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         submodules: true
 
     - name: Install PYTHON
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
         cache-dependency-path: scripts/requirements.txt
 
     - name: Install NODE JS
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'yarn'
@@ -72,28 +72,32 @@ jobs:
     - name: Test upgrade from 1.1.3-beta.0
       run: bash scripts/test_upgrade_from_1.1.3-beta.0.sh
 
+    - name: Test change ownership
+      run: bash scripts/test_change_ownership_mainnet.sh
+
     - name: Run tests
       run: |
         npx hardhat coverage --solcoverjs .solcover.js
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
 
   test-predeployed:
-    runs-on: ubuntu-latest
+    # The ethereum PPA (geth) has no packages for the Ubuntu release behind ubuntu-latest yet
+    runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         submodules: true
 
     - name: Install PYTHON
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
         cache-dependency-path: predeployed/test/requirements.txt
 
     - name: Install NODE JS
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'yarn'
@@ -115,7 +119,7 @@ jobs:
       env:
         VERSION: "0.0.0"
       run: |
-        python3 -m pip install build==0.4.0
+        python3 -m pip install --upgrade build
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
